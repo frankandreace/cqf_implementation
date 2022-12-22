@@ -4,6 +4,8 @@
 #include <vector>
 #include <stdint.h> 
 
+#include "additional_methods.hpp"
+
 #endif
 
 
@@ -12,29 +14,22 @@ class Cqf {
     public:
     
     /*
-    
     OPERATIONS ON THE ENTIRE CQF
-    
     */
     // constructor
     Cqf(uint64_t quotient_s);
     Cqf(uint64_t quotient_s, uint64_t n_blocks);
     
     /*
-
-    HIGH LEVEL OPERATIONS
-    
+    HIGH LEVEL PUBLIC OPERATIONS
     */
 
     // insert a new number in the filter
     uint64_t insert(uint64_t number);
-
     // query a number from the filter
     uint64_t query(uint64_t number) const;
-
     // remove(if present) a number from the filter
     uint64_t remove(uint64_t number);
-
     
     private:
     // VALUES
@@ -47,6 +42,15 @@ class Cqf {
     uint64_t block_size;
 
     // FUNCTIONS
+    void shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
+    void shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
+
+    uint64_t find_boundary_shift_deletion(std::vector<uint64_t>& vect, uint64_t start_pos, uint64_t end_pos) const;
+    uint64_t first_unused_slot(std::vector<uint64_t>& vec, uint64_t curr_quotient) const;
+    std::pair<uint64_t,uint64_t> get_run_boundaries(std::vector<uint64_t>& vec, uint64_t quotient) const;
+    uint64_t sel_rank_filter(std::vector<uint64_t>& vec, uint64_t quotient) const;
+
+
     uint64_t quotient(uint64_t num) const;
     uint64_t remainder(uint64_t num) const;
 
