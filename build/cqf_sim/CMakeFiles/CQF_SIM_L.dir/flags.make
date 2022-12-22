@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/francesco/cqf_test-master/cqf_sim/headers
+CXX_INCLUDES = -I/home/francesco/Documents/cqf_implementation/cqf_sim/headers
 
 CXX_FLAGS = -Wall -O3 -fpermissive
 

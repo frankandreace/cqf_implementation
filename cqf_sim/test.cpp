@@ -21,6 +21,10 @@ void print_bits(uint64_t x) {
   std::cout << bits << std::endl;
 }
 
+void print_pair(std::pair<uint64_t,uint64_t> bound){
+  std::cout << bound.first << "-" << bound.second << " ";
+}
+
 void show(uint64_t value, std::string name){
   std::cout << name << std::endl;
   print_bits(value);
@@ -45,155 +49,58 @@ void test_masks(){
   print_bits(mask_right(64));
 }
 
-uint64_t get_block_id(uint64_t number){
-  return number/MEM_UNIT;
-}
+void test_bitselect(){
+  print_bits(mask_left(0));
+  std::cout << "BITSELECT 0,0: " << bitselectasm(mask_left(0),0) << std::endl;
+  std::cout << "BITSELECT 0,1: " << bitselectasm(mask_left(0),1) << std::endl;
 
-uint64_t get_shift_in_block(uint64_t number){
-  return number%MEM_UNIT;
-}
+  print_bits(mask_left(64));
+  std::cout << "BITSELECT 64,0: " << bitselectasm(mask_left(64),0) << std::endl;
+  std::cout << "BITSELECT 64,1: " << bitselectasm(mask_left(64),1) << std::endl;
+  std::cout << "BITSELECT 64,2: " << bitselectasm(mask_left(64),2) << std::endl;
+  std::cout << "BITSELECT 64,3: " << bitselectasm(mask_left(64),3) << std::endl;
+  std::cout << "BITSELECT 64,63: " << bitselectasm(mask_left(64),63) << std::endl;
 
-
-uint64_t get_next_block_id(std::vector<uint64_t>& vec, uint64_t current_block){
-  uint64_t num_blocks = vec.size()/3;
-  //std::cout << "FLI " << filter_length << std::endl;
-  //std::cout << "CBI " << current_block << std::endl;
-  if (current_block < num_blocks - 1 ) return ++current_block;
-  else return 0;
-}
-
-uint64_t get_runend_word(std::vector<uint64_t>& vec, uint64_t current_block){
-  uint64_t runend_id = (current_block * MET_UNIT) + RUN_POS;
-  return vec[runend_id];
-}
-
-uint64_t get_occupied_word(std::vector<uint64_t>& vec, uint64_t current_block){
-  uint64_t occupied_id = (current_block * MET_UNIT) + OCC_POS;
-  return vec[occupied_id];
-}
-
-uint64_t get_offset_word(std::vector<uint64_t>& vec, uint64_t current_block){
-  uint64_t offset_id = (current_block * MET_UNIT) + OFF_POS;
-  return vec[offset_id];
-}
-
-void set_runend_word(std::vector<uint64_t>& vec, uint64_t current_block, uint64_t value ){
-  uint64_t runend_id = (current_block * MET_UNIT) + RUN_POS;
-  vec[runend_id] = value;
-}
-
-void set_offset_word(std::vector<uint64_t>& vec, uint64_t current_block, uint64_t value ){
-  uint64_t offset_id = (current_block * MET_UNIT) + OFF_POS;
-  vec[offset_id] = value;
-}
-
-void set_occupied_bit(std::vector<uint64_t>& vec, uint64_t current_block, uint64_t value ,uint64_t bit_pos){
-  uint64_t occupied_id = (current_block * MET_UNIT) + OCC_POS;
-  uint64_t occ_word = get_occupied_word(vec,current_block);
-  std::cout << "STR ";
-  print_bits(occ_word);
-  value &= mask_right(1);
-  value <<= bit_pos;
-  uint64_t out_value = ((occ_word & mask_right(bit_pos)) | value);
-  std::cout << "MSK ";
-  print_bits((occ_word & mask_right(bit_pos - 1)));
-  std::cout << "MID ";
-  print_bits(out_value);
-  out_value |= (occ_word & mask_left(MEM_UNIT-bit_pos-1));
-  vec[occupied_id] = out_value;
-  std::cout << "END ";
-  print_bits(out_value);
-}
-
-void shift_bits_left_metadata( std::vector<uint64_t>& vect, uint64_t new_bit, uint64_t start_position, uint64_t end_position){
-  uint64_t overflow_bit = new_bit;
-  uint64_t current_block = get_block_id(start_position);
-  uint64_t current_shift_in_block = get_shift_in_block(start_position);
-  uint64_t end_block = get_block_id(end_position);
-  uint64_t end_shift_in_block = get_shift_in_block(end_position);
-
-  uint64_t word_to_shift = 0;
-  uint64_t save_right = 0;
-  uint64_t to_shift = 0;
-
-  //std::cout << "ENP " << end_position << std::endl;
-  //std::cout << "CB  " << current_block << std::endl;
-  //std::cout << "CSB " << current_shift_in_block << std::endl;
-  //std::cout << "EB  " << end_block << std::endl;
-  //std::cout << "ESB " << end_shift_in_block << std::endl;
-
-  /*
-  if (value_occupied == 1){
-        set_occupieds_bit(curr_block,curr_pos_in_block,quot_value);
-    }
-  */
-  set_occupied_bit(vect, current_block,1,3);
-  set_occupied_bit(vect, current_block,1,4);
-  set_occupied_bit(vect, current_block,1,5);
-
+  print_bits(mask_right(1));
+  std::cout << "BITSELECT 1,0: " << bitselectasm(mask_right(1),0) << std::endl;
+  std::cout << "BITSELECT 1,1: " << bitselectasm(mask_right(1),1) << std::endl;
+  std::cout << "BITSELECT 1,2: " << bitselectasm(mask_right(1),2) << std::endl;
+  std::cout << "BITSELECT 1,3: " << bitselectasm(mask_right(1),3) << std::endl;
+  std::cout << "BITSELECT 1,63: " << bitselectasm(mask_right(1),63) << std::endl;
   
+  print_bits(mask_right(63));
+  std::cout << "BITSELECT 63,0: " << bitselectasm(mask_right(63),0) << std::endl;
+  std::cout << "BITSELECT 63,1: " << bitselectasm(mask_right(63),1) << std::endl;
+  std::cout << "BITSELECT 63,2: " << bitselectasm(mask_right(63),2) << std::endl;
+  std::cout << "BITSELECT 63,3: " << bitselectasm(mask_right(63),3) << std::endl;
+  std::cout << "BITSELECT 63,63: " << bitselectasm(mask_right(63),63) << std::endl;
+}
 
-  if ((current_block == end_block) && (start_position > end_position)){
-    //show(iteration, "iteration counter");
-    word_to_shift = get_runend_word(vect, current_block);
-    
-    //show(word_to_shift,"word_to_shift");
-    save_right = word_to_shift & mask_right(current_shift_in_block);
-    to_shift = ((word_to_shift >> current_shift_in_block) << (current_shift_in_block + 1));
-    
+void test_bitrank(){
+  print_bits(mask_left(0));
+  std::cout << "BITRANK 0,0: " << bitrankasm(mask_left(0),0) << std::endl;
+  std::cout << "BITRANK 0,1: " << bitrankasm(mask_left(0),1) << std::endl;
 
-    overflow_bit <<= current_shift_in_block;
-    //show(save_right,"save_right");
-    //show(overflow_bit,"overflow_bit");
+  print_bits(mask_left(64));
+  std::cout << "BITRANK 64,0: " << bitrankasm(mask_left(64),0) << std::endl;
+  std::cout << "BITRANK 64,1: " << bitrankasm(mask_left(64),1) << std::endl;
+  std::cout << "BITRANK 64,2: " << bitrankasm(mask_left(64),2) << std::endl;
+  std::cout << "BITRANK 64,3: " << bitrankasm(mask_left(64),3) << std::endl;
+  std::cout << "BITRANK 64,63: " << bitrankasm(mask_left(64),63) << std::endl;
 
-    to_shift |= (save_right | overflow_bit);
-
-    set_runend_word(vect, current_block, to_shift); 
-    //show(to_shift,"to_shift after");
-    overflow_bit = word_to_shift >> (MEM_UNIT - 1);
-    current_block = get_next_block_id(vect,current_block);
-    //std::cout << "CBA " << current_block << std::endl;
-    current_shift_in_block = 0;
-    //iteration++;
-  }
-
-  while ( current_block != end_block ){
-    //std::cout << "CB  " << current_block << std::endl;
-    //show(iteration, "iteration counter");
-    word_to_shift = get_runend_word(vect, current_block);
-    
-    //show(word_to_shift,"word_to_shift");
-    save_right = word_to_shift & mask_right(current_shift_in_block);
-    to_shift = ((word_to_shift >> current_shift_in_block) << (current_shift_in_block + 1));
-    
-    overflow_bit <<= current_shift_in_block;
-    //show(save_right,"save_right");
-    //show(overflow_bit,"overflow_bit");
-
-    to_shift |= (save_right | overflow_bit);
-
-    set_runend_word(vect, current_block, to_shift); 
-    //show(to_shift,"to_shift after");
-    overflow_bit = word_to_shift >> (MEM_UNIT - 1);
-    current_block = get_next_block_id(vect,current_block);
-    //std::cout << "CBA " << current_block << std::endl;
-    current_shift_in_block = 0;
-    //iteration++;
-  }
-  //show(iteration, "iteration counter");
-  word_to_shift = get_runend_word(vect, current_block);
-  //show(word_to_shift,"word_to_shift");
-
-  uint64_t save_left = (word_to_shift & mask_left(MEM_UNIT-end_shift_in_block));
-  to_shift = ((word_to_shift & mask_right(end_shift_in_block)) << 1);
+  print_bits(mask_right(1));
+  std::cout << "BITRANK 1,0: " << bitrankasm(mask_right(1),0) << std::endl;
+  std::cout << "BITRANK 1,1: " << bitrankasm(mask_right(1),1) << std::endl;
+  std::cout << "BITRANK 1,2: " << bitrankasm(mask_right(1),2) << std::endl;
+  std::cout << "BITRANK 1,3: " << bitrankasm(mask_right(1),3) << std::endl;
+  std::cout << "BITRANK 1,63: " << bitrankasm(mask_right(1),63) << std::endl;
   
-  //show(save_left,"save_left");
-  //show(to_shift,"to_shift");
-
-  to_shift |= (save_left | overflow_bit);
-
-  set_runend_word(vect, current_block, to_shift); 
-  //show(to_shift,"to_shift after");
+  print_bits(mask_right(63));
+  std::cout << "BITRANK 63,0: " << bitrankasm(mask_right(63),0) << std::endl;
+  std::cout << "BITRANK 63,1: " << bitrankasm(mask_right(63),1) << std::endl;
+  std::cout << "BITRANK 63,2: " << bitrankasm(mask_right(63),2) << std::endl;
+  std::cout << "BITRANK 63,3: " << bitrankasm(mask_right(63),3) << std::endl;
+  std::cout << "BITRANK 63,63: " << bitrankasm(mask_right(63),63) << std::endl;
 }
 
 void print_vector(std::vector<uint64_t>& vect){
@@ -208,3 +115,339 @@ void print_vector(std::vector<uint64_t>& vect){
       count++;
     }
   }
+
+void test_rank_select_operations(){
+  uint64_t num_of_words = 9;
+  std::vector<uint64_t> cqf(num_of_words);
+
+  //setto offsets
+  cqf[0] = 0ULL;//1ULL
+  cqf[3] = 0ULL;
+  cqf[6] = 2ULL;
+  
+  //setto occupieds
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[1] = 0b0000000000000010000000000000000010000000000000000000010000000000ULL;
+  cqf[4] = 0b0001000100000000000000000000001000000000000000010000000000000000ULL;
+  cqf[7] = 0b0100000000000000000000000010000000000000000000000000000001000000ULL;
+
+  //setto runends
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[2] = 0b0000000000000100000000000001000000000000000000000001000000000000ULL;
+  cqf[5] = 0b0000000000000000000000000100000000000000010000000000000000000000ULL;
+  cqf[8] = 0b0000000000000000000000010000000000000000000000000001010000001000ULL;
+
+  print_vector(cqf);
+
+  std::cout << "TESTING 3, " << "SELRANK: " << sel_rank_filter(cqf,3) << " EXPECTED: 0" << std::endl;
+
+  //std::cout << "TESTING 9, " << "SELRANK: " << sel_rank_filter(cqf,9) << " EXPECTED: 2" << std::endl;
+
+  //std::cout << "TESTING 10, " << "SELRANK: " << sel_rank_filter(cqf,10) << " EXPECTED: 12" << std::endl;
+ 
+  //std::cout << "TESTING 11, " << "SELRANK: " << sel_rank_filter(cqf,11) << " EXPECTED: 12" << std::endl;
+
+  //std::cout << "TESTING 12, " << "SELRANK: " << sel_rank_filter(cqf,12) << " EXPECTED: 12" << std::endl;
+
+  //std::cout << "TESTING 20, " << "SELRANK: " << sel_rank_filter(cqf,20) << " EXPECTED: 12" << std::endl;
+  
+  //std::cout << "TESTING 48, " << "SELRANK: " << sel_rank_filter(cqf,48) << " EXPECTED: 36" << std::endl;
+
+  //std::cout << "TESTING 49, " << "SELRANK: " << sel_rank_filter(cqf,49) << " EXPECTED: 50" << std::endl;
+
+  //std::cout << "TESTING 50, " << "SELRANK: " << sel_rank_filter(cqf,50) << " EXPECTED: 50" << std::endl;
+
+  std::cout << "TESTING 51, " << "SELRANK: " << sel_rank_filter(cqf,51) << " EXPECTED: 50" << std::endl;
+
+  std::cout << "TESTING 78, " << "SELRANK: " << sel_rank_filter(cqf,78) << " EXPECTED: 50?" << std::endl;
+
+  std::cout << "TESTING 79, " << "SELRANK: " << sel_rank_filter(cqf,79) << " EXPECTED: 50?" << std::endl;
+
+  std::cout << "TESTING 80, " << "SELRANK: " << sel_rank_filter(cqf,80) << " EXPECTED: 86" << std::endl;
+
+  std::cout << "TESTING 81, " << "SELRANK: " << sel_rank_filter(cqf,81) << " EXPECTED: 86" << std::endl;
+
+  std::cout << "TESTING 124, " << "SELRANK: " << sel_rank_filter(cqf,124) << " EXPECTED: 138" << std::endl;
+ 
+  std::cout << "TESTING 126, " << "SELRANK: " << sel_rank_filter(cqf,126) << " EXPECTED: 138" << std::endl;
+
+  std::cout << "TESTING 138, " << "SELRANK: " << sel_rank_filter(cqf,138) << " EXPECTED: 140" << std::endl;
+  
+  std::cout << "TESTING 189, " << "SELRANK: " << sel_rank_filter(cqf,189) << " EXPECTED: 168" << std::endl;
+
+  std::cout << "TESTING 190, " << "SELRANK: " << sel_rank_filter(cqf,190) << " EXPECTED: 2" << std::endl;
+
+  std::cout << "TESTING 191, " << "SELRANK: " << sel_rank_filter(cqf,191) << " EXPECTED: 2" << std::endl;
+
+
+}
+
+
+
+void test_first_unused_slot(){
+  uint64_t num_of_words = 9;
+  std::vector<uint64_t> cqf(num_of_words);
+
+  //setto offsets
+  cqf[0] = 1ULL;//1ULL
+  cqf[3] = 0ULL;
+  cqf[6] = 2ULL;
+  
+  //setto occupieds
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[1] = 0b0000000000000010000000000000000010000000000000000000010000000000ULL;
+  cqf[4] = 0b0001000100000000000000000000001000000000000000010000000000000000ULL;
+  cqf[7] = 0b0100000000000000000000000010000000000000000000000000000001000000ULL;
+
+  //setto runends
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[2] = 0b0000000000000100000000000001000000000000000000000001000000000100ULL;
+  cqf[5] = 0b0000000000000000000000000100000000000000010000000000000000000000ULL;
+  cqf[8] = 0b0000000000000000000000010000000000000000000000000001010000001000ULL;
+
+  print_vector(cqf);
+
+
+  std::cout << "TESTING 5, " << "FUS: " << first_unused_slot(cqf,5) << " EXPECTED: 5" << std::endl;
+
+  std::cout << "TESTING 31, " << "FUS: " << first_unused_slot(cqf,31) << " EXPECTED: 37" << std::endl;
+
+  std::cout << "TESTING 38, " << "FUS: " << first_unused_slot(cqf,38) << " EXPECTED: 38" << std::endl;
+
+  std::cout << "TESTING 90, " << "FUS: " << first_unused_slot(cqf,90) << " EXPECTED: 90" << std::endl;
+
+  std::cout << "TESTING 122, " << "FUS: " << first_unused_slot(cqf,122) << " EXPECTED: 141" << std::endl;
+
+  std::cout << "TESTING 132, " << "FUS: " << first_unused_slot(cqf,132) << " EXPECTED: 141" << std::endl;
+
+  std::cout << "TESTING 191, " << "FUS: " << first_unused_slot(cqf,191) << " EXPECTED: 3" << std::endl;
+
+}
+
+
+
+void test_run_boundaries(){
+  uint64_t num_of_words = 9;
+  std::vector<uint64_t> cqf(num_of_words);
+
+  //setto offsets
+  cqf[0] = 1ULL;//1ULL
+  cqf[3] = 0ULL;
+  cqf[6] = 2ULL;
+  
+  //setto occupieds
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[1] = 0b0000000000000010000000000000000010000000000000000000010000000000ULL;
+  cqf[4] = 0b0001000100000000000000000000001000000000000000010000000000000000ULL;
+  cqf[7] = 0b0100000000000000000000000010000000000000000000000000000001000000ULL;
+
+  //setto runends
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[2] = 0b0000000000000100000000000001000000000000000000000001000000000100ULL;
+  cqf[5] = 0b0000000000000000000000000100000000000000010000000000000000000000ULL;
+  cqf[8] = 0b0000000000000000000000010000000000000000000000000001010000001000ULL;
+
+  print_vector(cqf);
+
+  std::cout << "TESTING 5, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,5)); 
+  std::cout << " EXPECTED: 0-0" << std::endl;
+
+  std::cout << "TESTING 10, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,10)); 
+  std::cout << " EXPECTED: 10-12" << std::endl;
+
+  std::cout << "TESTING 70, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,70)); 
+  std::cout << " EXPECTED: 0-0" << std::endl;
+
+  std::cout << "TESTING 80, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,80)); 
+  std::cout << " EXPECTED: 80-86" << std::endl;
+
+  std::cout << "TESTING 83, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,83)); 
+  std::cout << " EXPECTED: 0-0" << std::endl;
+
+  std::cout << "TESTING 120, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,120)); 
+  std::cout << " EXPECTED: 120-131" << std::endl;
+
+  std::cout << "TESTING 124, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,124)); 
+  std::cout << " EXPECTED: 132-138" << std::endl;
+
+  std::cout << "TESTING 134, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,134)); 
+  std::cout << " EXPECTED: 139-140" << std::endl;
+
+  std::cout << "TESTING 165, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,165)); 
+  std::cout << " EXPECTED: 165-168" << std::endl;
+
+  std::cout << "TESTING 190, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,190)); 
+  std::cout << " EXPECTED: 190-2" << std::endl;
+
+}
+
+void test_empty_case(){
+  uint64_t num_of_words = 9;
+  std::vector<uint64_t> cqf(num_of_words);
+
+  //set offsets
+  cqf[0] = 0ULL;//1ULL
+  cqf[3] = 0ULL;
+  cqf[6] = 0ULL;
+  
+  //set occupieds
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[1] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+  cqf[4] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+  cqf[7] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+
+  //set runends
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[2] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+  cqf[5] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+  cqf[8] = 0b0000000000000000000000000000000000000000000000000000000000000000ULL;
+
+  print_vector(cqf);
+
+
+  std::cout << "TESTING 5, " << "FUS: " << first_unused_slot(cqf,5) << " EXPECTED: 5" << std::endl;
+
+  std::cout << "TESTING 31, " << "FUS: " << first_unused_slot(cqf,31) << " EXPECTED: 37" << std::endl;
+
+  std::cout << "TESTING 38, " << "FUS: " << first_unused_slot(cqf,38) << " EXPECTED: 38" << std::endl;
+
+  std::cout << "TESTING 90, " << "FUS: " << first_unused_slot(cqf,90) << " EXPECTED: 90" << std::endl;
+
+  std::cout << "TESTING 122, " << "FUS: " << first_unused_slot(cqf,122) << " EXPECTED: 141" << std::endl;
+
+  std::cout << "TESTING 132, " << "FUS: " << first_unused_slot(cqf,132) << " EXPECTED: 141" << std::endl;
+
+  std::cout << "TESTING 191, " << "FUS: " << first_unused_slot(cqf,191) << " EXPECTED: 3" << std::endl;
+
+  std::cout << "TESTING 5, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,5)); 
+  std::cout << " EXPECTED: 0-0" << std::endl;
+
+  std::cout << "TESTING 10, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,10)); 
+  std::cout << " EXPECTED: 10-12" << std::endl;
+
+  std::cout << "TESTING 70, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,70)); 
+  std::cout << " EXPECTED: 0-0" << std::endl;
+
+  std::cout << "TESTING 80, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,80)); 
+  std::cout << " EXPECTED: 80-86" << std::endl;
+
+  std::cout << "TESTING 124, " << "SELRANK: " << sel_rank_filter(cqf,124) << " EXPECTED: 138" << std::endl;
+ 
+  std::cout << "TESTING 126, " << "SELRANK: " << sel_rank_filter(cqf,126) << " EXPECTED: 138" << std::endl;
+
+  std::cout << "TESTING 138, " << "SELRANK: " << sel_rank_filter(cqf,138) << " EXPECTED: 140" << std::endl;
+  
+  std::cout << "TESTING 189, " << "SELRANK: " << sel_rank_filter(cqf,189) << " EXPECTED: 168" << std::endl;
+
+  std::cout << "TESTING 190, " << "SELRANK: " << sel_rank_filter(cqf,190) << " EXPECTED: 2" << std::endl;
+
+  std::cout << "TESTING 191, " << "SELRANK: " << sel_rank_filter(cqf,191) << " EXPECTED: 2" << std::endl;
+
+  std::cout << "TESTING 31, " << "RB: " << find_boundary_shift_deletion(cqf, 31, first_unused_slot(cqf,31) - 1) << " EXPECTED: 48" << std::endl;
+
+  std::cout << "TESTING 35, " << "RB: " << find_boundary_shift_deletion(cqf, 35, first_unused_slot(cqf,35) - 1) << " EXPECTED: 48" << std::endl;
+
+  std::cout << "TESTING 122, " << "RB: " << find_boundary_shift_deletion(cqf, 122, first_unused_slot(cqf,122) - 1) << " EXPECTED: 140" << std::endl;
+
+  std::cout << "TESTING 134, " << "RB: " << find_boundary_shift_deletion(cqf, 134, first_unused_slot(cqf,134) - 1) << " EXPECTED: 140" << std::endl;
+
+}
+
+void test_boundary_shift_deletion(){
+  uint64_t num_of_words = 9;
+  std::vector<uint64_t> cqf(num_of_words);
+
+  //setto offsets
+  cqf[0] = 1ULL;//1ULL
+  cqf[3] = 0ULL;
+  cqf[6] = 2ULL;
+  
+  //setto occupieds
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[1] = 0b0000000000000010000000000000000010000000000000000000010000000000ULL;
+  cqf[4] = 0b0001000100000000000000000000001000000000000000010000000000000000ULL;
+  cqf[7] = 0b0100000000000000000000000000000000000000000000000010000001000000ULL;
+
+  //setto runends
+  //       0b1000000010000000100000001000000010000000100000001000000010000000ULL;
+  cqf[2] = 0b0000000000000101000000000000000000000000000000000001000000000100ULL;
+  cqf[5] = 0b0000000000000000000000000100000000000000010000000000000000000000ULL;
+  cqf[8] = 0b0000000000000000000000010000000000000000000000000001010000001000ULL;
+
+  print_vector(cqf);
+  std::cout << "TESTING RBS" << std::endl;
+
+  std::cout << "TESTING 31, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,31)); 
+  std::cout << " EXPECTED: 31-48" << std::endl;
+
+  std::cout << "TESTING 49, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,49)); 
+  std::cout << " EXPECTED: 49-50" << std::endl;
+
+  std::cout << "TESTING 120, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,120)); 
+  std::cout << " EXPECTED: 120-131" << std::endl;
+
+  std::cout << "TESTING 124, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,124)); 
+  std::cout << " EXPECTED: 132-138" << std::endl;
+
+  std::cout << "TESTING 134, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,134)); 
+  std::cout << " EXPECTED: 139-140" << std::endl;
+
+  std::cout << "TESTING 141, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,141)); 
+  std::cout << " EXPECTED: 141-168" << std::endl;
+
+  std::cout << "TESTING 190, " << "RB: ";
+  print_pair(get_run_boundaries(cqf,190)); 
+  std::cout << " EXPECTED: 190-2" << std::endl;
+
+  std::cout << std::endl << std::endl;
+  std::cout << "TESTING FIRST UNUSED SLOT" << std::endl;
+
+  std::cout << "TESTING 31, " << "FUS: " << first_unused_slot(cqf,31) << " EXPECTED: 51" << std::endl;
+
+  std::cout << "TESTING 38, " << "FUS: " << first_unused_slot(cqf,38) << " EXPECTED: 51" << std::endl;
+
+  std::cout << "TESTING 90, " << "FUS: " << first_unused_slot(cqf,90) << " EXPECTED: 90" << std::endl;
+
+  std::cout << "TESTING 122, " << "FUS: " << first_unused_slot(cqf,122) << " EXPECTED: 169" << std::endl;
+
+  std::cout << "TESTING 138, " << "FUS: " << first_unused_slot(cqf,132) << " EXPECTED: 169" << std::endl;
+
+  std::cout << "TESTING 191, " << "FUS: " << first_unused_slot(cqf,191) << " EXPECTED: 3" << std::endl;
+
+
+  std::cout << std::endl << std::endl;
+  std::cout << "TESTING SHIFT BOUNDARIES" << std::endl;
+
+  std::cout << "TESTING 31, " << "RB: " << find_boundary_shift_deletion(cqf, 31, first_unused_slot(cqf,31) - 1) << " EXPECTED: 48" << std::endl;
+
+  std::cout << "TESTING 35, " << "RB: " << find_boundary_shift_deletion(cqf, 35, first_unused_slot(cqf,35) - 1) << " EXPECTED: 48" << std::endl;
+
+  std::cout << "TESTING 122, " << "RB: " << find_boundary_shift_deletion(cqf, 122, first_unused_slot(cqf,122) - 1) << " EXPECTED: 140" << std::endl;
+
+  std::cout << "TESTING 134, " << "RB: " << find_boundary_shift_deletion(cqf, 134, first_unused_slot(cqf,134) - 1) << " EXPECTED: 140" << std::endl;
+
+  std::cout << "TESTING 135, " << "RB: " << find_boundary_shift_deletion(cqf, 135, first_unused_slot(cqf,135) - 1) << " EXPECTED: 140" << std::endl;
+
+  std::cout << "TESTING 190, " << "RB: " << find_boundary_shift_deletion(cqf, 190, first_unused_slot(cqf,190) - 1) << " EXPECTED: 2" << std::endl;
+
+}

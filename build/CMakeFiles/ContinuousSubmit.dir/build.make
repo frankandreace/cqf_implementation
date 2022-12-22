@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/francesco/cqf_test-master
+CMAKE_SOURCE_DIR = /home/francesco/Documents/cqf_implementation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/francesco/cqf_test-master/build
+CMAKE_BINARY_DIR = /home/francesco/Documents/cqf_implementation/build
 
 # Utility rule file for ContinuousSubmit.
 
@@ -82,6 +82,6 @@ CMakeFiles/ContinuousSubmit.dir/clean:
 .PHONY : CMakeFiles/ContinuousSubmit.dir/clean
 
 CMakeFiles/ContinuousSubmit.dir/depend:
-	cd /home/francesco/cqf_test-master/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/francesco/cqf_test-master /home/francesco/cqf_test-master /home/francesco/cqf_test-master/build /home/francesco/cqf_test-master/build /home/francesco/cqf_test-master/build/CMakeFiles/ContinuousSubmit.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/francesco/Documents/cqf_implementation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/francesco/Documents/cqf_implementation /home/francesco/Documents/cqf_implementation /home/francesco/Documents/cqf_implementation/build /home/francesco/Documents/cqf_implementation/build /home/francesco/Documents/cqf_implementation/build/CMakeFiles/ContinuousSubmit.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ContinuousSubmit.dir/depend
 

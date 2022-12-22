@@ -1,4 +1,4 @@
-# Install script for directory: /home/francesco/cqf_test-master
+# Install script for directory: /home/francesco/Documents/cqf_implementation
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/francesco/cqf_test-master/build/cqf_sim/cmake_install.cmake")
+  include("/home/francesco/Documents/cqf_implementation/build/cqf_sim/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -55,5 +55,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/francesco/cqf_test-master/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/francesco/Documents/cqf_implementation/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

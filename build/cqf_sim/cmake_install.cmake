@@ -1,4 +1,4 @@
-# Install script for directory: /home/francesco/cqf_test-master/cqf_sim
+# Install script for directory: /home/francesco/Documents/cqf_implementation/cqf_sim
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

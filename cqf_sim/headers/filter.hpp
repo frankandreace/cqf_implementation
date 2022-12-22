@@ -35,8 +35,6 @@ class Cqf {
     // remove(if present) a number from the filter
     uint64_t remove(uint64_t number);
 
-
-
     
     private:
     // VALUES
@@ -49,5 +47,21 @@ class Cqf {
     uint64_t block_size;
 
     // FUNCTIONS
+    uint64_t quotient(uint64_t num) const;
+    uint64_t remainder(uint64_t num) const;
 
-};
+    uint64_t get_next_quot(uint64_t current_quot) const;
+    uint64_t get_prev_quot(uint64_t current_quot) const;
+    
+    uint64_t get_prev_block_id(uint64_t current_block) const;
+    uint64_t get_next_block_id(uint64_t current_block) const;
+    
+    uint64_t get_runend_word(uint64_t current_block) const;
+    uint64_t get_occupied_word(uint64_t current_block) const;
+    uint64_t get_offset_word(uint64_t current_block) const;
+
+    void Cqf::set_runend_word(uint64_t current_block, uint64_t value);
+    void Cqf::set_offset_word(uint64_t current_block, uint64_t value);
+    void Cqf::set_occupied_bit(uint64_t current_block, uint64_t value, uint64_t bit_pos);
+};  
+
