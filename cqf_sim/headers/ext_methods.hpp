@@ -38,4 +38,13 @@ uint64_t get_offset_word(std::vector<uint64_t>& vec, uint64_t current_block);
 uint64_t get_occupied_word(std::vector<uint64_t>& vec, uint64_t current_block);
 uint64_t get_runend_word(std::vector<uint64_t>& vec, uint64_t current_block);
 
+void test_masks();
+void test_bitselect();
+void test_bitrank();
+void test_rank_select_operations();
+void test_first_unused_slot();
+void test_run_boundaries();
+void test_boundary_shift_deletion();
+void test_empty_case();
+
 #endif

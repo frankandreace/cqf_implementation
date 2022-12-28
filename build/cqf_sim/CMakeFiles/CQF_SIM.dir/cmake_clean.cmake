@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/CQF_SIM.dir/ext_methods.cpp.o"
-  "CMakeFiles/CQF_SIM.dir/ext_methods.cpp.o.d"
+  "CMakeFiles/CQF_SIM.dir/additional_methods.cpp.o"
+  "CMakeFiles/CQF_SIM.dir/additional_methods.cpp.o.d"
   "CMakeFiles/CQF_SIM.dir/filter.cpp.o"
   "CMakeFiles/CQF_SIM.dir/filter.cpp.o.d"
   "CMakeFiles/CQF_SIM.dir/main.cpp.o"

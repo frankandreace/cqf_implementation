@@ -1,14 +1,14 @@
 add_library(CQF_SIM_L
-	ext_methods.cpp
+	additional_methods.cpp
 	filter.cpp
 	test.cpp
 )
 
 add_executable(CQF_SIM
-ext_methods.cpp
-filter.cpp
-test.cpp
-main.cpp
+	additional_methods.cpp
+	filter.cpp
+	test.cpp
+	main.cpp
 )
 
 target_include_directories(CQF_SIM

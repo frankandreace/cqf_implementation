@@ -183,7 +183,5 @@ cqf_sim/CMakeFiles/CQF_SIM.dir/filter.cpp.o: \
  /usr/include/c++/11/tr1/poly_hermite.tcc \
  /usr/include/c++/11/tr1/poly_laguerre.tcc \
  /usr/include/c++/11/tr1/riemann_zeta.tcc \
- /home/francesco/Documents/cqf_implementation/cqf_sim/headers/ext_methods.hpp \
- /home/francesco/Documents/cqf_implementation/cqf_sim/headers/test.hpp \
  /home/francesco/Documents/cqf_implementation/cqf_sim/headers/filter.hpp \
  /home/francesco/Documents/cqf_implementation/cqf_sim/headers/additional_methods.hpp

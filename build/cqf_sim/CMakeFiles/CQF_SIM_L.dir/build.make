@@ -69,19 +69,19 @@ include cqf_sim/CMakeFiles/CQF_SIM_L.dir/progress.make
 # Include the compile flags for this target's objects.
 include cqf_sim/CMakeFiles/CQF_SIM_L.dir/flags.make
 
-cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o: cqf_sim/CMakeFiles/CQF_SIM_L.dir/flags.make
-cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o: ../cqf_sim/ext_methods.cpp
-cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o: cqf_sim/CMakeFiles/CQF_SIM_L.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/francesco/Documents/cqf_implementation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o"
-	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o -MF CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o.d -o CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o -c /home/francesco/Documents/cqf_implementation/cqf_sim/ext_methods.cpp
+cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o: cqf_sim/CMakeFiles/CQF_SIM_L.dir/flags.make
+cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o: ../cqf_sim/additional_methods.cpp
+cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o: cqf_sim/CMakeFiles/CQF_SIM_L.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/francesco/Documents/cqf_implementation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o"
+	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o -MF CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o.d -o CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o -c /home/francesco/Documents/cqf_implementation/cqf_sim/additional_methods.cpp
 
-cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.i"
-	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/francesco/Documents/cqf_implementation/cqf_sim/ext_methods.cpp > CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.i
+cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.i"
+	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/francesco/Documents/cqf_implementation/cqf_sim/additional_methods.cpp > CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.i
 
-cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.s"
-	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/francesco/Documents/cqf_implementation/cqf_sim/ext_methods.cpp -o CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.s
+cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.s"
+	cd /home/francesco/Documents/cqf_implementation/build/cqf_sim && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/francesco/Documents/cqf_implementation/cqf_sim/additional_methods.cpp -o CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.s
 
 cqf_sim/CMakeFiles/CQF_SIM_L.dir/filter.cpp.o: cqf_sim/CMakeFiles/CQF_SIM_L.dir/flags.make
 cqf_sim/CMakeFiles/CQF_SIM_L.dir/filter.cpp.o: ../cqf_sim/filter.cpp
@@ -113,14 +113,14 @@ cqf_sim/CMakeFiles/CQF_SIM_L.dir/test.cpp.s: cmake_force
 
 # Object files for target CQF_SIM_L
 CQF_SIM_L_OBJECTS = \
-"CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o" \
+"CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o" \
 "CMakeFiles/CQF_SIM_L.dir/filter.cpp.o" \
 "CMakeFiles/CQF_SIM_L.dir/test.cpp.o"
 
 # External object files for target CQF_SIM_L
 CQF_SIM_L_EXTERNAL_OBJECTS =
 
-cqf_sim/libCQF_SIM_L.a: cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o
+cqf_sim/libCQF_SIM_L.a: cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o
 cqf_sim/libCQF_SIM_L.a: cqf_sim/CMakeFiles/CQF_SIM_L.dir/filter.cpp.o
 cqf_sim/libCQF_SIM_L.a: cqf_sim/CMakeFiles/CQF_SIM_L.dir/test.cpp.o
 cqf_sim/libCQF_SIM_L.a: cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make

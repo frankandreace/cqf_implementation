@@ -45,6 +45,11 @@ int main(int argc, char** argv) {
     //test_first_unused_slot();
     //test_rank_select_operations();
     //test_run_boundaries();
-    test_boundary_shift_deletion();
+    //test_boundary_shift_deletion();
     //test_empty_case();
+
+    //test_cqf_metadata();
+    //test_metadata_shift();
+    //test_set_get_reminder();
+    test_shift_left_add_reminder();
 }

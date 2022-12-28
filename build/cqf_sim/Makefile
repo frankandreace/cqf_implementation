@@ -154,32 +154,32 @@ CQF_SIM/fast:
 	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/build
 .PHONY : CQF_SIM/fast
 
-ext_methods.o: ext_methods.cpp.o
-.PHONY : ext_methods.o
+additional_methods.o: additional_methods.cpp.o
+.PHONY : additional_methods.o
 
 # target to build an object file
-ext_methods.cpp.o:
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.o
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/ext_methods.cpp.o
-.PHONY : ext_methods.cpp.o
+additional_methods.cpp.o:
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.o
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/additional_methods.cpp.o
+.PHONY : additional_methods.cpp.o
 
-ext_methods.i: ext_methods.cpp.i
-.PHONY : ext_methods.i
+additional_methods.i: additional_methods.cpp.i
+.PHONY : additional_methods.i
 
 # target to preprocess a source file
-ext_methods.cpp.i:
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.i
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/ext_methods.cpp.i
-.PHONY : ext_methods.cpp.i
+additional_methods.cpp.i:
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.i
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/additional_methods.cpp.i
+.PHONY : additional_methods.cpp.i
 
-ext_methods.s: ext_methods.cpp.s
-.PHONY : ext_methods.s
+additional_methods.s: additional_methods.cpp.s
+.PHONY : additional_methods.s
 
 # target to generate assembly for a file
-ext_methods.cpp.s:
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/ext_methods.cpp.s
-	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/ext_methods.cpp.s
-.PHONY : ext_methods.cpp.s
+additional_methods.cpp.s:
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM_L.dir/build.make cqf_sim/CMakeFiles/CQF_SIM_L.dir/additional_methods.cpp.s
+	cd /home/francesco/Documents/cqf_implementation/build && $(MAKE) $(MAKESILENT) -f cqf_sim/CMakeFiles/CQF_SIM.dir/build.make cqf_sim/CMakeFiles/CQF_SIM.dir/additional_methods.cpp.s
+.PHONY : additional_methods.cpp.s
 
 filter.o: filter.cpp.o
 .PHONY : filter.o
@@ -270,9 +270,9 @@ help:
 	@echo "... test"
 	@echo "... CQF_SIM"
 	@echo "... CQF_SIM_L"
-	@echo "... ext_methods.o"
-	@echo "... ext_methods.i"
-	@echo "... ext_methods.s"
+	@echo "... additional_methods.o"
+	@echo "... additional_methods.i"
+	@echo "... additional_methods.s"
 	@echo "... filter.o"
 	@echo "... filter.i"
 	@echo "... filter.s"

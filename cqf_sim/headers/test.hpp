@@ -2,16 +2,10 @@
 #define TEST_HPP
 #include <stdint.h> 
 
-void print_bits(uint64_t x);
-
-void test_masks();
-void test_bitselect();
-void test_bitrank();
-void test_rank_select_operations();
-void test_first_unused_slot();
-void test_run_boundaries();
-void test_boundary_shift_deletion();
-void test_empty_case();
+void test_cqf_metadata();
+void test_metadata_shift();
+void test_set_get_reminder();
+void test_shift_left_add_reminder();
 
 void shift_bits_left_metadata( std::vector<uint64_t>& vect,uint64_t quotient, uint64_t new_bit, uint64_t start_position, uint64_t end_position);
 void print_vector(std::vector<uint64_t>& vect);

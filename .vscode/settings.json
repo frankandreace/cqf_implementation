@@ -57,6 +57,7 @@
         "typeinfo": "cpp",
         "__nullptr": "cpp",
         "__functional_base": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "__locale": "cpp"
     }
 }
