@@ -1,0 +1,8 @@
+**/Makefile
+**/CMakeFiles
+*.cmake
+**/CMakeCache.txt
+*.tcl
+*.a
+
+CQF_SIM
