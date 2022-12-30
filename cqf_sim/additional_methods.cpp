@@ -70,6 +70,10 @@ uint64_t bitrankasm(uint64_t val, uint64_t pos) {
 	return val;
 }
 
+uint64_t get_bit_from_word(uint64_t word, uint64_t pos_bit){
+    return ((word >> pos_bit) & 0b1);
+}
+
 uint64_t get_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t len){
 
     if (!len) return 0;
@@ -85,9 +89,9 @@ uint64_t get_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t len){
 }
 
 void set_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t value, uint64_t len) {
-	std::cout << "value: ";
-	print_bits(value);
-	std::cout << "len: " << len << std::endl;
+	//std::cout << "value: ";
+	//print_bits(value);
+	//std::cout << "len: " << len << std::endl;
 
     assert(pos + len <= vec.size());
     assert(len == MEM_UNIT or (value >> len) == 0);

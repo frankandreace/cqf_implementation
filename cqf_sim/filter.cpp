@@ -51,32 +51,46 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
 
 HIGH LEVEL OPERATIONS
 
+*/
 
-
-uint64_t Cqf::insert(uint64_t number){
+void Cqf::insert(uint64_t number){
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
+    std::cout << "quot " << quot << std::endl;
+    std::cout << "rem " << rem << std::endl;
+
     // GET FIRST UNUSED SLOT
     uint64_t fu_slot = first_unused_slot(quot);
     
+    std::cout << "fu_slot " << fu_slot << std::endl;
+
     // IF THE QUOTIENT HAS NEVER BEEN USED BEFORE
     //PUT THE REMAINDER AT THE END OF THE RUN OF THE PREVIOUS USED QUOTIENT OR AT THE POSITION OF THE QUOTIENT
     uint64_t starting_position = sel_rank_filter(get_prev_quot(quot));
+
+    std::cout << "sel_rank " << starting_position << std::endl;
+
     if (starting_position < quot) starting_position = quot;
 
-    if (!is_occupied(quot)){
-        update_metadata_insertion(1,starting_position,fu_slot);
+    std::cout << "starting_position " << starting_position << std::endl;
 
-        return shift_right_and_set(starting_position, fu_slot, rem);
+    if (!is_occupied(quot)){
+        std::cout << "not occupied " << std::endl;
+        shift_bits_left_metadata(quot, 1,starting_position,fu_slot);
+
+        return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
     // IF THE QUOTIENT HAS BEEN USED BEFORE
     // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
     else{
     //getting boundaries of the run
+        std::cout << "occupied " << std::endl;
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
+        std::cout << "boundary start " << boundary.first << std::endl;
+        std::cout << "boundary end " << boundary.second << std::endl;
     //find the place where the remainder should be inserted / all similar to a query
     //getting position where to start shifting right
         starting_position = boundary.first;
@@ -85,23 +99,29 @@ uint64_t Cqf::insert(uint64_t number){
             uint64_t remainder_in_filter = get_remainder(starting_position); 
             if (remainder_in_filter > rem) break;
             starting_position++;
-    }
-    uint64_t metadata_starting_position = starting_position;
-    if(metadata_starting_position == boundary.second) metadata_starting_position--;
-    update_metadata_insertion(0,starting_position,fu_slot);
+        }
+    std::cout << "element should be placed in  " << starting_position << std::endl;
+
+    uint64_t metadata_starting_position = boundary.first;
+    //if((metadata_starting_position == boundary.second) && (metadata_starting_position != 0)) metadata_starting_position--;
+
+    std::cout << "metadata_starting_position " << metadata_starting_position << std::endl;    
+
+    shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
     // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
-    return shift_right_and_set_circ(starting_position, fu_slot, rem);
+    return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
 
 }
 
 
-uint64_t Cqf::query(uint64_t number) const{
+
+uint64_t Cqf::query(uint64_t number){
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
-    if (is_occupied(quot) == false) return 0;
+    if (!is_occupied(quot)) return 0;
 
     std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
@@ -110,13 +130,14 @@ uint64_t Cqf::query(uint64_t number) const{
 
     uint64_t position = boundary.first;
 
-    while(position <= boundary.second){
+    while(position != boundary.second){
         uint64_t remainder_in_filter = get_remainder(position); 
         if (remainder_in_filter == rem) return 1;
         else if (remainder_in_filter > rem) return 0;
         position = get_next_quot(position);
     }
-
+    uint64_t remainder_in_filter = get_remainder(boundary.second); 
+    if (remainder_in_filter == rem) return 1;
     return 0;
 
 }
@@ -127,42 +148,67 @@ uint64_t Cqf::remove(uint64_t number){
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
+    std::cout << "quot " << quot << std::endl;
+    std::cout << "rem " << rem << std::endl;
+
     if (is_occupied(quot) == false) return 0;
 
     std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+    
+    std::cout << "boundary.first " << boundary.first << std::endl;
+    std::cout << "boundary.second " << boundary.second << std::endl;
 
     // TODO:
     // OPTIMIZE TO LOG LOG SEARCH ?
-    uint64_t pos_element = 0;
+    uint64_t pos_element;
     uint64_t position = boundary.first;
+    bool found = false;
+    uint64_t remainder_in_filter;
 
     // GET POSITION
-    while(position <= boundary.second){
-        uint64_t remainder_in_filter = get_remainder(position); 
+    while(position != boundary.second){
+        remainder_in_filter = get_remainder(position); 
         if (remainder_in_filter == rem) {
             pos_element = position;
+            found = true;
+            std::cout << "FOUND el at pos " << pos_element << std::endl;
             break;
         }
         else if (remainder_in_filter > rem) return 0;
         position = get_next_quot(position);
     }
-    if (pos_element == 0) return 0; //not found
+    remainder_in_filter = get_remainder(boundary.second); 
+    if (remainder_in_filter == rem) {
+        pos_element = position;
+        found = true;
+        std::cout << "FOUND el at pos " << pos_element << std::endl;
+        }
+    if (!found) return 0; //not found
 
     // GET FIRST UNUSED SLOT
     uint64_t end_slot = first_unused_slot(quot);
 
+    std::cout << "fus " << end_slot << std::endl;
+
     // FIND THE EXACT RIGHTMOST ELEMENT TO SHIFT LEFT
-    end_slot = find_rightmost_to_shift_left(position,end_slot);
+    end_slot = find_boundary_shift_deletion(pos_element,get_prev_quot(end_slot));
+
+    std::cout << "end_slot_shift " << end_slot << std::endl;
 
     // REMOVE ELEMENT BY SHIFTING EVERYTHING LEFT OF ONE REMINDER
-    shift_left_and_rem_circ(position,end_slot);
+    std::cout << "shifting remainders  " << std::endl;
+    std::cout << "from " << pos_element << " to " << end_slot << std::endl;
+    shift_right_and_rem_circ(pos_element,end_slot);
+    if(boundary.first == boundary.second) set_occupied_bit(get_block_id(quot),0,get_shift_in_block(quot));
 
-    // MOVE 1 LEFT THE RUNEND OR CLEAR IT WITH OCCUPIED
-    //update_metadata_deletion(boundary,position,end_slot);
+    std::cout << "shifting metadata " << std::endl;
+    std::cout << "from " << pos_element << " to " << end_slot << std::endl;
+    shift_bits_right_metadata(quot,0,pos_element,end_slot);
 
+    return 1;
 }
 
-*/
+
 
 //
 uint64_t Cqf::quotient(uint64_t num) const{
@@ -229,10 +275,10 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
     uint64_t end_word_pos = get_remainder_word_position(end_quotient);
     uint64_t end_word_shift = get_remainder_shift_position(end_quotient);
 
-    //std::cout << "cwp: " << curr_word_pos << std::endl;
-    //std::cout << "cws: " << curr_word_shift << std::endl;
-    //std::cout << "ewp: " << end_word_pos << std::endl;
-    //std::cout << "ews: " << end_word_shift << std::endl;
+    std::cout << "SLS cwp: " << curr_word_pos << std::endl;
+    std::cout << "SLS cws: " << curr_word_shift << std::endl;
+    std::cout << "SLS ewp: " << end_word_pos << std::endl;
+    std::cout << "SLS ews: " << end_word_shift << std::endl;
 
     uint64_t to_shift = 0;
     
@@ -262,6 +308,11 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
 
         set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, (to_shift & mask_right(MEM_UNIT - curr_word_shift - remainder_size)) , MEM_UNIT - curr_word_shift - remainder_size);
 
+        std::cout << "SLS to_shift ";
+        print_bits(to_shift);
+        std::cout << "SLS next_remainder ";
+        print_bits(next_remainder);
+
         next_remainder = to_shift >> (MEM_UNIT - curr_word_shift - remainder_size);
         curr_word_shift = 0;
         curr_word_pos = get_next_remainder_word(curr_word_pos);
@@ -276,6 +327,11 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
 
 
     set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, (to_shift & mask_right(end_word_shift - curr_word_shift)), end_word_shift - curr_word_shift);
+
+    std::cout << "SLS to_shift ";
+    print_bits(to_shift);
+    std::cout << "SLS next_remainder ";
+    print_bits(next_remainder);
 }
 
 
@@ -432,6 +488,19 @@ void Cqf::set_occupied_bit(uint64_t current_block, uint64_t value ,uint64_t bit_
 
 //BITVECTOR AND METADATA OPERATIONS
 
+bool Cqf::is_occupied(uint64_t position){
+    
+    uint64_t block = get_block_id(position);
+    uint64_t pos_in_block = get_shift_in_block(position);
+
+    std::cout << "IO position " << position << std::endl;
+    std::cout << "IO block " << block << std::endl;
+    std::cout << "IO pos_in_block " << pos_in_block << std::endl;
+    std::cout << "IO occupied_id " << get_occupied_word(block) << std::endl;
+
+    return get_bit_from_word(get_occupied_word(block) ,pos_in_block);
+}
+
 uint64_t Cqf::sel_rank_filter(uint64_t quotient) const{
     //assert(quotient < ( 1ULL << quotient_size));
 
@@ -440,7 +509,14 @@ uint64_t Cqf::sel_rank_filter(uint64_t quotient) const{
     uint64_t offset = get_offset_word(block);
     uint64_t occupied = get_occupied_word(block);
 
+    //std::cout << "SR block " << block << std::endl;
+    //std::cout << "SR pos_in_block " << pos_in_block << std::endl;
+    //std::cout << "SR offset " << offset << std::endl;
+    //std::cout << "SR occupied " << occupied << std::endl;
+
     uint64_t position = bitrankasm(occupied,pos_in_block) + offset;
+
+    //std::cout << "SR position " << position << std::endl;
     
     while (position == 0){
 
@@ -453,10 +529,15 @@ uint64_t Cqf::sel_rank_filter(uint64_t quotient) const{
         occupied = get_occupied_word(block);
 
         position = bitrankasm(occupied,MEM_UNIT-1) + offset;
+        //std::cout << "SR position " << position << std::endl;
     }
 
     uint64_t runends = get_runend_word(block);
     uint64_t select = bitselectasm(runends,position - 1);
+
+    //std::cout << "SR p-1 " << (position - 1) << std::endl;
+    //std::cout << "SR runends " << runends << std::endl;
+    //std::cout << "SR select " << select << std::endl;
 
 
     while (select == MEM_UNIT){
@@ -464,28 +545,40 @@ uint64_t Cqf::sel_rank_filter(uint64_t quotient) const{
         block = get_next_block_id(block);
         position -= bitrankasm(runends,MEM_UNIT-1);
         select = bitselectasm(get_runend_word(block),position - 1);
+        //std::cout << "SR select " << select << std::endl;
         
     }
+    //std::cout << "SR FINAL " << (block * MEM_UNIT + select) << std::endl;
 
-    return block * MEM_UNIT + select;
+    return ((block * MEM_UNIT) + select);
 }
 
 std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient) const{
     //assert(quotient < m_num_bits);
-
+    std::cout << "GRB quotient " << quotient << std::endl;
     std::pair<uint64_t, uint64_t> boundaries;
     // the end of the run is found like this
     uint64_t end_pos = sel_rank_filter(quotient);
+    std::cout << "GRB end_pos " << end_pos << std::endl;
+    uint64_t start_pos;
 
-    uint64_t start_pos = sel_rank_filter(get_prev_quot(quotient));
-
+    uint64_t temp = sel_rank_filter(get_prev_quot(quotient));
+    start_pos = get_next_quot(temp);
+    std::cout << "GRB start_pos " << start_pos << std::endl;
     //this should work for circular filter
-    if (((start_pos < quotient) && (start_pos < end_pos) && (end_pos > quotient)) 
-    || ((start_pos < quotient) && (start_pos > end_pos) && (end_pos < quotient)) ) boundaries.first = quotient;
+    if (((start_pos <= quotient) && (start_pos < end_pos) && (end_pos >= quotient)) 
+    || ((start_pos <= quotient) && (start_pos > end_pos) && (end_pos < quotient)) 
+    || ((start_pos >= end_pos) && (start_pos >= quotient))) {
+        std::cout << "GRB IN IF " << std::endl;
+        boundaries.first = quotient;
+    }
+    else boundaries.first = start_pos;
     // it is the position just after the end of the previous
-    else boundaries.first = get_next_quot(start_pos); 
 
     boundaries.second = end_pos;
+
+    std::cout << "GRB boundaries.first " << boundaries.first << std::endl;
+    std::cout << "GRB boundaries.second " << boundaries.second << std::endl;
 
     return boundaries;
 }
@@ -493,14 +586,21 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient) const{
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
     //assert(curr_quotient < ( 1ULL << quotient_size));
     uint64_t rend_pos = sel_rank_filter(curr_quotient);
-    if (rend_pos == 0) return curr_quotient;
+    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+    std::cout << "FUS out of sel_rank " << rend_pos << std::endl;
+    //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
     //preventing erroneous stop when it jumps from the end of the filter to the beginning 
     // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
-    while((curr_quotient < rend_pos) || (get_block_id(curr_quotient) > get_block_id(rend_pos))){
+    uint64_t block = get_block_id(curr_quotient);
+    uint64_t pos_in_block = get_shift_in_block(curr_quotient);
+    uint64_t offset = get_offset_word(block);
+    uint64_t occupied = get_occupied_word(block);
+
+    while((curr_quotient <= rend_pos) || ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && ((bitrankasm(occupied,pos_in_block) + offset) != 0))){
         curr_quotient = get_next_quot(rend_pos);
         rend_pos = sel_rank_filter(curr_quotient);
     }
-
+    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
     return curr_quotient;
 }
 
@@ -514,15 +614,21 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
     uint64_t end_block = get_block_id(end_pos);
     uint64_t end_pos_in_block = get_shift_in_block(end_pos);
 
+    std::cout << "FB curr_block " << curr_block << std::endl;
+    std::cout << "FB curr_pos_in_block " << curr_pos_in_block << std::endl;
+    std::cout << "FB end_block " << end_block << std::endl;
+    std::cout << "FB end_pos_in_block " << end_pos_in_block << std::endl;
+
     // #1 get occupieds, offset and runend word
     uint64_t rend_word = get_runend_word(curr_block);
     uint64_t occ_word = get_occupied_word(curr_block);
     uint64_t offset = get_offset_word(curr_block);
 
-    uint64_t sel_occ = 0;
-    uint64_t sel_rend = 0;
-    uint64_t s_int = 0; // start of the interval for select
-    uint64_t e_int = 0; //end of the interval for select
+
+    uint64_t sel_occ;
+    uint64_t sel_rend;
+    uint64_t s_int; // start of the interval for select
+    uint64_t e_int; //end of the interval for select
 
     if ((curr_block == end_block) && (start_pos > end_pos)){
       s_int = bitrankasm(occ_word,curr_pos_in_block);
@@ -549,10 +655,24 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
         s_int = bitrankasm(occ_word,curr_pos_in_block);
         e_int = bitrankasm(occ_word,MEM_UNIT - 1);
 
-        for (uint64_t i=s_int; i < e_int; ++i){
+        std::cout << "FB-W occ_word  ";
+        print_bits(occ_word);
+        std::cout << "FB-W rend_word ";
+        print_bits(rend_word);
+        std::cout << "FB offset " << offset << std::endl;
+
+        std::cout << "FB-W s_int " << s_int << std::endl;
+        std::cout << "FB-W e_int " << e_int << std::endl;
+        for (uint64_t i=s_int; i <= e_int; ++i){
             
             sel_occ = bitselectasm(occ_word,i); //i + 1
             sel_rend = bitselectasm(rend_word,i + offset - 1);
+            std::cout << "FB-WF occ_word  ";
+            print_bits(occ_word);
+            std::cout << "FB-WF rend_word ";
+            print_bits(rend_word);
+            std::cout << "FB-WF sel_occ " << sel_occ << std::endl;
+            std::cout << "FB-WF sel_rend " << sel_rend << std::endl;
             if (sel_occ > sel_rend){
                 return get_quot_from_block_shift(curr_block,sel_rend);
             }
@@ -563,15 +683,33 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
         rend_word = get_runend_word(curr_block);
         occ_word = get_occupied_word(curr_block);
         offset = get_offset_word(curr_block);
+
+        std::cout << "FB-W curr_block " << curr_block << std::endl;
+        std::cout << "FB-W offset " << offset << std::endl;
     }
     // curr_block = end_block
     s_int = bitrankasm(occ_word,curr_pos_in_block);
     e_int = bitrankasm(occ_word,end_pos_in_block);
 
-    for (uint64_t i=s_int; i < e_int; ++i){
+
+    std::cout << "FB-E occ_word ";
+    print_bits(occ_word);
+    std::cout << "FB-E s_int " << s_int << std::endl;
+    std::cout << "FB-E e_int " << e_int << std::endl;
+
+    for (uint64_t i=s_int; i <= e_int; ++i){
         
         sel_occ = bitselectasm(occ_word,i);
         sel_rend = bitselectasm(rend_word,i+offset-1);
+
+        std::cout << "FB-E occ_word  ";
+        print_bits(occ_word);
+        std::cout << "FB-E rend_word ";
+        print_bits(rend_word);
+
+        std::cout << "FB-E sel_occ " << sel_occ << std::endl;
+        std::cout << "FB-E sel_rend " << sel_rend << std::endl;
+
         if (sel_occ >= sel_rend){
             return get_quot_from_block_shift(curr_block,sel_rend);
         }
@@ -583,16 +721,29 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
 void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position){
     // METHOD FOR INSERTION
 
+  std::cout << "SBLM quotient " << quotient << std::endl; 
+  std::cout << "SBLM flag_bit " << flag_bit << std::endl; 
+  std::cout << "SBLM start_position " << start_position << std::endl; 
+  std::cout << "SBLM end_position " << end_position << std::endl; 
+
   uint64_t overflow_bit = flag_bit;
   uint64_t current_block = get_block_id(start_position);
   uint64_t current_shift_in_block = get_shift_in_block(start_position);
   uint64_t end_block = get_block_id(end_position);
   uint64_t end_shift_in_block = get_shift_in_block(end_position);
 
-  uint64_t word_to_shift = 0;
-  uint64_t save_right = 0;
-  uint64_t to_shift = 0;
-  uint64_t next_block = 0;
+  std::cout << "SBLM overflow_bit " << overflow_bit << std::endl; 
+  std::cout << "SBLM current_block " << current_block << std::endl; 
+  std::cout << "SBLM current_shift_in_block " << current_shift_in_block << std::endl; 
+  std::cout << "SBLM end_block " << end_block << std::endl;
+  std::cout << "SBLM end_shift_in_block " << end_shift_in_block << std::endl;
+
+  uint64_t word_to_shift;
+  uint64_t save_right;
+  uint64_t to_shift;
+  uint64_t next_block;
+  uint64_t old_offset;
+  uint64_t save_left;
   
   // IF FLAG == 1: I HAVE TO SET THE OCCUPIED BIT OF THE QUOTIENT TO 1
   if (flag_bit == 1){
@@ -615,7 +766,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     next_block = get_next_block_id(current_block);
 
     if (overflow_bit == 1){
-        uint64_t old_offset = get_offset_word(current_block);
+        old_offset = get_offset_word(current_block);
 
         if ((bitrankasm(word_to_shift,MEM_UNIT-1) == old_offset) && (old_offset > 0)) set_offset_word(current_block, old_offset - 1);
         set_offset_word(next_block, get_offset_word(next_block) + 1);
@@ -642,7 +793,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     next_block = get_next_block_id(current_block);
 
     if (overflow_bit == 1){
-        uint64_t old_offset = get_offset_word(current_block);
+        old_offset = get_offset_word(current_block);
 
         if ((bitrankasm(word_to_shift,MEM_UNIT-1) == old_offset) && (old_offset > 0)) set_offset_word(current_block, old_offset - 1);
         set_offset_word(next_block, get_offset_word(next_block) + 1);
@@ -652,10 +803,22 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
   }
 
   word_to_shift = get_runend_word(current_block);
-  uint64_t save_left = (word_to_shift & mask_left(MEM_UNIT-end_shift_in_block));
+  save_left = (word_to_shift & mask_left(MEM_UNIT-end_shift_in_block));
+  save_right = word_to_shift & mask_right(current_shift_in_block);
 
-  to_shift = ((word_to_shift & mask_right(end_shift_in_block)) << 1);
-  to_shift |= (save_left | overflow_bit);
+  to_shift = (((word_to_shift & mask_right(end_shift_in_block)) & mask_left(MEM_UNIT - current_shift_in_block)) << 1);
+  to_shift |= ((save_left | (overflow_bit << current_shift_in_block)) | save_right);
+  
+  std::cout << "SBLM word_to_shift ";
+  print_bits(word_to_shift);
+  std::cout << "SBLM save_left ";
+  print_bits(save_left);
+  std::cout << "SBLM save_right ";
+  print_bits(save_right);
+  std::cout << "SBLM to_shift ";
+  print_bits(to_shift);
+
+
   set_runend_word(current_block, to_shift); 
 
 }
@@ -670,10 +833,18 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
   uint64_t end_block = get_block_id(end_position);
   uint64_t end_shift_in_block = get_shift_in_block(end_position);
 
-  uint64_t word_to_shift = 0;
-  uint64_t save_right = 0;
-  uint64_t to_shift = 0;
-  uint64_t next_block = 0;
+std::cout << "SBRM overflow_bit " << overflow_bit << std::endl; 
+  std::cout << "SBRM current_block " << current_block << std::endl; 
+  std::cout << "SBRM current_shift_in_block " << current_shift_in_block << std::endl; 
+  std::cout << "SBRM end_block " << end_block << std::endl;
+  std::cout << "SBRM end_shift_in_block " << end_shift_in_block << std::endl;
+
+  uint64_t word_to_shift;
+  uint64_t save_right;
+  uint64_t to_shift;
+  uint64_t next_block;
+  uint64_t new_offset;
+  uint64_t old_offset;
   
 
   if ((current_block == end_block) && (start_position > end_position)){
@@ -697,11 +868,11 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
 
     overflow_bit >>= (MEM_UNIT - 1);
 
-    uint64_t new_offset = get_offset_word(next_block);
+    new_offset = get_offset_word(next_block);
     if ((overflow_bit == 1) && (new_offset > 0)){
         set_offset_word(next_block, new_offset - 1);
 
-        uint64_t old_offset = get_offset_word(current_block);
+        old_offset = get_offset_word(current_block);
         if (bitrankasm(word_to_shift,MEM_UNIT-1) == old_offset) set_offset_word(current_block, old_offset + 1);
     }
     current_block = next_block;
@@ -717,10 +888,16 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
     word_to_shift = get_runend_word(current_block);
     save_right = word_to_shift & mask_right(current_shift_in_block);
     to_shift = ((word_to_shift >> (current_shift_in_block + 1)) << (current_shift_in_block));
-    //std::cout << "SAVE  ";
-    //print_bits(save_right);
-    //std::cout << "SHIFT ";
-    //print_bits(to_shift);
+
+
+    std::cout << "SBRM mask_right ";
+    print_bits(mask_right(current_shift_in_block));  
+    std::cout << "SBRM word_to_shift ";
+    print_bits(word_to_shift);
+    std::cout << "SBRM save_right ";
+    print_bits(save_right);
+    std::cout << "SBRM to_shift ";
+    print_bits(to_shift);
 
     next_block = get_next_block_id(current_block);
     
@@ -734,25 +911,45 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
 
     overflow_bit >>= (MEM_UNIT - 1);
 
-    uint64_t new_offset = get_offset_word(next_block);
+    new_offset = get_offset_word(next_block);
     if ((overflow_bit == 1) && (new_offset > 0)){
         set_offset_word(next_block, new_offset - 1);
 
-        uint64_t old_offset = get_offset_word(current_block);
-        if (bitrankasm(word_to_shift,MEM_UNIT-1) == old_offset) set_offset_word(current_block, old_offset + 1);
+        old_offset = get_offset_word(current_block);
+        if ((bitrankasm(word_to_shift,MEM_UNIT-1) == (bitrankasm(get_occupied_word(current_block),MEM_UNIT - 1) + old_offset))) set_offset_word(current_block, old_offset + 1);
     }
     current_block = next_block;
     current_shift_in_block = 0;
   }
 
   word_to_shift = get_runend_word(current_block);
-  uint64_t save_left = (word_to_shift & mask_left(MEM_UNIT-end_shift_in_block));
-  to_shift = ((word_to_shift & mask_right(end_shift_in_block)) >> 1);
-  //std::cout << "SAVEL ";
-  //print_bits(save_left);
-  //std::cout << "SHIFT ";
-  //print_bits(to_shift);
-  to_shift |= (save_left | overflow_bit);
+  uint64_t save_left = (word_to_shift & mask_left(MEM_UNIT - end_shift_in_block - 1));
+  save_right = word_to_shift & mask_right(current_shift_in_block);
+
+  std::cout << "SBRM word_to_shift ";
+  print_bits(word_to_shift);
+  std::cout << "SBRM mask_right ";
+  print_bits(mask_right(current_shift_in_block));  
+  std::cout << "SBRM mask_left  ";
+  print_bits(mask_left(MEM_UNIT - end_shift_in_block - 1));  
+  std::cout << "SBRM save_right ";
+  print_bits(save_right);
+  std::cout << "SBRM save_left ";
+  print_bits(save_left);
+
+  to_shift = (((word_to_shift & mask_right(end_shift_in_block + 1)) & mask_left(MEM_UNIT - current_shift_in_block )) >> 1);
+  std::cout << "SBRM mask_right ";
+  print_bits(mask_right(end_shift_in_block + 1));  
+  std::cout << "SBRM mask_left  ";
+  print_bits(mask_left(MEM_UNIT - current_shift_in_block));  
+  std::cout << "SBRM to_shift ";
+  print_bits(to_shift);
+
+  to_shift |= (save_left | save_right);
+
+  std::cout << "SBRM to_shift ";
+  print_bits(to_shift);
+  //to_shift |= (save_left | overflow_bit);
   set_runend_word(current_block, to_shift); 
   //std::cout << "FIN   ";
   //print_bits(to_shift);

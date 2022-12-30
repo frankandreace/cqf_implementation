@@ -14,6 +14,8 @@ uint64_t get_quot_from_block_shift(uint64_t block, uint64_t shift);
 uint64_t bitselectasm(uint64_t num, uint64_t rank);
 uint64_t bitrankasm(uint64_t val, uint64_t pos);
 
+uint64_t get_bit_from_word(uint64_t word, uint64_t pos_bit);
+
 uint64_t get_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t len);
 void set_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t value, uint64_t len);
 

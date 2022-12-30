@@ -50,6 +50,14 @@ int main(int argc, char** argv) {
 
     //test_cqf_metadata();
     //test_metadata_shift();
+    //test_metadata_shift1();
     //test_set_get_reminder();
-    test_shift_left_add_reminder();
+    //test_shift_left_add_reminder();
+
+    //test_boundaries();
+
+    //test_fus();
+    //test_sel_rank_filter();
+    //test_cqf_bound_del();
+    test_insert();
 }

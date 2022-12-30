@@ -25,15 +25,17 @@ class Cqf {
     */
 
     // insert a new number in the filter
-    uint64_t insert(uint64_t number);
+    void insert(uint64_t number);
     // query a number from the filter
-    uint64_t query(uint64_t number) const;
+    uint64_t query(uint64_t number);
     // remove(if present) a number from the filter
     uint64_t remove(uint64_t number);
 
     void show() const;
 
     // FUNCTIONS
+
+    bool is_occupied(uint64_t position);
 
     uint64_t get_remainder(uint64_t position);
     uint64_t get_remainder_func(uint64_t position);
@@ -54,6 +56,7 @@ class Cqf {
     uint64_t sel_rank_filter(uint64_t quotient) const;
     
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
+    uint64_t get_prev_quot(uint64_t current_quot) const;
 
     private:
     // VALUES
@@ -74,7 +77,7 @@ class Cqf {
     uint64_t get_prev_remainder_word(uint64_t current_word) const;
 
     uint64_t get_next_quot(uint64_t current_quot) const;
-    uint64_t get_prev_quot(uint64_t current_quot) const;
+
     
     uint64_t get_prev_block_id(uint64_t current_block) const;
     uint64_t get_next_block_id(uint64_t current_block) const;

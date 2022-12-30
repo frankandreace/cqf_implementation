@@ -4,8 +4,15 @@
 
 void test_cqf_metadata();
 void test_metadata_shift();
+void test_metadata_shift1();
 void test_set_get_reminder();
 void test_shift_left_add_reminder();
+void test_boundaries();
+
+void test_insert();
+void test_fus();
+void test_sel_rank_filter();
+void test_cqf_bound_del();
 
 void shift_bits_left_metadata( std::vector<uint64_t>& vect,uint64_t quotient, uint64_t new_bit, uint64_t start_position, uint64_t end_position);
 void print_vector(std::vector<uint64_t>& vect);
