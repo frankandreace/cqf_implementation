@@ -620,6 +620,38 @@ void test_insert(){
   cqf.insert(to_insert);
   cqf.show();
 
+  to_insert = ((4ULL << 59) | 15ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = ((4ULL << 59) | 157ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = 3ULL << 59;
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = ((4ULL << 59) | 15ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = ((4ULL << 59) | 157ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = 3ULL << 59;
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = ((4ULL << 59) | 15ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
+  to_insert = ((4ULL << 59) | 157ULL);
+  cqf.insert(to_insert);
+  cqf.show();
+
   std::cout << cqf.query((4ULL << 59) | 188ULL) << std::endl;
 
   std::cout << cqf.query((15ULL << 59) | 188ULL) << std::endl;
@@ -725,3 +757,136 @@ void test_cqf_bound_del(){
   std::cout << "TESTING 190, " << "RB: " << cqf.find_boundary_shift_deletion(190, cqf.get_prev_quot(cqf.first_unused_slot(190))) << " EXPECTED: 2" << std::endl;
 
 }
+
+void test_cqf_size(){
+  Cqf cqf(1);
+  uint64_t to_insert;
+  std::pair<uint64_t, uint64_t> x;
+  uint64_t show;
+  uint64_t q_size = cqf.get_quot_size();
+
+  cqf.show_slice(0,5);
+  std::cout << "q_size" << q_size << std::endl;
+  to_insert = 31ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+
+  to_insert = 9ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+
+  to_insert = 1ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+
+  to_insert = ((10ULL << q_size) | 188ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+
+  to_insert = ((11ULL << q_size) | 188ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+
+  to_insert = ((1ULL << q_size) | 188ULL) ;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((3ULL << q_size) | 188ULL) ;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+  cqf.show_slice(0,3);
+
+  to_insert = ((5ULL << q_size) | 188ULL) ;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 188ULL) ;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = 3ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 15ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 157ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = 3ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 15ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 157ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = 3ULL << q_size;
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 15ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  to_insert = ((4ULL << q_size) | 157ULL);
+  std::cout << "inserting" << to_insert << std::endl;
+  cqf.insert(to_insert);
+
+  cqf.show_slice(0,5);
+
+  std::cout << cqf.query((4ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << cqf.query((15ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << cqf.query((4ULL << q_size)) << std::endl;
+
+  std::cout << cqf.query((1ULL << q_size)) << std::endl;
+  
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((1ULL << q_size)) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((4ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((9ULL << q_size)) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((5ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((10ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((1ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((4ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((3ULL << q_size) | 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((31ULL << q_size)) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((11ULL << q_size)| 188ULL) << std::endl;
+
+  std::cout << "REMOVE" << std::endl;
+  std::cout << cqf.remove((3ULL << q_size)) << std::endl;
+  cqf.show_slice(0,5);
+  }

@@ -2,6 +2,8 @@
 #define TEST_HPP
 #include <stdint.h> 
 
+void test_cqf_size();
+
 void test_cqf_metadata();
 void test_metadata_shift();
 void test_metadata_shift1();

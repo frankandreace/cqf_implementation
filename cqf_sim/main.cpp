@@ -59,5 +59,7 @@ int main(int argc, char** argv) {
     //test_fus();
     //test_sel_rank_filter();
     //test_cqf_bound_del();
-    test_insert();
+    //test_insert();
+
+    test_cqf_size();
 }
