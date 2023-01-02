@@ -6,8 +6,7 @@ Implementation of a cqf
 
 From the project root
 ```bash
-	cmake .
-	make
+cmake -S . -B build && cd build && make
 ```
 Binaries are in cqf_sim
 
