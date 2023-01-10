@@ -61,5 +61,7 @@ int main(int argc, char** argv) {
     //test_cqf_bound_del();
     //test_insert();
 
-    test_cqf_size();
+    //test_cqf_size();
+
+    test_cqf_search();
 }

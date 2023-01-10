@@ -890,3 +890,68 @@ void test_cqf_size(){
   std::cout << cqf.remove((3ULL << q_size)) << std::endl;
   cqf.show_slice(0,5);
   }
+
+  void test_cqf_search(){
+    uint64_t num_of_blocks = 3;
+    Cqf cqf(1);
+    uint64_t to_insert;
+
+    to_insert = ((1ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((2ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((1ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((1ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((3ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((1ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((6ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((3ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((8ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((1ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((9ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+
+    to_insert = ((8ULL << 47) | 188ULL);
+    cqf.insert(to_insert);
+    
+    cqf.set_remainder(188, 0);
+    cqf.set_remainder(189, 2);
+    cqf.set_remainder(190, 0);
+    cqf.set_remainder(191, 0);
+
+    cqf.set_remainder(192, 3);
+    cqf.set_remainder(193, 0);
+    cqf.set_remainder(194, 6);
+    cqf.set_remainder(195, 3);
+
+    cqf.set_remainder(196, 8);
+    cqf.set_remainder(197, 0);
+    cqf.set_remainder(198, 9);
+    cqf.set_remainder(199, 8);
+
+    cqf.show_slice(0,4);
+
+    std::pair<uint64_t,uint64_t> boundary = cqf.get_run_boundaries(188ULL);
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,0));
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,3));
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,5));
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,8));
+  }

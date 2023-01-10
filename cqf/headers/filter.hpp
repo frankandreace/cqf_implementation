@@ -39,6 +39,9 @@ class Cqf {
     void show_slice(uint64_t start, uint64_t end) const;
 
     // FUNCTIONS
+    counter_el scan_for_elements(uint64_t start, uint64_t end, uint64_t searched_value);
+
+    uint64_t get_counter(uint64_t position);
 
     bool is_occupied(uint64_t position);
 

@@ -1,12 +1,12 @@
-add_library(CQF_donL
+add_library(CQF_L
 	additional_methods.cpp
 	filter.cpp
 	test.cpp
 )
 
 add_executable(CQF
-	additional_methods.cpp
 	filter.cpp
+	additional_methods.cpp
 	test.cpp
 	main.cpp
 )

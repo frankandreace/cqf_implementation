@@ -20,6 +20,7 @@
 #define RUN_POS 2ULL
 #define SCALE_INPUT 8000000ULL
 
+
 /*
 Cqf::Cqf( uint64_t quotient_s ){
     assert(quotient_s < MEM_UNIT);
@@ -296,6 +297,257 @@ uint64_t Cqf::quotient(uint64_t num) const{
 uint64_t Cqf::remainder(uint64_t num) const{
     return num >> (MEM_UNIT - remainder_size);
 }
+
+// COUNTING OPERATIONS
+/*
+counter_el Cqf::scan_for_elements(uint64_t position, uint64_t end, uint64_t searched_value){
+    uint64_t current_rem = get_remainder(position);
+    uint64_t last_value = current_rem;
+    uint64_t value;
+    uint64_t counter = 1;
+
+    bool found = false;
+    bool reset_count = false;
+    bool has_zero = false;
+
+    counter_el run_info;
+    if (current_rem == 0) {
+        has_zero = true;
+        uint64_t zero_counter = 1;
+    }
+    if (current_rem == searched_value) found = true; 
+
+    while (position != end){
+        position = get_next_quot(position);
+        value = get_remainder(position);
+
+        if (reset_count == true){
+            counter = 1;
+            current_rem = value;
+            last_value = value;
+            continue;
+        }
+
+        if (value == last_value){
+            if (value == 0){ // double zero, escape for 0 run
+                if (found == true){
+                    run_info.end = position;
+                    run_info.count = counter;
+                    return run_info;
+                }
+                else {
+                    reset_count = true;
+                    continue;
+                }
+            }
+            else{   // it is a double value -> escape for a count==2
+                if (found == true){
+                    run_info.end = position;
+                    run_info.count = counter;
+                    return run_info;
+                }
+                else {
+                    reset_count = true;
+                    continue;
+                }
+            }
+        }
+        else if (value < last_value){ //starting or continuation of a counter encoding
+
+        }
+        else{   // value > last_value --> this is a new remainder
+
+        }
+        if (value == searched_value){
+            found = true;
+            run_info.start  = position;       
+        }
+        if  (value > searched_value){
+            if (found == true){
+            run_info.end = get_prev_quot(position);
+            run_info.count = counter;
+            return run_info;
+            }
+        }
+    }
+
+}
+*/
+// return the start,end and counter of the searched value. If not found, start==end correspond to the position
+// where it should be inserted. and counter is 0.
+// this method should work for all counter operations (query,insert,remove).
+counter_el Cqf::scan_for_elements(uint64_t position, uint64_t end, uint64_t searched_value){
+    uint64_t current_rem = get_remainder(position);
+    uint64_t last_rem = current_rem;
+    uint64_t value = current_rem;
+
+    bool found = false;
+    bool reset_count = false;
+
+    counter_el run_info;
+    if (value == searched_value) found = true; 
+
+    while ((position != end) & (found == false)){ // this while works till it finds the searched element or it does not. 
+        position = get_next_quot(position);
+        last_rem = current_rem;
+        current_rem = get_remainder(position);
+
+        if (reset_count == true){
+            value = current_rem;
+            if (value == searched_value) break; // go to the counting while
+            if (value > searched_value) { // the element is not here, return start==end=pos--,count=0
+                    run_info.start = get_prev_quot(position);
+                    run_info.end = run_info.start;
+                    run_info.count = 0;
+                    return run_info;
+            }
+            reset_count = false;
+        }
+
+        if (current_rem == value) { // escape sequence.
+            if (value == 0){ // evaluating the possibility of a 000 counter
+                uint64_t next_pos = get_next_quot(position);
+                if (get_remainder(next_pos) == 0){
+                    position = next_pos;
+                }
+            }
+            reset_count = true;
+        }
+
+        if ((current_rem > last_rem) && (value != 0) && (last_rem !=0)) reset_count = true;
+        else if ((current_rem > last_rem) && (value == 0)){ // scan all the run to find a double 0
+        // if it does not find them, reset_count
+            uint64_t new_position = get_next_quot(position);
+            reset_count = true;
+            if (new_position != end){
+                uint64_t val_zero = get_remainder(new_position);
+                uint64_t prev_val_zero;
+                while (new_position != end){
+                    uint64_t new_position = get_next_quot(new_position);
+                    prev_val_zero = val_zero;
+                    val_zero = get_remainder(new_position);
+
+                    if ((val_zero == 0) and (val_zero == prev_val_zero)) {
+                        position = new_position;
+                        reset_count = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
+    }
+    uint64_t counter = 1;
+    run_info.start = position;
+    // this while should work on the counter of the desired element
+    if (value == 0){
+        position = get_next_quot(position);
+        last_rem = current_rem;
+        current_rem = get_remainder(position);
+        
+        if (current_rem == last_rem){ 
+            uint64_t new_position = get_next_quot(position);
+            if (get_remainder(new_position) == 0){ // 3 consecutive zeros
+                run_info.end = new_position;
+                run_info.count = 3;
+                return run_info;
+            }
+            else{   // 2 consecutive zeros
+                run_info.end = position;
+                run_info.count = 2;
+                return run_info;
+            }
+        }
+        else{ // just one or more than 3
+            while (position != end){
+                counter += current_rem;
+                position = get_next_quot(position);
+                last_rem = current_rem;
+                current_rem = get_remainder(position);
+                counter += current_rem;
+                if ((current_rem == 0) and (current_rem == last_rem)) {
+                    run_info.end = position;
+                    run_info.count = counter + 2;
+                    return run_info;
+                }
+            }
+            run_info.end = run_info.start;
+            run_info.count = 1;
+            return run_info;
+        }
+    }
+    else{ // it is not a zero, easier
+        bool has_seen_zero = false;
+        while (position != end) { 
+            position = get_next_quot(position);
+            last_rem = current_rem;
+            current_rem = get_remainder(position);
+            if (current_rem == 0){
+                has_seen_zero = true;
+                continue;
+            }
+            if (current_rem != value){
+                if ((current_rem > value) && (has_seen_zero == false)) break;
+                counter += current_rem;
+            }
+            else{
+                counter++;
+                run_info.end = position;
+                run_info.count = counter;
+                return run_info;
+            }
+        }
+        run_info.end = run_info.start;
+        run_info.count = 1;
+        return run_info;
+    }
+
+}
+
+
+
+/*
+uint64_t Cqf::get_counter(uint64_t position){
+
+    uint64_t value = get_remainder(position);
+    uint64_t counter = 1; // value of the counter
+    uint64_t num_rem_count = 1; // actual reminder solts used
+
+    position = get_next_quotient(position);
+    new_value = get_remainder(position);
+    
+    while(new_value != value){
+        counter += new_value;
+        num_rem_count++;
+        position = get_next_quotient(position);
+        new_value = get_remainder(position);
+    }
+    counter++;
+    num_rem_count++;
+
+    if (value == 0){ // check that there is another 0
+        position = get_next_quotient(position);
+        new_value = get_remainder(position);
+        assert(new_value == 0);
+        counter++;
+        num_rem_count++;
+    }
+    return counter;
+}
+
+uint64_t Cqf::increase_counter(uint64_t position){
+
+    uint64_t value = get_remainder(position);
+    uint64_t counter = 1; // value of the counter
+    uint64_t num_rem_count = 1; // actual reminder solts used
+
+    position = get_next_quotient(position);
+    new_value = get_remainder(position);
+}
+
+*/
+
+
 
 // REMAINDER OPERATIONS
 

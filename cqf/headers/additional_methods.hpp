@@ -2,6 +2,14 @@
 #define ADDITIONAL_METHODS_HPP
 #include <stdint.h> 
 
+struct counter_el {
+    uint64_t start;
+    uint64_t end;
+    uint64_t count;
+};
+
+
+void print_counter(counter_el x);
 void print_bits(uint64_t x);
 
 uint64_t mask_left(uint64_t num_bits);

@@ -2,6 +2,8 @@
 #define TEST_HPP
 #include <stdint.h> 
 
+#include "additional_methods.hpp"
+
 void test_cqf_size();
 
 void test_cqf_metadata();
@@ -26,5 +28,9 @@ void set_runend_word(std::vector<uint64_t>& vec, uint64_t current_block, uint64_
 uint64_t get_offset_word(std::vector<uint64_t>& vec, uint64_t current_block);
 uint64_t get_occupied_word(std::vector<uint64_t>& vec, uint64_t current_block);
 uint64_t get_runend_word(std::vector<uint64_t>& vec, uint64_t current_block);
+
+
+  
+void test_cqf_search();
 
 #endif

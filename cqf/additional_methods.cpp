@@ -9,12 +9,18 @@ ADDITIONAL METHODS NOT USED BY THE CQF CLASS
 
 #include "additional_methods.hpp"
 
-
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
 #define OFF_POS 0ULL
 #define OCC_POS 1ULL
 #define RUN_POS 2ULL
+
+void print_counter(counter_el x){
+    std::cout << "start: " << x.start << std::endl;
+    std::cout << "end: " << x.end << std::endl;
+    std::cout << "count: " << x.count << std::endl;
+}
+
 
 void print_bits(uint64_t x) {
   std::bitset<MEM_UNIT> bits(x);
