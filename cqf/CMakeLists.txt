@@ -1,4 +1,4 @@
-add_library(CQF_donL
+add_library(CQF_L
 	additional_methods.cpp
 	filter.cpp
 	test.cpp
