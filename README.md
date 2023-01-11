@@ -6,9 +6,9 @@ Implementation of a cqf
 
 From the project root
 ```bash
-cmake -S . -B build && cd build && make
+cmake -S . && make
 ```
-Binaries are in cqf_sim
+Binaries are in bin
 
 ## Tests
 
