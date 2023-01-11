@@ -2,13 +2,17 @@
 
 Implementation of a cqf
 
-## Compilation
+## Compilation of the examples
 
 From the project root
 ```bash
-cmake -S . && make
+cmake . && make
 ```
 Binaries are in bin
+
+## Include the library in your project
+
+## CQF API
 
 ## Tests
 
