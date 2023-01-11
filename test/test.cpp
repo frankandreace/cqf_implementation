@@ -28,7 +28,7 @@ void show(uint64_t value, std::string name){
 
 
 void test_cqf_metadata(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -114,7 +114,7 @@ void test_cqf_metadata(){
 }
 
 void test_fus(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -226,7 +226,7 @@ void test_fus(){
 }
 
 void test_metadata_shift(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -257,7 +257,7 @@ void test_metadata_shift(){
 }
 
 void test_metadata_shift1(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -288,7 +288,7 @@ void test_metadata_shift1(){
 }
 
 void test_set_get_reminder(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -366,7 +366,7 @@ void test_set_get_reminder(){
 }
 
 void test_shift_left_add_reminder(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   //setto offsets
@@ -440,7 +440,7 @@ void test_shift_left_add_reminder(){
 
 void test_boundaries(){
 
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
   cqf.show();
 
@@ -484,7 +484,7 @@ void test_boundaries(){
 }
 
 void test_sel_rank_filter(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
   cqf.cqf[1] =  0b0000000000000000000000000000000000000000000000000000000000000000ULL;
   std::cout << "SL 0, empty vect: " << cqf.sel_rank_filter(0) << std::endl;
@@ -526,12 +526,12 @@ void test_sel_rank_filter(){
 
 void test_insert(){
 
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
   uint64_t to_insert;
   std::pair<uint64_t, uint64_t> x;
-  uint64_t show;
+  // uint64_t show;
 
   cqf.show();
   //show = cqf.first_unused_slot(0);
@@ -698,7 +698,7 @@ void test_insert(){
 }
 
 void test_cqf_bound_del(){
-  uint64_t num_of_blocks = 3;
+  // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
 
     //setto offsets
@@ -762,7 +762,7 @@ void test_cqf_size(){
   Cqf cqf(1);
   uint64_t to_insert;
   std::pair<uint64_t, uint64_t> x;
-  uint64_t show;
+  // uint64_t show;
   uint64_t q_size = cqf.get_quot_size();
 
   cqf.show_slice(0,5);
@@ -889,4 +889,10 @@ void test_cqf_size(){
   std::cout << "REMOVE" << std::endl;
   std::cout << cqf.remove((3ULL << q_size)) << std::endl;
   cqf.show_slice(0,5);
-  }
+}
+
+
+int main(int argc, char** argv) {
+    test_cqf_size();
+    return 0;
+}

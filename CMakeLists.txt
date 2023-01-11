@@ -5,6 +5,7 @@ project(CQF)
 include(CTest)
 enable_testing()
 
-add_compile_options(-Wall -O3 -fpermissive) #-Werror
+add_compile_options(-Wall -Ofast -g -fpermissive) #-Werror
 
 add_subdirectory(cqf)
+add_subdirectory(test)
