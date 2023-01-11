@@ -87,24 +87,19 @@ uint64_t Cqf::get_num_el_inserted(){
 }
 
 uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
-    uint64_t quotinet_s;
+    uint64_t quotient_size;
     uint64_t curr_m;
     
     for (int i = MEM_UNIT - 1; i > 0; --i){
-        //std::cout << "i " << i << std::endl;
-        quotinet_s = i;
-        //std::cout << "quotinet_s " << quotinet_s << std::endl;
-        if (quotinet_s >= (MEM_UNIT - MET_UNIT)){
-            curr_m = ((1ULL << quotinet_s)/SCALE_INPUT) * (MEM_UNIT + MET_UNIT - quotinet_s);
-            //std::cout << "max_memory " << (max_memory*MEM_UNIT) << std::endl;
-            //std::cout << "curr_m (/SCALE)" << curr_m << std::endl;
-            if (max_memory >= curr_m) return quotinet_s;
+        quotient_size = i;
+
+        if (quotient_size >= (MEM_UNIT - MET_UNIT)){
+            curr_m = ((1ULL << quotient_size)/SCALE_INPUT) * (MEM_UNIT + MET_UNIT - quotient_size);
+            if (max_memory >= curr_m) return quotient_size;
         }
         else{
-            curr_m = ((1ULL << quotinet_s)) * (MEM_UNIT + MET_UNIT - quotinet_s);
-            //std::cout << "max_memory " << (max_memory * SCALE_INPUT) << std::endl;
-            //std::cout << "curr_m " << curr_m << std::endl;
-            if (max_memory*SCALE_INPUT >= curr_m) return quotinet_s;
+            curr_m = ((1ULL << quotient_size)) * (MEM_UNIT + MET_UNIT - quotient_size);
+            if (max_memory*SCALE_INPUT >= curr_m) return quotient_size;
         }
 
     }

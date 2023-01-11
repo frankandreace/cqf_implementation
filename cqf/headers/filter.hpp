@@ -19,16 +19,37 @@ class Cqf {
     // constructor
     //Cqf(uint64_t quotient_s);
     Cqf(uint64_t quotient_s, uint64_t n_blocks);
+
+    /** Constructor that deduces quotient and reminder sizes from the desired struct size
+     * @param max_memory The desired size of the CQF (in MBytes)
+     */
     Cqf(uint64_t max_memory);
+    
     /*
     HIGH LEVEL PUBLIC OPERATIONS
     */
+
+    /** Deduce a quotient size from the memory occupation limit
+     * @param max_memory Max size to occupy with the CQF (in MBytes)
+     **/
     uint64_t find_quotient_given_memory(uint64_t max_memory);
-    // insert a new number in the filter
+    
+    /** insert a new number in the filter. TODO: What if already present ?
+     * 
+     * @param number to insert
+     */
     void insert(uint64_t number);
-    // query a number from the filter
+    
+    /** query a number from the filter.
+     * @param number Number to query
+     * @return TODO: ?
+     */
     uint64_t query(uint64_t number);
-    // remove(if present) a number from the filter
+
+    /** remove (if present) a number from the filter
+     * @param number value to remove
+     * @return TODO: ?
+     */
     uint64_t remove(uint64_t number);
 
     uint64_t get_quot_size();
