@@ -8,3 +8,5 @@
 .vscode
 
 CQF
+bin/
+lib/

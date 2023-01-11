@@ -686,7 +686,7 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
     //preventing erroneous stop when it jumps from the end of the filter to the beginning 
     // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
     uint64_t block = get_block_id(curr_quotient);
-    uint64_t pos_in_block = get_shift_in_block(curr_quotient);
+    // uint64_t pos_in_block = get_shift_in_block(curr_quotient);
     uint64_t offset = get_offset_word(block);
     uint64_t occupied = get_occupied_word(block);
 
