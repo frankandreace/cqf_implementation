@@ -18,10 +18,10 @@ class Cqf {
     */
     // constructor
     //Cqf(uint64_t quotient_s);
-    Cqf(uint64_t quotient_s, uint64_t n_blocks);
+    //Cqf(uint64_t quotient_s, uint64_t n_blocks); // deprecated, used for early tests
 
     /** Constructor that deduces quotient and reminder sizes from the desired struct size
-     * @param max_memory The desired size of the CQF (in MBytes)
+     * @param max_memory The desired (maximum) size of the CQF (in MBytes)
      */
     Cqf(uint64_t max_memory);
     
@@ -31,26 +31,54 @@ class Cqf {
 
     /** Deduce a quotient size from the memory occupation limit
      * @param max_memory Max size to occupy with the CQF (in MBytes)
+     * the memory of the CQF is given by 1 parameter: the quotient size(q), the remainder size(r) is (64 - q).
+     * 
+     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and
+     * 'r' words of remainders (since ther are 64 remainders inside) --> (r + 3) words == ((64 - q) + 3) words;
+     * There are 2^(q) quotients in the filter. Each block contains 64 quotients --> #blocks = 2^(q)/64.
+     * Since I cannot analitycally get q from the equation MAX_MEM = (2^(q) / 64)((64 - q) + 3),I try values in a 
+     * for loop.
+     * Starting with q = 63, I lower the size of q till I get the mem of the filter <= of max memory.
+     * 
+     * P.S.: To solve some problems with the comparison of numbers, for large values of q, I divide the 2^(q) by the 
+     * number of bytes in a MB. For the smaller values I multiply the MAX_MEM value by the same amount.
      **/
     uint64_t find_quotient_given_memory(uint64_t max_memory);
     
-    /** insert a new number in the filter. TODO: What if already present ?
-     * 
+    /** insert a new number in the filter. TODO: What if already present ? ADD COUNTERS.
      * @param number to insert
+     * This function inserts a number in the RSQF. IF the number is already present, it just adds another copy of the number.
+     * If a number has the same quotient but different reminders, it stores reminders in a monothonic way
+     * (i.e. each reminder in a run is greater or equal than the predecessor).
+     * If the filter is full, new insertions are authomatically discarded.
+     * When adding a new element, all reminders and runend bits are shifted right of 1 position.
      */
     void insert(uint64_t number);
     
     /** query a number from the filter.
      * @param number Number to query
-     * @return TODO: ?
+     * @return TODO: ADD COUNTERS
+     * it queries a number. It first checks if the occupied bit of the quotient is set to 1. If so it scans
+     * in a linear way the remainders of the run associated to this element. If it find the remainder it returns 1 else 0.
+     * Stops immediately if the filter is empty
      */
     uint64_t query(uint64_t number);
 
     /** remove (if present) a number from the filter
      * @param number value to remove
-     * @return TODO: ?
+     * @return TODO: ADD COUNTERS
+     * This method removes an element from the filter. At the beginning it works like a query. If it finds the 
+     * searched element, it find the rightmost remainder it has to shift to mantain the QF organized and then shift
+     * everything to remove the element. The rightmost remainder can be the one before the FUS (First Unused Slot) or another remainder 
+     * saved in a slot before it. There are some edge cases where the remainder slots are all occupied up to a certain
+     * slot but I cannot shift left part of the remainders beacuse they would be moved in a position that is smaller
+     * than the one of their quotient. This vould violate one of the rules of the QF.
+     * 
      */
     uint64_t remove(uint64_t number);
+
+
+
 
     uint64_t get_quot_size();
 

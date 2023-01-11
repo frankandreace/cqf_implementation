@@ -35,7 +35,7 @@ Cqf::Cqf( uint64_t quotient_s ){
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }
-*/
+
 
 Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
     assert(quotient_s < MEM_UNIT);
@@ -50,6 +50,7 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }
+*/
 
 Cqf::Cqf(uint64_t max_memory){
 
