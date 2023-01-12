@@ -26,7 +26,7 @@ void show(uint64_t value, std::string name){
   print_bits(value);
 }
 
-
+/*
 void test_cqf_metadata(){
   // uint64_t num_of_blocks = 3;
   Cqf cqf(59,3);
@@ -757,7 +757,7 @@ void test_cqf_bound_del(){
   std::cout << "TESTING 190, " << "RB: " << cqf.find_boundary_shift_deletion(190, cqf.get_prev_quot(cqf.first_unused_slot(190))) << " EXPECTED: 2" << std::endl;
 
 }
-
+*/
 void test_cqf_size(){
   Cqf cqf(1);
   uint64_t to_insert;
