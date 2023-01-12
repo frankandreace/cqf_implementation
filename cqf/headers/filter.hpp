@@ -30,18 +30,13 @@ class Cqf {
     */
 
     /** Deduce a quotient size from the memory occupation limit
-     * @param max_memory Max size to occupy with the CQF (in MBytes)
-     * the memory of the CQF is given by 1 parameter: the quotient size(q), the remainder size(r) is (64 - q).
+     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and 'r' words of remainders (since ther are 64 remainders inside) --> (r + 3) words == ((64 - q) + 3) words;
+     * There are 2^(q) quotients in the filter. Each block contains 64 quotients --> #blocks = 2^(q)/64. Since I cannot analitycally get q from the equation MAX_MEM = (2^(q) / 64)((64 - q) + 3),I try values in a for loop. Starting with q = 63, I lower the size of q till I get the mem of the filter <= of max memory.
+     * P.S.: To solve some problems with the comparison of numbers, for large values of q, I divide the 2^(q) by the number of bytes in a MB. For the smaller values I multiply the MAX_MEM value by the same amount.
      * 
-     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and
-     * 'r' words of remainders (since ther are 64 remainders inside) --> (r + 3) words == ((64 - q) + 3) words;
-     * There are 2^(q) quotients in the filter. Each block contains 64 quotients --> #blocks = 2^(q)/64.
-     * Since I cannot analitycally get q from the equation MAX_MEM = (2^(q) / 64)((64 - q) + 3),I try values in a 
-     * for loop.
-     * Starting with q = 63, I lower the size of q till I get the mem of the filter <= of max memory.
+     * @param max_memory Max size to occupy with the CQF (in MBytes). The memory of the CQF is given by 1 parameter: the quotient size(q), the remainder size(r) is (64 - q).
      * 
-     * P.S.: To solve some problems with the comparison of numbers, for large values of q, I divide the 2^(q) by the 
-     * number of bytes in a MB. For the smaller values I multiply the MAX_MEM value by the same amount.
+     * @return Quotient size in bits
      **/
     uint64_t find_quotient_given_memory(uint64_t max_memory);
     

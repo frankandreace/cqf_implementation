@@ -3,7 +3,9 @@
 */
 
 #include <iostream>
+#include <sstream>
 #include <random>
+#include <ctime>
 #include <getopt.h>
 #include "filter.hpp"
 
@@ -11,12 +13,14 @@
 using namespace std;
 
 
-void parse_cmd(int argc, char *argv[], size_t & n);
+void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed);
 
 
 int main (int argc, char * argv[]) {
+	// Argument prep and parsing
 	size_t n = 0;
-	parse_cmd(argc, argv, n);
+	uint64_t seed = time(NULL);
+	parse_cmd(argc, argv, n, seed);
 
 	// Creation of the cqf (size is MB)
 	uint64_t quotien_size = 1;
@@ -24,6 +28,7 @@ int main (int argc, char * argv[]) {
 
 	// uint64 generators
 	default_random_engine generator;
+	generator.seed(seed);
 	uniform_int_distribution<uint64_t> distribution;
 
 	// Add the uints one by one into the cqf
@@ -38,17 +43,31 @@ int main (int argc, char * argv[]) {
 }
 
 
-void parse_cmd(int argc, char *argv[], size_t & n) {
+void print_cmd() {
+	cerr << "cmd line: random_uints -n <value> [-s <rnd_seed>]" << endl;	
+}
+
+
+void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed) {
 	int opt;
 
-    while ((opt = getopt(argc, argv, "n:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
+	    istringstream iss(optarg);
         switch (opt) {
             case 'n':
                 n = atoi(optarg);
                 break;
+            case 's':
+                iss >> seed;
+                break;
             default:
-            	cerr << "cmd line: random_uints -n <value>" << endl;
+            	print_cmd();
             	exit(1);
         }
+    }
+
+    if (n == 0) {
+    	print_cmd();
+    	exit(1);
     }
 }
