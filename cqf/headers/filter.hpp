@@ -23,7 +23,7 @@ class Cqf {
     /** Constructor that deduces quotient and reminder sizes from the desired struct size
      * @param max_memory The desired (maximum) size of the CQF (in MBytes)
      */
-    Cqf(uint64_t max_memory);
+    Cqf(uint64_t max_memory, bool verbose = false);
     
     /*
     HIGH LEVEL PUBLIC OPERATIONS
@@ -111,6 +111,7 @@ class Cqf {
     // VALUES
 
     
+    bool verbose;
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r

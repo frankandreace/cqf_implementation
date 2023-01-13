@@ -52,22 +52,24 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
 }
 */
 
-Cqf::Cqf(uint64_t max_memory){
+Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 
     elements_inside = 0;
     
-    std::cout << "max_memory " << max_memory << std::endl;
     quotient_size = find_quotient_given_memory(max_memory);
-    std::cout << "QUOTIENT SIZE " << quotient_size << std::endl;
     remainder_size = MEM_UNIT - quotient_size;
     uint64_t num_bits_quot = 1ULL << quotient_size;
     number_blocks = std::ceil(num_bits_quot/MEM_UNIT);
     block_size = remainder_size + MET_UNIT;
     uint64_t num_of_words = number_blocks * (MEM_UNIT * block_size);
 
-    std::cout << "remainder_size " << remainder_size << std::endl;
-    std::cout << "num_bits_quot " << num_bits_quot << std::endl;
-    std::cout << "number_blocks " << number_blocks << std::endl;
+    if (this->verbose) {
+        std::cout << "max_memory " << max_memory << std::endl;
+        std::cout << "QUOTIENT SIZE " << quotient_size << std::endl;
+        std::cout << "remainder_size " << remainder_size << std::endl;
+        std::cout << "num_bits_quot " << num_bits_quot << std::endl;
+        std::cout << "number_blocks " << number_blocks << std::endl;
+    }
 
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
@@ -116,42 +118,58 @@ void Cqf::insert(uint64_t number){
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
-    std::cout << "quot " << quot << std::endl;
-    std::cout << "rem " << rem << std::endl;
+    if (this->verbose) {
+        std::cout << "quot " << quot << std::endl;
+        std::cout << "rem " << rem << std::endl;
+    }
 
     // GET FIRST UNUSED SLOT
     uint64_t fu_slot = first_unused_slot(quot);
     
-    std::cout << "fu_slot " << fu_slot << std::endl;
+    if (this->verbose) {
+        std::cout << "fu_slot " << fu_slot << std::endl;
+    }
 
     // IF THE QUOTIENT HAS NEVER BEEN USED BEFORE
     //PUT THE REMAINDER AT THE END OF THE RUN OF THE PREVIOUS USED QUOTIENT OR AT THE POSITION OF THE QUOTIENT
     uint64_t starting_position = sel_rank_filter(get_prev_quot(quot));
 
-    std::cout << "sel_rank " << starting_position << std::endl;
+    if (this->verbose) {
+        std::cout << "sel_rank " << starting_position << std::endl;
+    }
 
     if (starting_position < quot) starting_position = quot;
 
-    std::cout << "starting_position " << starting_position << std::endl;
+    if (this->verbose) {
+        std::cout << "starting_position " << starting_position << std::endl;
+    }
 
     if (!is_occupied(quot)){
-        std::cout << "not occupied " << std::endl;
+        if (this->verbose) {
+            std::cout << "not occupied " << std::endl;
+        }
         shift_bits_left_metadata(quot, 1,starting_position,fu_slot);
         elements_inside++;
-        std::cout << "elements_inside " << elements_inside << std::endl;
+        if (this->verbose) {
+            std::cout << "elements_inside " << elements_inside << std::endl;
+        }
         return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
     // IF THE QUOTIENT HAS BEEN USED BEFORE
     // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
     else{
-    //getting boundaries of the run
-        std::cout << "occupied " << std::endl;
+        //getting boundaries of the run
+        if (this->verbose) {
+            std::cout << "occupied " << std::endl;
+        }
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
-        std::cout << "boundary start " << boundary.first << std::endl;
-        std::cout << "boundary end " << boundary.second << std::endl;
-    //find the place where the remainder should be inserted / all similar to a query
-    //getting position where to start shifting right
+        if (this->verbose) {
+            std::cout << "boundary start " << boundary.first << std::endl;
+            std::cout << "boundary end " << boundary.second << std::endl;
+        }
+        //find the place where the remainder should be inserted / all similar to a query
+        //getting position where to start shifting right
         starting_position = boundary.first;
 
         while(starting_position <= boundary.second){
@@ -159,18 +177,25 @@ void Cqf::insert(uint64_t number){
             if (remainder_in_filter > rem) break;
             starting_position++;
         }
-    std::cout << "element should be placed in  " << starting_position << std::endl;
+        
+        if (this->verbose) {
+            std::cout << "element should be placed in  " << starting_position << std::endl;
+        }
 
-    uint64_t metadata_starting_position = boundary.first;
-    //if((metadata_starting_position == boundary.second) && (metadata_starting_position != 0)) metadata_starting_position--;
+        uint64_t metadata_starting_position = boundary.first;
+        //if((metadata_starting_position == boundary.second) && (metadata_starting_position != 0)) metadata_starting_position--;
 
-    std::cout << "metadata_starting_position " << metadata_starting_position << std::endl;    
+        if (this->verbose) {
+            std::cout << "metadata_starting_position " << metadata_starting_position << std::endl;
+        }    
 
-    shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
-    // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
-    elements_inside++;
-    std::cout << "elements_inside " << elements_inside << std::endl; 
-    return shift_left_and_set_circ(starting_position, fu_slot, rem);
+        shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
+        // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
+        elements_inside++;
+        if (this->verbose) {
+            std::cout << "elements_inside " << elements_inside << std::endl;
+        }
+        return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
 
 }
@@ -676,8 +701,10 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient) const{
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
     //assert(curr_quotient < ( 1ULL << quotient_size));
     uint64_t rend_pos = sel_rank_filter(curr_quotient);
-    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
-    std::cout << "FUS out of sel_rank " << rend_pos << std::endl;
+    if (this->verbose) {
+        std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+        std::cout << "FUS out of sel_rank " << rend_pos << std::endl;
+    }
     //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
     //preventing erroneous stop when it jumps from the end of the filter to the beginning 
     // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
@@ -697,7 +724,9 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
         //std::cout << "FUS IN WHILE get_block_id(rend_pos) " << get_block_id(rend_pos) << std::endl;
         //std::cout << "FUS IN WHILE (bitrankasm(occupied,pos_in_block) + offset) " << (bitrankasm(occupied,pos_in_block) + offset) << std::endl;
     }
-    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+    if (this->verbose) {
+        std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+    }
     return curr_quotient;
 }
 

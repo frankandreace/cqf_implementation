@@ -13,14 +13,15 @@
 using namespace std;
 
 
-void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed);
+void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed, bool & verbose);
 
 
 int main (int argc, char * argv[]) {
 	// Argument prep and parsing
 	size_t n = 0;
 	uint64_t seed = time(NULL);
-	parse_cmd(argc, argv, n, seed);
+	bool verbose = false;
+	parse_cmd(argc, argv, n, seed, verbose);
 
 	// Creation of the cqf (size is MB)
 	uint64_t quotien_size = 1;
@@ -44,21 +45,31 @@ int main (int argc, char * argv[]) {
 
 
 void print_cmd() {
-	cerr << "cmd line: random_uints -n <value> [-s <rnd_seed>]" << endl;	
+	cerr << "cmd line: random_uints -n <value> [-s <rnd_seed>] [-v]" << endl;
+	cerr << "   -n <val>: Number of random uint to insert." << endl;
+	cerr << "   -s <val>: uint64_t random seed." << endl;
+	cerr << "   -v: verbose flag." << endl;
 }
 
 
-void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed) {
+void parse_cmd(int argc, char *argv[], size_t & n, uint64_t & seed, bool & verbose) {
 	int opt;
 
-    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
-	    istringstream iss(optarg);
+    while ((opt = getopt(argc, argv, "hn:s:v")) != -1) {
         switch (opt) {
+        	case 'h':
+        		print_cmd();
+        		exit(0);
             case 'n':
                 n = atoi(optarg);
                 break;
-            case 's':
+            case 's': {
+	    		istringstream iss(optarg);
                 iss >> seed;
+            	}
+                break;
+            case 'v':
+                verbose = true;
                 break;
             default:
             	print_cmd();
