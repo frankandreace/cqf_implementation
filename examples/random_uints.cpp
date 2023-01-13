@@ -38,12 +38,16 @@ int main (int argc, char * argv[]) {
 	unordered_set<uint64_t> verif;
 
 	// Add the uints one by one into the cqf
+	if (verbose)
+		cout << "insertions 0/" << n << "\n";
 	for (size_t i=0 ; i<n ; i++) {
 		uint64_t val = distribution(generator);
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
-	}
+		if (verbose)
+			cout << "insertions " << (i+1) << "/" << n << "\n";
+	} cout << endl;
 
 	// Verification
 	if (debug) {
@@ -84,7 +88,7 @@ void print_cmd() {
 void parse_cmd(int argc, char *argv[], size_t & n, size_t & filter_size, uint64_t & seed, bool & verbose, bool & debug) {
 	int opt;
 
-    while ((opt = getopt(argc, argv, "hn:s:vd")) != -1) {
+    while ((opt = getopt(argc, argv, "hn:s:r:vd")) != -1) {
         switch (opt) {
         	case 'h':
         		print_cmd();
