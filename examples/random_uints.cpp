@@ -47,7 +47,7 @@ int main (int argc, char * argv[]) {
 		cqf.insert(val);
 		if (verbose)
 			cout << "insertions " << (i+1) << "/" << n << "\n";
-	} cout << endl;
+	} if (verbose)cout << endl;
 
 	// Verification
 	if (debug) {

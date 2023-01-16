@@ -116,7 +116,7 @@ class Cqf {
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r
     uint64_t number_blocks; // number of blocks the cqf is divided into
-    uint64_t block_size;
+    // uint64_t block_size;
     uint64_t elements_inside;
 
 

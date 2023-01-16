@@ -52,8 +52,6 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
 }
 */
 
-using namespace std;
-
 Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 
     elements_inside = 0;
@@ -66,6 +64,8 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
     uint64_t num_quots = 1ULL << quotient_size;
     uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
 
+    number_blocks = std::ceil(num_quots / MEM_UNIT);
+    
     if (this->verbose) {
         std::cout << "max_memory " << max_memory << std::endl;
         std::cout << "QUOTIENT SIZE " << quotient_size << std::endl;
@@ -73,7 +73,6 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
         std::cout << "num_quots " << num_quots << std::endl;
     }
 
-    cout << "num_of_words " << num_of_words << endl;
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }

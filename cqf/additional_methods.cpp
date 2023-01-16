@@ -88,12 +88,9 @@ uint64_t get_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t len){
     //return (cqf[block] >> shift) | ((cqf[block+1] & mask_right(len-(MEM_UNIT-shift))) << (MEM_UNIT - shift));
 }
 
+using namespace std;
 void set_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t value, uint64_t len) {
-	//std::cout << "value: ";
-	//print_bits(value);
-	//std::cout << "len: " << len << std::endl;
-
-    assert(pos + len <= vec.size());
+    assert(pos + len <= vec.size() * 64);
     assert(len == MEM_UNIT or (value >> len) == 0);
     if (len == 0) return;
 
