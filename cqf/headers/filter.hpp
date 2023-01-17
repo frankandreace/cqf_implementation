@@ -31,6 +31,12 @@ class Cqf {
     // remove(if present) a number from the filter
     uint64_t remove(uint64_t number);
 
+    void cinsert(uint64_t number);
+    // query a number from the filter
+    uint64_t cquery(uint64_t number);
+    // remove(if present) a number from the filter
+    uint64_t cremove(uint64_t number);
+
     uint64_t get_quot_size();
 
     uint64_t get_num_el_inserted();
@@ -39,9 +45,10 @@ class Cqf {
     void show_slice(uint64_t start, uint64_t end) const;
 
     // FUNCTIONS
+    void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus);
+    void Cqf::decrease_counter(uint64_t value, counter_el run_info, uint64_t fus);
+    
     counter_el scan_for_elements(uint64_t start, uint64_t end, uint64_t searched_value);
-
-    uint64_t get_counter(uint64_t position);
 
     bool is_occupied(uint64_t position);
 
@@ -76,6 +83,7 @@ class Cqf {
     uint64_t number_blocks; // number of blocks the cqf is divided into
     uint64_t block_size;
     uint64_t elements_inside;
+    uint64_t max_encoded_value;
 
 
 

@@ -5,6 +5,7 @@
 #include "additional_methods.hpp"
 
 void test_cqf_size();
+void test_cqf_add_query();
 
 void test_cqf_metadata();
 void test_metadata_shift();

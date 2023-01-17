@@ -44,6 +44,7 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
     elements_inside = 0;
     quotient_size = quotient_s;
     remainder_size = MEM_UNIT - quotient_size;
+    max_encoded_value = (1ULL << remainder_size) -1;
     block_size = remainder_size + MET_UNIT;
     number_blocks = n_blocks;
     uint64_t num_of_words = number_blocks * (MEM_UNIT * block_size);
@@ -298,181 +299,290 @@ uint64_t Cqf::remainder(uint64_t num) const{
     return num >> (MEM_UNIT - remainder_size);
 }
 
+
+// INSERT, REMOVE AND QUERY OF THE CQF
+
+void Cqf::cinsert(uint64_t number){
+
+    if (elements_inside == number_blocks*MEM_UNIT) return;
+    //get quotient q and remainder r
+    uint64_t quot = quotient(number);
+    uint64_t rem = remainder(number);
+
+    std::cout << "quot " << quot << std::endl;
+    std::cout << "rem " << rem << std::endl;
+
+    // GET FIRST UNUSED SLOT
+    uint64_t fu_slot = first_unused_slot(quot);
+    
+    //std::cout << "fu_slot " << fu_slot << std::endl;
+
+    // IF THE QUOTIENT HAS NEVER BEEN USED BEFORE
+    //PUT THE REMAINDER AT THE END OF THE RUN OF THE PREVIOUS USED QUOTIENT OR AT THE POSITION OF THE QUOTIENT
+    uint64_t starting_position = sel_rank_filter(get_prev_quot(quot));
+
+    //std::cout << "sel_rank " << starting_position << std::endl;
+
+    if (starting_position < quot) starting_position = quot;
+
+    //std::cout << "starting_position " << starting_position << std::endl;
+
+    if (!is_occupied(quot)){
+        //std::cout << "not occupied " << std::endl;
+        shift_bits_left_metadata(quot,1,starting_position,fu_slot);
+        elements_inside++;
+        //std::cout << "elements_inside " << elements_inside << std::endl;
+        counter_el run_info;
+        run_info.start = starting_position;
+        run_info.end = starting_position;
+        run_info.count = 0;
+        std::cout << "increase counter now " << std::endl;
+        return increase_counter(rem,run_info,fu_slot);
+    }
+    // IF THE QUOTIENT HAS BEEN USED BEFORE
+    // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
+    else{
+        //getting boundaries of the run
+        //std::cout << "occupied " << std::endl;
+        std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+
+        //std::cout << "boundary start " << boundary.first << std::endl;
+        //std::cout << "boundary end " << boundary.second << std::endl;
+        //find the place where the remainder should be inserted / all similar to a query
+        //getting position where to start shifting right
+        starting_position = boundary.first;
+
+        counter_el run_info = scan_for_elements(boundary.first,boundary.second,rem);
+       
+        uint64_t metadata_starting_position = run_info.start;
+        //if((metadata_starting_position == boundary.second) && (metadata_starting_position != 0)) metadata_starting_position--;
+
+        //std::cout << "metadata_starting_position " << metadata_starting_position << std::endl;    
+
+        shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
+        // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
+        elements_inside++;
+        //std::cout << "elements_inside " << elements_inside << std::endl; 
+        return increase_counter(rem,run_info,fu_slot);
+    }
+
+}
+
+uint64_t Cqf::cquery(uint64_t number){
+    //std::cout << "elements_inside " << elements_inside << std::endl;
+    if (elements_inside == 0) return 0;
+    //get quotient q and remainder r
+    uint64_t quot = quotient(number);
+    uint64_t rem = remainder(number);
+
+    if (!is_occupied(quot)) return 0;
+
+    std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+
+    // TODO:
+    // OPTIMIZE TO LOG LOG SEARCH ?
+    counter_el run_info = scan_for_elements(boundary.first,boundary.second,rem);
+    return run_info.count;
+}
+
+// METHOD TO INCREASE THE COUNTER OF A VALUE. IT IS USED AFTER CALLING THE SCAN_COUNTERS
+// FUNCTION. 
+void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){ 
+    std::cout << "value: " << value << std::endl;
+    std::cout << "rinfo.start: " << run_info.start << std::endl;
+    std::cout << "rinfo.end: " << run_info.end << std::endl;
+    std::cout << "rinfo.count: " << run_info.count << std::endl;
+    std::cout << "fus: " << fus << std::endl;
+    if (value == 0){
+        if (run_info.count == 0){ // COUNT --> 1  // Y,Z ---> Y,0,Z
+            shift_left_and_set_circ(run_info.start,fus,0);
+        }
+        else if(run_info.count == 1){ // COUNT --> 2  // Y,0,Z ---> Y,0,0,Z
+            shift_left_and_set_circ(run_info.start,fus,0);
+        }
+        else if(run_info.count == 2){ // COUNT --> 3  // Y,0,0,Z ---> Y,0,0,0,Z
+            shift_left_and_set_circ(run_info.start,fus,0);
+        }
+        else if(run_info.count == 3){ // COUNT --> 4  // Y,0,0,0,Z ---> Y,0,1,0,0,Z
+            shift_left_and_set_circ(get_next_quot(run_info.start),fus,1);
+        }
+        else{   // JUST CHECK THAT WHEN THE LAST SLOT OF THE ONES WRAPPED BY THE ZEROS DOES NOT OVERFLOW;
+            uint64_t last_encoded_counter_slot = get_prev_quot(get_prev_quot(run_info.end));
+            uint64_t value_les = get_remainder(last_encoded_counter_slot);
+            if(value_les == (max_encoded_value - 1)) shift_left_and_set_circ(get_next_quot(last_encoded_counter_slot),fus,1);
+            else set_remainder(last_encoded_counter_slot,value_les + 1);
+        }
+    }
+    else{ // NOT A ZERO
+        if(run_info.count == 0){    // COUNT --> 1 // Y,Z ---> Y,X,Z
+            std::cout << "0 to 1" << std::endl;
+            shift_left_and_set_circ(run_info.start,fus,value);
+        }
+        else if(run_info.count == 1){    // COUNT --> 2 // Y,X,Z ---> Y,X,X,Z
+            std::cout << "1 to 2" << std::endl;
+            shift_left_and_set_circ(run_info.end,fus,value);
+        }
+        else if(run_info.count == 2){    // COUNT --> 3 // Y,X,X,Z ---> Y,X,1,X,Z
+            std::cout << "2 to 3" << std::endl;
+            if (value != 1) shift_left_and_set_circ(get_prev_quot(run_info.end),fus,1);
+            else {
+                shift_left_and_set_circ(get_prev_quot(run_info.end),fus,0);
+                shift_left_and_set_circ(run_info.end,get_next_quot(fus),2);
+            }
+
+        }
+        else{
+            std::cout << ">3" << std::endl;
+            uint64_t encoded_counter = run_info.count-2;
+            std::cout << "encoded_counter: " << encoded_counter << std::endl;
+            if (encoded_counter == value - 1){ // ADD THE ZERO AND JUMP OF 2
+                std::cout << "add zero and jump" << std::endl;
+                shift_left_and_set_circ(get_next_quot(run_info.start),fus,0);
+                set_remainder(run_info.end,get_remainder(run_info.end) + 2);
+            }
+            else if(encoded_counter%max_encoded_value == value - 1){ // JUMP OF 2 WHEN COUNTER_SLOT GETS TO VALUE
+                std::cout << "jump" << std::endl;
+                set_remainder(run_info.end,get_remainder(run_info.end) + 2);
+            }
+            else if(encoded_counter == max_encoded_value){ // add new slot to the counter when reaching max_value
+                std::cout << "new slot" << std::endl;
+                shift_left_and_set_circ(get_prev_quot(run_info.end),fus,1);
+            }
+            else{// in every othrer case just increase of 1
+                std::cout << "just increase" << std::endl;
+                 set_remainder(get_prev_quot(run_info.end),get_remainder(get_prev_quot(run_info.end)) + 1);
+            }
+
+        }
+
+    }
+}
+
+void Cqf::decrease_counter(uint64_t value, counter_el run_info, uint64_t fus){
+    
+}
+
 // return the start,end and counter of the searched value. If not found, start==end correspond to the position
 // where it should be inserted. and counter is 0.
 // this method should work for all counter operations (query,insert,remove).
 counter_el Cqf::scan_for_elements(uint64_t position, uint64_t end, uint64_t searched_value){
     uint64_t current_rem = get_remainder(position);
-    uint64_t last_rem = current_rem;
+    uint64_t last_rem;
     uint64_t value = current_rem;
+    uint64_t value_start = position;
+    uint64_t next_pos;
 
-    bool found = false;
     bool reset_count = false;
 
     counter_el run_info;
-    if (value == searched_value) found = true; 
+    uint64_t counter = 1;
 
-    while ((position != end) & (found == false)){ // this while works till it finds the searched element or it does not. 
+    //std::cout << "reading VALUE " << value << std::endl;
+    //std::cout << "at POSITION " << value_start << std::endl;
+
+    while ((position != end)){ // this while works till it finds the searched element or it does not. 
+        // adjour next element
         position = get_next_quot(position);
         last_rem = current_rem;
         current_rem = get_remainder(position);
-
-        if (reset_count == true){
-            value = current_rem;
-            if (value == searched_value) break; // go to the counting while
-            if (value > searched_value) { // the element is not here, return start==end=pos--,count=0
-                    run_info.start = get_prev_quot(position);
-                    run_info.end = run_info.start;
-                    run_info.count = 0;
-                    return run_info;
-            }
-            reset_count = false;
-        }
-
-        if (current_rem == value) { // escape sequence.
-            if (value == 0){ // evaluating the possibility of a 000 counter
-                uint64_t next_pos = get_next_quot(position);
-                if (get_remainder(next_pos) == 0){
-                    position = next_pos;
+        
+        if (current_rem == value){
+            // IF VALUE IS ZERO 
+            if (value == 0){
+                // TWO CONSECUTIVE ZEROS ARE AN ESCAPE SEQUENCE
+                if (last_rem == current_rem) {
+                    counter++;
+                    //std::cout << "VALUE " << value << ", COUNTER " << counter << ", atPOS " << position << std::endl;
+                    reset_count = true;
                 }
-            }
-            reset_count = true;
-        }
-
-        if ((current_rem > last_rem) && (value != 0) && (last_rem !=0)) reset_count = true;
-        else if ((current_rem > last_rem) && (value == 0)){ // scan all the run to find a double 0
-        // if it does not find them, reset_count
-            uint64_t new_position = get_next_quot(position);
-            reset_count = true;
-            if (new_position != end){
-                uint64_t val_zero = get_remainder(new_position);
-                uint64_t prev_val_zero;
-                while (new_position != end){
-                    uint64_t new_position = get_next_quot(new_position);
-                    prev_val_zero = val_zero;
-                    val_zero = get_remainder(new_position);
-
-                    if ((val_zero == 0) and (val_zero == prev_val_zero)) {
-                        position = new_position;
-                        reset_count = false;
-                        break;
+                else{ // IF NEXT ONE IS A ZERO TOO CONTINUE
+                    next_pos = get_next_quot(position);
+                    if (get_remainder(next_pos) == 0) {
+                        counter++;
+                        //std::cout << "VALUE " << value << ", COUNTER " << counter << ", atPOS " << position << std::endl;
+                        continue;
+                    }
+                    else{ // THERE WAS JUST 1 ZERO, RESET BACK TO POSITION OF THE ELEMENT AFTER THE 1ST ZERO
+                        position = get_next_quot(value_start);
+                        counter = 1;
+                        reset_count = true;
+                        if (value == searched_value){
+                            //std::cout << "FOUND " << value << std::endl;
+                            run_info.start = value_start;
+                            run_info.end = value_start;
+                            run_info.count = counter;
+                            return run_info;
+                        }
                     }
                 }
             }
-        }
-        
-    }
-    uint64_t counter = 1;
-    run_info.start = position;
-    // this while should work on the counter of the desired element
-    if (value == 0){
-        position = get_next_quot(position);
-        last_rem = current_rem;
-        current_rem = get_remainder(position);
-        
-        if (current_rem == last_rem){ 
-            uint64_t new_position = get_next_quot(position);
-            if (get_remainder(new_position) == 0){ // 3 consecutive zeros
-                run_info.end = new_position;
-                run_info.count = 3;
-                return run_info;
-            }
-            else{   // 2 consecutive zeros
-                run_info.end = position;
-                run_info.count = 2;
-                return run_info;
-            }
-        }
-        else{ // just one or more than 3
-            while (position != end){
-                counter += current_rem;
-                position = get_next_quot(position);
-                last_rem = current_rem;
-                current_rem = get_remainder(position);
-                counter += current_rem;
-                if ((current_rem == 0) and (current_rem == last_rem)) {
-                    run_info.end = position;
-                    run_info.count = counter + 2;
-                    return run_info;
-                }
-            }
-            run_info.end = run_info.start;
-            run_info.count = 1;
-            return run_info;
-        }
-    }
-    else{ // it is not a zero, easier
-        bool has_seen_zero = false;
-        while (position != end) { 
-            position = get_next_quot(position);
-            last_rem = current_rem;
-            current_rem = get_remainder(position);
-            if (current_rem == 0){
-                has_seen_zero = true;
-                continue;
-            }
-            if (current_rem != value){
-                if ((current_rem > value) && (has_seen_zero == false)) break;
-                counter += current_rem;
-            }
+            // IF SLOT IS EQUAL TO REMAINDER
             else{
-                counter++;
+                // ESCAPE OF VALUE
+                counter ++;
+                //std::cout << "VALUE " << value << ", COUNTER " << counter << ", atPOS " << position << std::endl;
+                reset_count = true;
+                //reset_count = true;
+            }
+        }
+        // INCREASE. RESET COUNTER
+        else if ((current_rem > last_rem) && (last_rem != 0)){ // this element is a remainder
+            reset_count = true;
+        }
+        else if ((current_rem < last_rem) || ((current_rem > last_rem) && (last_rem == 0))){
+            if((current_rem < value) || (value == 0)) counter += current_rem;
+            else counter += (current_rem - 1);
+            //std::cout << "VALUE " << value << ", COUNTER " << counter << ", atPOS " << position << std::endl;
+        }
+        // reset everything if reset is set to true
+        if (reset_count == true){
+            
+            if (value == searched_value){ // resetting
+                //std::cout << "FOUND " << value << std::endl;
+                run_info.start = value_start;
                 run_info.end = position;
                 run_info.count = counter;
                 return run_info;
+            } 
+            // the slot in which I am is a remainder and not a counter. Adj value, value start, counter and reset_count
+            else{
+                current_rem = get_remainder(position);
+                value = current_rem;
+                value_start = position;
+                counter = 1;
+                reset_count = false;
+                //std::cout << "reading VALUE " << value << std::endl;
+                //std::cout << "at POSITION " << value_start << std::endl;
+            }
+
+            if (value > searched_value) { // the element is not here, return start==end=pos-- (useful for insertions),count=0
+                //std::cout << "NOT FOUND " << std::endl;
+                run_info.start = position;
+                run_info.end = run_info.start;
+                run_info.count = 0;
+                return run_info;
             }
         }
-        run_info.end = run_info.start;
-        run_info.count = 1;
+        
+    }
+
+    if (value == searched_value){ // in case there is just 1 el in the run
+        //std::cout << "FOUND " << value << std::endl;
+        run_info.start = value_start;
+        run_info.end = position;
+        run_info.count = counter;
         return run_info;
     }
-
-}
-
-
-
-/*
-uint64_t Cqf::get_counter(uint64_t position){
-
-    uint64_t value = get_remainder(position);
-    uint64_t counter = 1; // value of the counter
-    uint64_t num_rem_count = 1; // actual reminder solts used
-
-    position = get_next_quotient(position);
-    new_value = get_remainder(position);
+    else{
+        //std::cout << "NOT FOUND " << std::endl;
+        run_info.start = position;
+        run_info.end = run_info.start;
+        run_info.count = 0;
+        return run_info;
+    }
     
-    while(new_value != value){
-        counter += new_value;
-        num_rem_count++;
-        position = get_next_quotient(position);
-        new_value = get_remainder(position);
-    }
-    counter++;
-    num_rem_count++;
 
-    if (value == 0){ // check that there is another 0
-        position = get_next_quotient(position);
-        new_value = get_remainder(position);
-        assert(new_value == 0);
-        counter++;
-        num_rem_count++;
-    }
-    return counter;
 }
-
-uint64_t Cqf::increase_counter(uint64_t position){
-
-    uint64_t value = get_remainder(position);
-    uint64_t counter = 1; // value of the counter
-    uint64_t num_rem_count = 1; // actual reminder solts used
-
-    position = get_next_quotient(position);
-    new_value = get_remainder(position);
-}
-
-*/
-
-
 
 // REMAINDER OPERATIONS
 

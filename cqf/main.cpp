@@ -63,5 +63,6 @@ int main(int argc, char** argv) {
 
     //test_cqf_size();
 
-    test_cqf_search();
+    //test_cqf_search();//
+    test_cqf_add_query();
 }

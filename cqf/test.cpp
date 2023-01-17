@@ -947,11 +947,160 @@ void test_cqf_size(){
     cqf.set_remainder(198, 9);
     cqf.set_remainder(199, 8);
 
-    cqf.show_slice(0,4);
-
+    //cqf.show_slice(0,4);
     std::pair<uint64_t,uint64_t> boundary = cqf.get_run_boundaries(188ULL);
+    std::cout << "COUNTER OF : " << 0 << std::endl;
     print_counter(cqf.scan_for_elements(boundary.first,boundary.second,0));
+    std::cout << std::endl << "COUNTER OF : " << 3 << std::endl;
     print_counter(cqf.scan_for_elements(boundary.first,boundary.second,3));
+    std::cout << std::endl << "COUNTER OF : " << 5 << std::endl;
     print_counter(cqf.scan_for_elements(boundary.first,boundary.second,5));
+    std::cout << std::endl << "COUNTER OF : " << 8 << std::endl;
     print_counter(cqf.scan_for_elements(boundary.first,boundary.second,8));
+    
+    cqf.set_remainder(188, 0);
+    cqf.set_remainder(189, 2);
+    cqf.set_remainder(190, 0);
+    cqf.set_remainder(191, 3);
+
+    cqf.set_remainder(192, 2);
+    cqf.set_remainder(193, 3);
+    cqf.set_remainder(194, 0);
+    cqf.set_remainder(195, 6);
+
+    cqf.set_remainder(196, 3);
+    cqf.set_remainder(197, 8);
+    cqf.set_remainder(198, 7);
+    cqf.set_remainder(199, 8);
+    std::cout << std::endl << std::endl << std::endl;
+
+    std::cout << "COUNTER OF : " << 0 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,0));
+    std::cout << std::endl << "COUNTER OF : " << 3 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,3));
+    std::cout << std::endl << "COUNTER OF : " << 2 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,2));
+    std::cout << std::endl << "COUNTER OF : " << 5 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,5));
+    std::cout << std::endl << "COUNTER OF : " << 8 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,8));
+
+    cqf.set_remainder(188, 3);
+    cqf.set_remainder(189, 0);
+    cqf.set_remainder(190, 6);
+    cqf.set_remainder(191, 3);
+
+    cqf.set_remainder(192, 8);
+    cqf.set_remainder(193, 7);
+    cqf.set_remainder(194, 8);
+    cqf.set_remainder(195, 11);
+
+    cqf.set_remainder(196, 0);
+    cqf.set_remainder(197, 15);
+    cqf.set_remainder(198, 11);
+    cqf.set_remainder(199, 15); 
+
+    std::cout << std::endl << std::endl << std::endl;
+    std::cout << "COUNTER OF : " << 0 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,0));
+    std::cout << std::endl << "COUNTER OF : " << 3 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,3));
+    std::cout << std::endl << "COUNTER OF : " << 5 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,5));
+    std::cout << std::endl << "COUNTER OF : " << 8 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,8));
+    std::cout << std::endl << "COUNTER OF : " << 11 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,11));
+    std::cout << std::endl << "COUNTER OF : " << 15 << std::endl;
+    print_counter(cqf.scan_for_elements(boundary.first,boundary.second,15));
+    
+    std::cout << "start boundary: " << boundary.first << std::endl;
+    std::cout << "end boundary: " << boundary.second << std::endl;
+    
+  }
+
+
+
+  void test_cqf_add_query(){
+    Cqf cqf(1);
+    uint64_t to_insert;
+
+    to_insert = ((1ULL << 17) | 188ULL);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((1ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((1ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+
+    to_insert = ((0ULL << 17) | 188ULL);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+
+    to_insert = ((3ULL << 17) | 188ULL);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((3ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((8ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
   }
