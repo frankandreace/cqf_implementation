@@ -102,7 +102,7 @@ class Cqf {
     uint64_t find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos) const;
     uint64_t first_unused_slot(uint64_t curr_quotient) const;
     std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient) const;
-    uint64_t sel_rank_filter(uint64_t quotient) const;
+    uint64_t get_previous_runend(uint64_t quotient) const;
     
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
     uint64_t get_prev_quot(uint64_t current_quot) const;
@@ -110,8 +110,8 @@ class Cqf {
     private:
     // VALUES
 
-    
     bool verbose;
+    bool debug;
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r

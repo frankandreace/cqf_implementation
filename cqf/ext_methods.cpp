@@ -38,7 +38,7 @@ uint64_t mask_right(uint64_t numbits){
     return mask;
 }
 
-uint64_t get_block_id(uint64_t position){
+uint64_t get_absolute_position(uint64_t slot_idx){
     return position / MEM_UNIT;
 }
 

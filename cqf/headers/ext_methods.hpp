@@ -11,7 +11,7 @@ uint64_t mask_right(uint64_t num_bits);
 
 uint64_t get_next_block_id(std::vector<uint64_t>& vec, uint64_t current_block);
 
-uint64_t get_block_id(uint64_t position);
+uint64_t get_block_id(uint64_t slot_idx);
 
 uint64_t get_shift_in_block(uint64_t position);
 
