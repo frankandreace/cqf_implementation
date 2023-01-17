@@ -57,6 +57,8 @@ int main (int argc, char * argv[]) {
 		for (const uint64_t val : verif) {
 			uint64_t count = cqf.query(val);
 			total_present += count;
+			if (count != 1)
+				cerr << "Missing value " << val << endl;
 		}
 		cout << total_present << "/" << n << " are correctly present" << endl;
 

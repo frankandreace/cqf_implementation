@@ -112,6 +112,7 @@ uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
 
 }
 
+using namespace std;
 
 void Cqf::insert(uint64_t number){
 
@@ -119,6 +120,11 @@ void Cqf::insert(uint64_t number){
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
+
+    bool debug = number == 929446423189574171ULL;
+    if (debug) {
+        cout << "debug: q/r " << quot << " " << rem << endl;
+    }
 
     if (this->verbose) {
         std::cout << "quot " << quot << std::endl;
@@ -147,7 +153,7 @@ void Cqf::insert(uint64_t number){
     }
 
     if (!is_occupied(quot)){
-        if (this->verbose) {
+        if (this->verbose or debug) {
             std::cout << "not occupied " << std::endl;
         }
         shift_bits_left_metadata(quot, 1,starting_position,fu_slot);
@@ -211,9 +217,17 @@ uint64_t Cqf::query(uint64_t number){
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
+    bool debug = number == 929446423189574171ULL;
+
+    if (debug) {
+        cout << "debug: q/r " << quot << " " << rem << endl;
+    }
+
     if (!is_occupied(quot)) return 0;
 
     std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+    if (debug)
+        cout << "boundaries " << boundary.first << " " << boundary.second << endl;
 
     // TODO:
     // OPTIMIZE TO LOG LOG SEARCH ?
@@ -221,7 +235,11 @@ uint64_t Cqf::query(uint64_t number){
     uint64_t position = boundary.first;
 
     while(position != boundary.second){
-        uint64_t remainder_in_filter = get_remainder(position); 
+        if (debug)
+            cout << position << " ";
+        uint64_t remainder_in_filter = get_remainder(position);
+        if (debug)
+            cout << "remainder_in_filter " << remainder_in_filter << endl;
         if (remainder_in_filter == rem) return 1;
         else if (remainder_in_filter > rem) return 0;
         position = get_next_quot(position);
