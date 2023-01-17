@@ -74,43 +74,139 @@ class Cqf {
 
 
 
-
+    /** returns the size in bits of the quotient
+     */    
     uint64_t get_quot_size();
 
+    /** returns the number of numbers inserted 
+     */ 
     uint64_t get_num_el_inserted();
 
+    /** Prints the entire cqf, block by block at the bit level 
+     */ 
     void show() const;
+
+    /** Prints a slice of the cqf, block by block at the bit level
+     * @param start starting block 
+     * @param end ending block 
+     */ 
     void show_slice(uint64_t start, uint64_t end) const;
 
     // FUNCTIONS
 
+    /** check if the occupied bit of the given quotient is 1 or 0.
+     * @param position quotient to query
+     * @return true if 1, false if 0.
+     * It extracts the related bit of the occupied word in the block of the quotient
+     */
     bool is_occupied(uint64_t position);
 
+    /** returns the remainder slot associated to the requested quotient
+     * @param position quotient 
+     * @return an uint64 with the value stored in the slot
+     */
     uint64_t get_remainder(uint64_t position);
+
+    /** deprecated version of the get_remainder function. Not used anymore in the filter
+     */
     uint64_t get_remainder_func(uint64_t position);
+
+    /** sets the remainder slot associated to the requested quotient to a given value
+     * @param position quotient associated to the slot to set 
+     * @param value value to store in the slot
+     * If I want to set the 155th remainder slot to 1, I will use position=155 and value=1.
+     */
     void set_remainder(uint64_t position, uint64_t value);
 
+    /** returns the id of the word in the filter that contains (or starts containing) the
+     * remainder slot associated to a certain quotient (by this I mean quotient 155 is associated to
+     * the 155th slot (since there is a 0th)).
+     * @param quotient the *th quotient
+     * @return uint64 returning the id of *th word in the vector.
+     * from the block of the quotient and the position in the block it gets the word where the slot starts
+     */
     uint64_t get_remainder_word_position(uint64_t quotient);
+
+    /** complementary to "get_remainder_word_position", it gives back the bit in the word where the requested slot
+     * starts.
+     * @param quotient the *th slot requested
+     * @return uint64 with the shift in the word where the slot starts
+     * It returns the bit of word where the slot starts.
+     */
     uint64_t get_remainder_shift_position(uint64_t quotient);
 
+    /** this function shifts the remainders on 1 slot from start to end and insert a new remainder in the start position
+     * @param start_quotient quotient where to start the shifting
+     * @param end_quotient quotient where to end the shifting
+     * @param next_remainder the value to store in the remainder slot at 'start_quotient' position
+     * It shifts (left) bits in words to leave space for a new insertion. Then inserts the value.
+     */
     void shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder);
+
+    /** this function shift the remainders of 1 slot from end to start and clears the 'end' slot. 
+     * It is used to remove remainders.
+     * @param start_quotient position that will be overwritten when shifting
+     * @param end_quotient position that will be zeroed when shifting
+     * It shifts bits right in the words to overwrite the 'start_quotient' slot that has to be removed.
+     */
     void shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient);
 
+    /** Metadata function that shifts the bits right in the runend word when there is a deletion.
+     * It also handles cases when occupieds and offsets have to be adjourned.
+     * @param quotient quotient of the number to delete.
+     * @param flag_bit flags (with 0) if the occupied bit has to be zeroed, else it is 1.
+     * @param start_position starting position of the shifting.
+     * @param end_position end position of the shifting.
+     */
     void shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
+
+    /** Metadata function that shifts the bits left in the runend word when there is an insertion.
+     * It also handles cases when occupieds and offsets have to be adjourned.
+     * @param quotient quotient of the number to add.
+     * @param flag_bit flags (with 1) if the occupied bit has to be set to 1, else it is 0.
+     * @param start_position starting position of the shifting.
+     * @param end_position end position of the shifting.
+     */
     void shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
 
+    /** This function finds the rightmost slot to shift when deleting a runend slot. It is needed because there are
+     * cases where I cannot shift from the slot to the first unused slot. (for example there are no free slots for a lot
+     * of slots in the right but I cannot shift the block next to the one I am deleting because it is exactly in the position
+     * associated to it quotient (i.e. quotient of remainder is 5 and the block is the 5th (there is a 0th))).
+     * @param start_position position of the slot to delete
+     * @param end_position position of the first unused slot
+     * @return the last position I have to shift.
+     */
     uint64_t find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos) const;
+
+    /** Returns the first unused slot as described in the paper. Used on insertion and to find the shifting window
+     * of deletions.
+     * @param curr_quotient the quotient from where to find the first unused slot
+     * @return uint64 of the position of the first unused slot.
+     * It extracts the related bit of the occupied word in the block of the quotient
+     */
     uint64_t first_unused_slot(uint64_t curr_quotient) const;
+
+    /** returns the start and the end of the run that contains all the remainders of the numbers inserted that have 
+     * the given quotient. I.e. I have quotient 1 and want to see where the run that contains the remainders that are linked to it in the cqf
+     * start and ends.
+     * I have the start and end of the run of the remainders of the numbers that have that quotient.
+     * @param quotient quotient of the numbers where we want to have the associated
+     * @return a std::pair with start and end position of the run
+     */
     std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient) const;
+
+    /** it gets the end of the previous run of the selected quotient. It is the equivalent of doing 
+     * select(runend_vector, rank(occipieds_vector, quotient))
+     * @param quotient quotient to give to the function
+     * @return the position of the end of the previous run
+     */
     uint64_t sel_rank_filter(uint64_t quotient) const;
-    
-    std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
-    uint64_t get_prev_quot(uint64_t current_quot) const;
 
     private:
     // VALUES
 
-    
+    std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
     bool verbose;
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
@@ -124,22 +220,97 @@ class Cqf {
     uint64_t quotient(uint64_t num) const;
     uint64_t remainder(uint64_t num) const;
 
+    /** For circular CQF, it gives back the runend_word after the one given. If the one given is at the end, 
+     * it gives back the one at the beginning of the filter. It also skips the metadata words. It is used for 
+     * remainder slot shifting
+     * @param current_quot current quotient
+     * @return uint64 with position of the one after
+     */
     uint64_t get_next_remainder_word(uint64_t current_word) const;
+
+    /** For circular CQF, it gives back the runend_word before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. It also skips the metadata words. It is used for 
+     * remainder slot shifting
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     uint64_t get_prev_remainder_word(uint64_t current_word) const;
 
+    /** For circular CQF, it gives back the quotient after the one given. If the one given is at the end, 
+     * it gives back the one at the begining of the filter (0). 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one after
+     */    
     uint64_t get_next_quot(uint64_t current_quot) const;
 
-    
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
+    uint64_t get_prev_quot(uint64_t current_quot) const;
+
+    /** For circular CQF, it gives back the block_id (a block is mad by the metadata and remainder slots words)
+     *  before the one given. If the one given is 0, it gives back the id of the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */  
     uint64_t get_prev_block_id(uint64_t current_block) const;
+
+    /** For circular CQF, it gives back the block_id (a block is mad by the metadata and remainder slots words)
+     *  after the one given. If the one given is 0, it gives back the id of the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */  
     uint64_t get_next_block_id(uint64_t current_block) const;
-    
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     uint64_t get_runend_word(uint64_t current_block) const;
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     uint64_t get_occupied_word(uint64_t current_block) const;
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     uint64_t get_offset_word(uint64_t current_block) const;
 
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     void set_runend_word(uint64_t current_block, uint64_t value);
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     void set_offset_word(uint64_t current_block, uint64_t value);
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     void set_occupied_bit(uint64_t current_block, uint64_t value, uint64_t bit_pos);
+
+    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
+     * it gives back the one at the end of the filter. 
+     * @param current_quot current quotient
+     * @return uint64 with position of the one before
+     */
     void set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos);
 };  
 
