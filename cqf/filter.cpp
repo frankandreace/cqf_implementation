@@ -359,6 +359,7 @@ uint64_t Cqf::get_remainder(uint64_t position){
     return get_bits(cqf, pos, remainder_size);
 }
 
+/*
 uint64_t Cqf::get_remainder_func(uint64_t position){
 
     uint64_t block = get_remainder_word_position(position);
@@ -368,7 +369,7 @@ uint64_t Cqf::get_remainder_func(uint64_t position){
 
     return get_bits(cqf, pos, remainder_size);
 }
-
+*/
 
 void Cqf::set_remainder(uint64_t position, uint64_t value){
     assert(position < number_blocks*MEM_UNIT);
