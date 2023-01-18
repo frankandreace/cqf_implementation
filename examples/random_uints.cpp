@@ -49,6 +49,9 @@ int main (int argc, char * argv[]) {
 			cout << "insertions " << (i+1) << "/" << n << "\n";
 	} if (verbose)cout << endl;
 
+	// cout << cqf.block2string(840) << endl;
+	// exit(0);
+
 	// Verification
 	if (debug) {
 		// Query present

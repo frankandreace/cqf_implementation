@@ -5,7 +5,8 @@
 #include <string.h>
 #include <cassert>
 #include <cmath>
-#include <stdint.h> 
+#include <stdint.h>
+#include <sstream>
 
 
 #include "filter.hpp" 
@@ -20,37 +21,8 @@
 #define RUN_POS 2ULL
 #define SCALE_INPUT 8000000ULL
 
-/*
-Cqf::Cqf( uint64_t quotient_s ){
-    assert(quotient_s < MEM_UNIT);
+using namespace std;
 
-    elements_inside = 0;
-    quotient_size = quotient_s;
-    remainder_size = MEM_UNIT - quotient_size;
-    uint64_t num_bits_quot = 1ULL << quotient_size;
-    number_blocks = std::ceil(num_bits_quot/MEM_UNIT);
-    block_size = remainder_size + MET_UNIT;
-    uint64_t num_of_words = number_blocks * (MEM_UNIT * block_size);
-
-    cqf = std::vector<uint64_t>(num_of_words);
-    m_num_bits = num_of_words*MEM_UNIT;
-}
-
-
-Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
-    assert(quotient_s < MEM_UNIT);
-    
-    elements_inside = 0;
-    quotient_size = quotient_s;
-    remainder_size = MEM_UNIT - quotient_size;
-    block_size = remainder_size + MET_UNIT;
-    number_blocks = n_blocks;
-    uint64_t num_of_words = number_blocks * (MEM_UNIT * block_size);
-
-    cqf = std::vector<uint64_t>(num_of_words);
-    m_num_bits = num_of_words*MEM_UNIT;
-}
-*/
 
 Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 
@@ -64,6 +36,8 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
     uint64_t num_quots = 1ULL << quotient_size;
     uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
 
+    // In machine words
+    this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
     
     if (this->verbose) {
@@ -75,6 +49,90 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
+}
+
+std::string Cqf::block2string(size_t block_id, bool bit_format) {
+    std::stringstream stream;
+
+    // Init the position in cqf to the first machine word of the block
+    uint64_t cqf_position = block_id * this->block_size;
+    // --- Offset ---
+    stream << "offset : " << this->cqf[cqf_position++] << endl;
+    
+    // --- Occurences ---
+    stream << "occ    : ";
+    uint64_t occ_register = this->cqf[cqf_position++];
+    for (size_t bit=0 ; bit<MEM_UNIT ; bit++) {
+        stream << ((occ_register & 0b1) ? '1' : '0');
+        occ_register >>= 1;
+        if (bit % 4 == 3)
+            stream << "  ";
+    } stream << endl;
+
+    // --- Runends ---
+    stream << "runends: ";
+    uint64_t runs_register = this->cqf[cqf_position++];
+    for (size_t bit=0 ; bit<MEM_UNIT ; bit++) {
+        stream << ((runs_register & 0b1) ? '1' : '0');
+        runs_register >>= 1;
+        if (bit % 4 == 3)
+            stream << "  ";
+    } stream << endl;
+    
+    // --- Remainders ---
+    // Read all bits of the block one by one
+    uint64_t bit_position = 0;
+    bool end_remainder = false;
+    for (size_t remainder_id=0 ; remainder_id<MEM_UNIT ; remainder_id++) {
+        uint64_t current_remainder = 0;
+
+        // Get the remainder bit by bit
+        for (size_t remainder_bit=0 ; remainder_bit<this->remainder_size ; remainder_bit++) {
+            // Add one bit to the remainder
+            size_t byte_position = bit_position / MEM_UNIT;
+            uint64_t bit_value = this->cqf[cqf_position + byte_position] >> (bit_position % MEM_UNIT);
+            current_remainder = (current_remainder << 1) + bit_value;
+
+            // Pretty print the bit format
+            if (bit_format) {
+                // Beginning of the line
+                if (bit_position % MEM_UNIT == 0) {
+                    stream << "         ";
+                }
+                // Remainder separation symbol
+                if (end_remainder and remainder_bit == 0)
+                    stream << '|';
+                // Current bit value
+                stream << (bit_value ? '1' : '0');
+                // End of the line
+                if (bit_position % MEM_UNIT == MEM_UNIT - 1) {
+                    stream << endl;
+                    end_remainder = false;
+                }
+                // Separation between bits
+                else if (bit_position % 4 == 3) {
+                    stream << (end_remainder ? " " : "  ");
+                    end_remainder = false;
+                }
+            }
+
+            // Update the loop
+            bit_position += 1;
+        }
+        // Take into account the end of the remainder for bit pretty printing
+        end_remainder = true;
+
+        // Format the string using decimal numbers
+        if (not bit_format) {
+            if (remainder_id % 4 == 0)
+                stream << "         ";
+            stream << current_remainder << '\t';
+            if (remainder_id % 4 == 3)
+                stream << endl;
+        }
+    }
+
+    return stream.str();
 }
 
 
