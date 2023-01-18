@@ -49,7 +49,7 @@ int main (int argc, char * argv[]) {
 			cout << "insertions " << (i+1) << "/" << n << "\n";
 	} cout << endl;
 
-	// cout << cqf.block2string(840) << endl;
+	cout << endl << cqf.block2string(840) << endl << endl;
 	// exit(0);
 
 	// Verification
