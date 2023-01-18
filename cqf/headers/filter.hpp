@@ -250,66 +250,71 @@ class Cqf {
      */
     uint64_t get_prev_quot(uint64_t current_quot) const;
 
-    /** For circular CQF, it gives back the block_id (a block is mad by the metadata and remainder slots words)
+    /** For circular CQF, it gives back the block_id (a block is made by the metadata and remainder slots words)
      *  before the one given. If the one given is 0, it gives back the id of the one at the end of the filter. 
      * @param current_quot current quotient
      * @return uint64 with position of the one before
      */  
     uint64_t get_prev_block_id(uint64_t current_block) const;
 
-    /** For circular CQF, it gives back the block_id (a block is mad by the metadata and remainder slots words)
+    /** For circular CQF, it gives back the block_id (a block is made by the metadata and remainder slots words)
      *  after the one given. If the one given is 0, it gives back the id of the one at the end of the filter. 
      * @param current_quot current quotient
      * @return uint64 with position of the one before
      */  
     uint64_t get_next_block_id(uint64_t current_block) const;
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It returns the word containing the slice of the runends bitvector corresponing
+     * to the requested block. 
+     * @param current_block chosen block 
+     * @return uint64 with the runend word of the particular block.
      */
     uint64_t get_runend_word(uint64_t current_block) const;
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It returns the word containing the slice of the occupieds bitvector corresponing
+     * to the requested block. 
+     * @param current_block chosen block 
+     * @return uint64 with the occupieds word of the particular block.
      */
     uint64_t get_occupied_word(uint64_t current_block) const;
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It returns the word containing the slice of the occupieds bitvector corresponing
+     * to the requested block.  
+     * @param current_block chosen block 
+     * @return uint64 with the offset word of the particular block.
      */
     uint64_t get_offset_word(uint64_t current_block) const;
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It sets the word containing the slice of the runends bitvector corresponing
+     * to the requested block to a chosen value
+     * @param current_block chosen block
+     * @param value new runend word value
      */
     void set_runend_word(uint64_t current_block, uint64_t value);
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It sets the word containing the offset corresponing
+     * to the requested block to a chosen value
+     * @param current_block chosen block;
+     * @param value new offset value;
+     * @return uint64 with the runend word of the particular block.
      */
     void set_offset_word(uint64_t current_block, uint64_t value);
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It sets the bit of the occupieds bitvector corresponing to the chosen block and (bit position in the word).
+     * e.g. set 5th bit of 3rd block to 1 or 0
+     * @param current_block chosen block 
+     * @param value has to be 0 or 1 as it sets a bit
+     * @param bit_pos the position of the bit in the occupied word 
+     * @return uint64 with the runend word of the particular block.
      */
     void set_occupied_bit(uint64_t current_block, uint64_t value, uint64_t bit_pos);
 
-    /** For circular CQF, it gives back the quotient before the one given. If the one given is 0, 
-     * it gives back the one at the end of the filter. 
-     * @param current_quot current quotient
-     * @return uint64 with position of the one before
+    /** It sets the bit of the runend bitvector corresponing to the chosen block and (bit position in the word).
+     * e.g. set 5th bit of 3rd block to 1 or 0
+     * @param current_block chosen block 
+     * @param value has to be 0 or 1 as it sets a bit
+     * @param bit_pos the position of the bit in the occupied word 
+     * @return uint64 with the runend word of the particular block.
      */
     void set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos);
 };  

@@ -16,6 +16,7 @@ ADDITIONAL METHODS NOT USED BY THE CQF CLASS
 #define OCC_POS 1ULL
 #define RUN_POS 2ULL
 
+
 void print_bits(uint64_t x) {
   std::bitset<MEM_UNIT> bits(x);
   std::cout << bits << std::endl;
