@@ -90,8 +90,8 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
         for (size_t remainder_bit=0 ; remainder_bit<this->remainder_size ; remainder_bit++) {
             // Add one bit to the remainder
             size_t byte_position = bit_position / MEM_UNIT;
-            uint64_t bit_value = this->cqf[cqf_position + byte_position] >> (bit_position % MEM_UNIT);
-            current_remainder = (current_remainder << 1) + bit_value;
+            uint64_t bit_value = (this->cqf[cqf_position + byte_position] >> (bit_position % MEM_UNIT)) & 0b1;
+            current_remainder += bit_value << remainder_bit;
 
             // Pretty print the bit format
             if (bit_format) {
