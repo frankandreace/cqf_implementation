@@ -203,6 +203,13 @@ class Cqf {
      */
     uint64_t get_previous_runend(uint64_t quotient) const;
 
+    /** Generate a string to represent a block. The 3 first lines are offset, occ and runend metadata. Then the other lines are reminders.
+     * @param block_id The block to print.
+     * @param bitformat a flag to print reminders as bitvector instead of numbers.
+     * @return The block represented as string
+     **/
+    std::string block2string(size_t block_id, bool bit_format = false);
+
     private:
     // VALUES
 
@@ -212,8 +219,8 @@ class Cqf {
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r
+    uint64_t block_size; // Block size (in machine words (64 bits multiples))
     uint64_t number_blocks; // number of blocks the cqf is divided into
-    // uint64_t block_size;
     uint64_t elements_inside;
 
 
