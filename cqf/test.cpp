@@ -1024,35 +1024,39 @@ void test_cqf_size(){
   void test_cqf_add_query(){
     Cqf cqf(1);
     uint64_t to_insert;
-
+     cqf.print_counter(1,185,200);
     to_insert = ((1ULL << 17) | 188ULL);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
     cqf.cinsert(to_insert);
+    cqf.print_counter(1,185,200);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((1ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    cqf.print_counter(1,185,200);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
     to_insert = ((1ULL << 17) | 188ULL);
     cqf.cinsert(to_insert);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    to_insert = ((1ULL << 17) | 188ULL);
+    cqf.print_counter(1,185,200);
+
+    /*
+    to_insert = ((0ULL << 17) | 188ULL);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
+    cqf.cinsert(to_insert);
+    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    to_insert = ((0ULL << 17) | 188ULL);
     cqf.cinsert(to_insert);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
 
-    to_insert = ((0ULL << 17) | 188ULL);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    cqf.cinsert(to_insert);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    to_insert = ((0ULL << 17) | 188ULL);
-    cqf.cinsert(to_insert);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    to_insert = ((0ULL << 17) | 188ULL);
-    cqf.cinsert(to_insert);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    to_insert = ((0ULL << 17) | 188ULL);
-    cqf.cinsert(to_insert);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-    to_insert = ((0ULL << 17) | 188ULL);
-    cqf.cinsert(to_insert);
-    std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
-
     to_insert = ((3ULL << 17) | 188ULL);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
     cqf.cinsert(to_insert);
@@ -1103,4 +1107,5 @@ void test_cqf_size(){
     to_insert = ((8ULL << 17) | 188ULL);
     cqf.cinsert(to_insert);
     std::cout << "query of " << to_insert << ": " << cqf.cquery(to_insert) << std::endl;
+    */
   }

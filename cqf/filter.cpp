@@ -56,24 +56,25 @@ Cqf::Cqf(uint64_t quotient_s, uint64_t n_blocks){
 Cqf::Cqf(uint64_t max_memory){
 
     elements_inside = 0;
-    
-    std::cout << "max_memory " << max_memory << std::endl;
     quotient_size = find_quotient_given_memory(max_memory);
-    std::cout << "QUOTIENT SIZE " << quotient_size << std::endl;
     remainder_size = MEM_UNIT - quotient_size;
     uint64_t num_bits_quot = 1ULL << quotient_size;
     number_blocks = std::ceil(num_bits_quot/MEM_UNIT);
     block_size = remainder_size + MET_UNIT;
     uint64_t num_of_words = number_blocks * (MEM_UNIT * block_size);
-
-    std::cout << "remainder_size " << remainder_size << std::endl;
-    std::cout << "num_bits_quot " << num_bits_quot << std::endl;
-    std::cout << "number_blocks " << number_blocks << std::endl;
-
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
-}
 
+    std::cout << "[CQF STATS]" << std::endl;
+    std::cout << "---------------------" << std::endl;
+    std::cout << "MAX MEMORY " << max_memory << std::endl;  
+    std::cout << "QUOTIENT SIZE " << quotient_size << std::endl;
+    std::cout << "REMAINDER SIZE " << remainder_size << std::endl;
+    std::cout << "NUMBER BITS QUOTIENT " << num_bits_quot << std::endl;
+    std::cout << "NUMBER BLOCKS " << number_blocks << std::endl;
+    std::cout << "---------------------" << std::endl << std::endl;
+
+}
 
 /*
 
@@ -336,7 +337,6 @@ void Cqf::cinsert(uint64_t number){
         run_info.start = starting_position;
         run_info.end = starting_position;
         run_info.count = 0;
-        std::cout << "increase counter now " << std::endl;
         return increase_counter(rem,run_info,fu_slot);
     }
     // IF THE QUOTIENT HAS BEEN USED BEFORE
@@ -385,23 +385,40 @@ uint64_t Cqf::cquery(uint64_t number){
     return run_info.count;
 }
 
+void Cqf::print_counter(uint64_t value, uint64_t start, uint64_t end){
+    // print counter encoding from start to end
+    std::cout << "COUNTER OF " << value << std::endl;
+    while(start != end){
+        std::cout << get_remainder(start) << std::endl;
+        start = get_next_quot(start);
+    }
+
+}
+
 // METHOD TO INCREASE THE COUNTER OF A VALUE. IT IS USED AFTER CALLING THE SCAN_COUNTERS
 // FUNCTION. 
 void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){ 
+    std::cout << "[INCREASE COUNTER]" << std::endl;
+    std::cout << "--------------------" << std::endl;
     std::cout << "value: " << value << std::endl;
     std::cout << "rinfo.start: " << run_info.start << std::endl;
     std::cout << "rinfo.end: " << run_info.end << std::endl;
     std::cout << "rinfo.count: " << run_info.count << std::endl;
     std::cout << "fus: " << fus << std::endl;
+    print_counter(value,run_info.start,run_info.end);
+
     if (value == 0){
         if (run_info.count == 0){ // COUNT --> 1  // Y,Z ---> Y,0,Z
             shift_left_and_set_circ(run_info.start,fus,0);
+            run_info.end = get_next_quot(run_info.end); 
         }
         else if(run_info.count == 1){ // COUNT --> 2  // Y,0,Z ---> Y,0,0,Z
             shift_left_and_set_circ(run_info.start,fus,0);
+            run_info.end = get_next_quot(run_info.end);
         }
         else if(run_info.count == 2){ // COUNT --> 3  // Y,0,0,Z ---> Y,0,0,0,Z
             shift_left_and_set_circ(run_info.start,fus,0);
+            run_info.end = get_next_quot(run_info.end);
         }
         else if(run_info.count == 3){ // COUNT --> 4  // Y,0,0,0,Z ---> Y,0,1,0,0,Z
             shift_left_and_set_circ(get_next_quot(run_info.start),fus,1);
@@ -409,7 +426,10 @@ void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){
         else{   // JUST CHECK THAT WHEN THE LAST SLOT OF THE ONES WRAPPED BY THE ZEROS DOES NOT OVERFLOW;
             uint64_t last_encoded_counter_slot = get_prev_quot(get_prev_quot(run_info.end));
             uint64_t value_les = get_remainder(last_encoded_counter_slot);
-            if(value_les == (max_encoded_value - 1)) shift_left_and_set_circ(get_next_quot(last_encoded_counter_slot),fus,1);
+            if(value_les == (max_encoded_value - 1)) {
+                shift_left_and_set_circ(get_next_quot(last_encoded_counter_slot),fus,1);
+                run_info.end = get_next_quot(run_info.end);
+            }
             else set_remainder(last_encoded_counter_slot,value_les + 1);
         }
     }
@@ -417,17 +437,24 @@ void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){
         if(run_info.count == 0){    // COUNT --> 1 // Y,Z ---> Y,X,Z
             std::cout << "0 to 1" << std::endl;
             shift_left_and_set_circ(run_info.start,fus,value);
+            run_info.end = get_next_quot(run_info.end);
         }
         else if(run_info.count == 1){    // COUNT --> 2 // Y,X,Z ---> Y,X,X,Z
             std::cout << "1 to 2" << std::endl;
             shift_left_and_set_circ(run_info.end,fus,value);
+            run_info.end = get_next_quot(run_info.end);
         }
         else if(run_info.count == 2){    // COUNT --> 3 // Y,X,X,Z ---> Y,X,1,X,Z
             std::cout << "2 to 3" << std::endl;
-            if (value != 1) shift_left_and_set_circ(get_prev_quot(run_info.end),fus,1);
+            if (value != 1){
+                shift_left_and_set_circ(get_prev_quot(run_info.end),fus,1);
+                run_info.end = get_next_quot(run_info.end);
+            }
             else {
                 shift_left_and_set_circ(get_prev_quot(run_info.end),fus,0);
                 shift_left_and_set_circ(run_info.end,get_next_quot(fus),2);
+                run_info.end = get_next_quot(run_info.end);
+                run_info.end = get_next_quot(run_info.end);
             }
 
         }
@@ -447,6 +474,7 @@ void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){
             else if(encoded_counter == max_encoded_value){ // add new slot to the counter when reaching max_value
                 std::cout << "new slot" << std::endl;
                 shift_left_and_set_circ(get_prev_quot(run_info.end),fus,1);
+                run_info.end = get_next_quot(run_info.end);
             }
             else{// in every othrer case just increase of 1
                 std::cout << "just increase" << std::endl;
@@ -456,6 +484,9 @@ void Cqf::increase_counter(uint64_t value, counter_el run_info, uint64_t fus){
         }
 
     }
+    std::cout << "RINFO.END: " << run_info.end << std::endl;
+    print_counter(value,run_info.start,run_info.end);
+    std::cout << "--------------------" << std::endl << std::endl;
 }
 
 void Cqf::decrease_counter(uint64_t value, counter_el run_info, uint64_t fus){
@@ -967,8 +998,8 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient) const{
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
     //assert(curr_quotient < ( 1ULL << quotient_size));
     uint64_t rend_pos = sel_rank_filter(curr_quotient);
-    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
-    std::cout << "FUS out of sel_rank " << rend_pos << std::endl;
+    //std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+    //std::cout << "FUS out of sel_rank " << rend_pos << std::endl;
     //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
     //preventing erroneous stop when it jumps from the end of the filter to the beginning 
     // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
@@ -988,7 +1019,7 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
         //std::cout << "FUS IN WHILE get_block_id(rend_pos) " << get_block_id(rend_pos) << std::endl;
         //std::cout << "FUS IN WHILE (bitrankasm(occupied,pos_in_block) + offset) " << (bitrankasm(occupied,pos_in_block) + offset) << std::endl;
     }
-    std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+    //std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
     return curr_quotient;
 }
 

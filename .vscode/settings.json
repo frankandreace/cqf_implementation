@@ -61,6 +61,8 @@
         "__locale": "cpp",
         "__bit_reference": "cpp",
         "__node_handle": "cpp",
-        "__memory": "cpp"
+        "__memory": "cpp",
+        "unordered_set": "cpp",
+        "sstream": "cpp"
     }
 }
