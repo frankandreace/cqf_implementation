@@ -173,11 +173,13 @@ uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
 using namespace std;
 
 void Cqf::insert(uint64_t number){
-
     if (elements_inside == number_blocks*MEM_UNIT) return;
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
+
+    if (quot == 53823) this->verbose = true;
+    else this->verbose = false;
 
     this->debug = number == 929446423189574171ULL;
     if (debug) {
@@ -258,7 +260,7 @@ void Cqf::insert(uint64_t number){
         //if((metadata_starting_position == boundary.second) && (metadata_starting_position != 0)) metadata_starting_position--;
 
         if (this->verbose) {
-            std::cout << "metadata_starting_position " << metadata_starting_position << std::endl;
+            std::cout << "shift_bits_left_metadata " << quot << " " << 0 << " " << metadata_starting_position << " " << fu_slot << " " << std::endl;
         }    
 
         shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
@@ -983,19 +985,38 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
         uint64_t quot_block = get_block_id(quotient);
         uint64_t quot_shift_in_block = get_shift_in_block(quotient);
         set_occupied_bit(quot_block,flag_bit,quot_shift_in_block);
+        if (this->verbose) {
+            std::cout << "FLAG IS 1" << std::endl;
+            cout << "set_occupied_bit " << quot_block << " " << flag_bit << " " << quot_shift_in_block << endl;
+        }   
     }
 
     if ((current_block == end_block) && (start_position > end_position)) {
 
         word_to_shift = get_runend_word(current_block);
         save_right = word_to_shift & mask_right(current_shift_in_block);
-        to_shift = ((word_to_shift >> current_shift_in_block) << (current_shift_in_block + 1));
+        to_shift = shift_left(shift_right(word_to_shift,current_shift_in_block),(current_shift_in_block + 1));
 
         overflow_bit <<= current_shift_in_block;
         to_shift |= (save_right | overflow_bit);
         set_runend_word(current_block, to_shift); 
 
+        if (this->verbose) {
+            std::cout << "OLD RUNEND_W" << std::endl;
+            print_bits(word_to_shift);
+            std::cout << "NEW RUNEND_W" << std::endl;
+            print_bits(to_shift);
+            std::cout << "OVERFLOW BIT" << std::endl;
+            print_bits(overflow_bit);
+            std::cout << "SAVE RIGHT" << std::endl;
+            print_bits(save_right);
+        } 
+
         overflow_bit = word_to_shift >> (MEM_UNIT - 1);
+        if (this->verbose) {
+            std::cout << "NEW OVERFLOW BIT" << std::endl;
+            print_bits(overflow_bit);
+        } 
         next_block = get_next_block_id(current_block);
 
         if (overflow_bit == 1){
@@ -1013,17 +1034,57 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     }
 
     while ( current_block != end_block ) {
+        if (this->verbose) {
+            std::cout << "CURRENT: " << current_block << " |END: " << end_block << std::endl;
+        } 
 
         word_to_shift = get_runend_word(current_block);
-        save_right = word_to_shift & mask_right(current_shift_in_block);
-        to_shift = ((word_to_shift >> current_shift_in_block) << (current_shift_in_block + 1));
 
-        overflow_bit <<= current_shift_in_block;
+        if (this->verbose) {
+        std::cout << "OLD RUNEND_W" << std::endl;
+        print_bits(word_to_shift);
+        }
+
+        save_right = word_to_shift & mask_right(current_shift_in_block);
+
+        if (this->verbose) {
+        std::cout << "MASKED OLD RUNEND_W" << std::endl;
+        print_bits(save_right);
+        }
+
+        to_shift = shift_left(shift_right(word_to_shift,current_shift_in_block),(current_shift_in_block + 1));
+        //((word_to_shift >> current_shift_in_block) << (current_shift_in_block + 1));
+
+        if (this->verbose) {
+        std::cout << "OLD RUNEND_W SHIFTED RIGHT OF " << current_shift_in_block << std::endl;
+        print_bits((word_to_shift >> current_shift_in_block));
+        std::cout << "AND THEN SHIFTED LEFT OF " << (current_shift_in_block + 1) << std::endl;
+        print_bits(to_shift);
+        }
+
+        overflow_bit = shift_left(overflow_bit,current_shift_in_block);
+
+        if (this->verbose) {
+        std::cout << "OVERFLOW BIT" << std::endl;
+        print_bits(overflow_bit);
+        }
+
         to_shift |= (save_right | overflow_bit);
+
+        if (this->verbose) {
+        std::cout << "NEW RUNEND_W" << std::endl;
+        print_bits(to_shift);
+        }
+
         set_runend_word(current_block, to_shift); 
 
-        overflow_bit = word_to_shift >> (MEM_UNIT - 1);
+        overflow_bit = shift_right(word_to_shift,(MEM_UNIT - 1));
         next_block = get_next_block_id(current_block);
+
+        if (this->verbose) {
+            std::cout << "NEW OVERFLOW BIT" << std::endl;
+            print_bits(overflow_bit);
+        } 
 
         if (overflow_bit == 1){
             old_offset = get_offset_word(current_block);
@@ -1040,7 +1101,23 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     save_right = word_to_shift & mask_right(current_shift_in_block);
 
     to_shift = (((word_to_shift & mask_right(end_shift_in_block)) & mask_left(MEM_UNIT - current_shift_in_block)) << 1);
-    to_shift |= ((save_left | (overflow_bit << current_shift_in_block)) | save_right);
+    to_shift |= ((save_left | shift_left(overflow_bit,current_shift_in_block)) | save_right);
+    //((save_left | (overflow_bit << current_shift_in_block)) | save_right);
+
+    set_runend_word(current_block, to_shift); 
+
+    if (this->verbose) {
+            std::cout << "CURRENT: " << current_block << " |END: " << end_block << std::endl;
+            std::cout << "OLD RUNEND_W" << std::endl;
+            print_bits(word_to_shift);
+            std::cout << "NEW RUNEND_W" << std::endl;
+            print_bits(to_shift);
+            std::cout << "OVERFLOW BIT" << std::endl;
+            print_bits(overflow_bit);
+            std::cout << "SAVE RIGHT" << std::endl;
+            print_bits(save_right);
+        } 
+
     /*
     std::cout << "SBLM word_to_shift ";
     print_bits(word_to_shift);
@@ -1051,8 +1128,6 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     std::cout << "SBLM to_shift ";
     print_bits(to_shift);
     */
-
-    set_runend_word(current_block, to_shift); 
 
 }
 

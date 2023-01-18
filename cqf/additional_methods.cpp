@@ -32,6 +32,16 @@ uint64_t mask_left(uint64_t numbits){
     return ~(mask_right(MEM_UNIT-numbits));
 }
 
+uint64_t shift_left(uint64_t value, uint64_t shift){
+    if (shift == MEM_UNIT) return 0;
+    else return (value << shift);
+}
+
+uint64_t shift_right(uint64_t value, uint64_t shift){
+    if (shift == MEM_UNIT) return 0;
+    else return (value >> shift);
+}
+
 uint64_t get_block_id(uint64_t position){
     return position / MEM_UNIT;
 }
