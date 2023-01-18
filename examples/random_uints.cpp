@@ -42,14 +42,25 @@ int main (int argc, char * argv[]) {
 		cout << "insertions 0/" << n << "\n";
 	for (size_t i=0 ; i<n ; i++) {
 		uint64_t val = distribution(generator);
+		uint64_t q = val & ((1ULL << 19) - 1);
+		if (q == 53823) {
+			cout << endl << cqf.block2string(840, false) << endl << endl;
+			cout << endl << cqf.block2string(841, false) << endl << endl;
+		}
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
+		if (q == 53823) {
+			cout << endl << cqf.block2string(840, false) << endl << endl;
+			cout << endl << cqf.block2string(841, false) << endl << endl;
+		}
 		if (verbose)
 			cout << "insertions " << (i+1) << "/" << n << "\n";
 	} cout << endl;
 
-	cout << endl << cqf.block2string(840) << endl << endl;
+	// cout << endl << cqf.block2string(839, false) << endl << endl;
+	// cout << endl << cqf.block2string(840, false) << endl << endl;
+	// cout << endl << cqf.block2string(841, false) << endl << endl;
 	// exit(0);
 
 	// Verification
