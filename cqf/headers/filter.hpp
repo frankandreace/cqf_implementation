@@ -13,6 +13,8 @@ class Cqf {
     
     public:
     
+    Cqf();
+    
     /*
     OPERATIONS ON THE ENTIRE CQF
     */

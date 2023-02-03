@@ -23,6 +23,9 @@
 
 using namespace std;
 
+Cqf::Cqf(){
+    elements_inside = 0;
+}
 
 Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 

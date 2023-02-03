@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.19)
 
 project(CQF)
 
-include(CTest)
 enable_testing()
 
 # C++ options
@@ -16,4 +15,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(cqf)
 add_subdirectory(test)
 add_subdirectory(examples)
-
+add_subdirectory(unitary_tests)
