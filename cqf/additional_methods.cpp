@@ -25,6 +25,7 @@ void print_bits(uint64_t x) {
 
 uint64_t mask_right(uint64_t numbits){
     uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1ULL);
+    std::cout << (-(numbits >= MEM_UNIT)) << std::endl;
     return mask;
 }
 
