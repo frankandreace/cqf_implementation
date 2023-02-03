@@ -22,6 +22,22 @@ uint64_t mask_left(uint64_t num_bits);
  */
 uint64_t mask_right(uint64_t num_bits);
 
+/** returns the value shifted left of shift bits
+ * if shift is 64 returns a 0
+ * @param value to shift
+ * @param shift applied to value
+ * @return the uint64 corresponding to the shifted value
+ */
+uint64_t shift_left(uint64_t value, uint64_t shift);
+
+/** returns the value shifted right of shift bits
+ * if shift is 64 returns a 0
+ * @param value to shift
+ * @param shift applied to value
+ * @return the uint64 corresponding to the shifted value
+ */
+uint64_t shift_right(uint64_t value, uint64_t shift);
+
 /** returns the id of the block associated to the requested quotient
  * @param position the quotient of wich you want to know the block
  * @return the block id

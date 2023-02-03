@@ -187,7 +187,7 @@ class Cqf {
      * @return uint64 of the position of the first unused slot.
      * It extracts the related bit of the occupied word in the block of the quotient
      */
-    uint64_t first_unused_slot(uint64_t curr_quotient) const;
+    uint64_t first_unused_slot(uint64_t curr_quotient); //const
 
     /** returns the start and the end of the run that contains all the remainders of the numbers inserted that have 
      * the given quotient. I.e. I have quotient 1 and want to see where the run that contains the remainders that are linked to it in the cqf
@@ -196,27 +196,34 @@ class Cqf {
      * @param quotient quotient of the numbers where we want to have the associated
      * @return a std::pair with start and end position of the run
      */
-    std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient) const;
+    std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient); //const
 
     /** it gets the end of the previous run of the selected quotient. It is the equivalent of doing 
      * select(runend_vector, rank(occipieds_vector, quotient))
      * @param quotient quotient to give to the function
      * @return the position of the end of the previous run
      */
-    uint64_t sel_rank_filter(uint64_t quotient) const;
+    uint64_t get_previous_runend(uint64_t quotient); //const
+
+    uint64_t get_previous_runend2(uint64_t quotient);
 
     /** Generate a string to represent a block. The 3 first lines are offset, occ and runend metadata. Then the other lines are reminders.
      * @param block_id The block to print.
      * @param bitformat a flag to print reminders as bitvector instead of numbers.
      * @return The block represented as string
      **/
+    
     std::string block2string(size_t block_id, bool bit_format = false);
+
+    uint64_t remainder(uint64_t num) const;
+
 
     private:
     // VALUES
 
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
     bool verbose;
+    bool debug;
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r
@@ -227,8 +234,7 @@ class Cqf {
 
 
     uint64_t quotient(uint64_t num) const;
-    uint64_t remainder(uint64_t num) const;
-
+    
     /** For circular CQF, it gives back the runend_word after the one given. If the one given is at the end, 
      * it gives back the one at the beginning of the filter. It also skips the metadata words. It is used for 
      * remainder slot shifting
