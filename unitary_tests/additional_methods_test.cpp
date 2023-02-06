@@ -2,6 +2,21 @@
 #include "additional_methods.hpp"
 
 
+TEST(AddMethods_DeathTest, set_bits) {
+  std::vector<uint64_t> v = {((31<<25) + 365), 1023};
+  EXPECT_DEATH(
+    set_bits(v, 35, ((1ULL<<63ULL)-1), 0),
+    "");
+
+  EXPECT_DEATH(
+    set_bits(v, 120, 3, 50),
+    "");
+}
+
+
+
+
+
 TEST(AddMethods, mask_right) {
   EXPECT_EQ (mask_right(0),  0);
   EXPECT_EQ (mask_right(1),  1);
@@ -64,6 +79,29 @@ TEST(AddMethods, bitrankasm) {
   EXPECT_EQ (bitrankasm(365<<10, 14),  3);
   EXPECT_EQ (bitrankasm(365<<10, 20),  6);
 }
+
+TEST(AddMethods, get_bits) {
+  std::vector<uint64_t> v = {((31<<25) + 365), 1023};
+  EXPECT_EQ (get_bits(v, 0, 0),  0);
+  EXPECT_EQ (get_bits(v, 25, 30),  31);
+  EXPECT_EQ (get_bits(v, 24, 30),  31<<1);
+  EXPECT_EQ (get_bits(v, 0, 64),  ((31<<25) + 365));
+  EXPECT_EQ (get_bits(v, 50, 64),  16760832);
+}
+
+TEST(AddMethods, set_bits) {
+  std::vector<uint64_t> v = {((31<<25) + 365), 1023};
+  set_bits(v, 11, 15, 9);
+  EXPECT_EQ (v[0], ((31<<25) + (15 << 11) + 365));
+  EXPECT_EQ (v[1], 1023);
+
+  v = {((31<<25) + 365), 1023};
+  set_bits(v, 35, ((1ULL<<63ULL)-1), 64);
+  EXPECT_EQ (v[0], 18446744040390001005ULL);
+  EXPECT_EQ (v[1], 17179869183ULL);
+}
+
+
 
 
 

@@ -893,6 +893,19 @@ void test_cqf_size(){
 
 
 int main(int argc, char** argv) {
-    test_cqf_size();
+    //test_cqf_size();
+
+    std::vector<uint64_t> v = {((31<<25) + 365), 1023};
+    for (int i = 0; i < 2; i++){
+      print_bits(v[i]);
+    }
+    
+    set_bits(v, 35, ((1ULL<<63ULL)-1), 64);
+
+    for (int i = 0; i < 2; i++){
+      std::cout << v[i] << std::endl;
+      print_bits(v[i]);
+    }
+    
     return 0;
 }

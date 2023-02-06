@@ -181,8 +181,8 @@ class Cqf {
      */
     uint64_t find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos) const;
 
-    /** Returns the first unused slot as described in the paper. Used on insertion and to find the shifting window
-     * of deletions.
+    /** Returns the first unused slot as described in the paper. 
+     * Used on insertion and to find the shifting window of deletions.
      * @param curr_quotient the quotient from where to find the first unused slot
      * @return uint64 of the position of the first unused slot.
      * It extracts the related bit of the occupied word in the block of the quotient
@@ -218,11 +218,12 @@ class Cqf {
     uint64_t remainder(uint64_t num) const;
 
 
+    bool verbose; //temporary public
     private:
     // VALUES
 
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
-    bool verbose;
+    
     bool debug;
     uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q

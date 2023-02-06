@@ -178,18 +178,13 @@ using namespace std;
 
 void Cqf::insert(uint64_t number){
     if (elements_inside == number_blocks*MEM_UNIT) return;
+
+
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
-    std::cout << "[INSERT] inserting " << number << " |q/r " << quot << " " << rem << std::endl;
-    if ((number == 16770102985076564731ULL) or (number == 14541508102286271226ULL) or (number == 4903760296506352378ULL)) {
-        this->verbose = true;
-        debug = true;
-    }
-    else {
-        this->verbose = false;
-        debug = false;
-    }
+    //std::cout << "[INSERT] inserting " << number << " |q/r " << quot << " " << rem << std::endl;
+
 
     if (debug) {
         cout << "[INSERT] debug: q/r " << quot << " " << rem << endl;
@@ -201,10 +196,10 @@ void Cqf::insert(uint64_t number){
     }
 
     // GET FIRST UNUSED SLOT
-    if (debug || verbose) cout << "[INSERT] before first unused slot " << endl;
+    if (debug || verbose) {cout << "[INSERT] before first unused slot " << endl;}
     uint64_t fu_slot = first_unused_slot(quot);
     
-    if (debug || verbose)    cout << "[INSERT] first unused slot " << fu_slot << endl;
+if (debug || verbose)  {cout << "[INSERT] first unused slot " << fu_slot << endl;}
     // IF THE QUOTIENT HAS NEVER BEEN USED BEFORE
     //PUT THE REMAINDER AT THE END OF THE RUN OF THE PREVIOUS USED QUOTIENT OR AT THE POSITION OF THE QUOTIENT
     uint64_t starting_position = get_next_quot(get_previous_runend2(get_prev_quot(quot)));
@@ -560,8 +555,7 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
         std::cout << "END OF SHIFTING" << std::endl;
         cout << endl << block2string(start_quotient/64, false) << endl << endl;
     }
-    this->verbose = false;
-    this->debug = false;
+
 }
 
 
@@ -753,19 +747,14 @@ uint64_t Cqf::get_previous_runend2(uint64_t quotient){ //const
     // starting pieces of information required
     uint64_t block = get_block_id(quotient);
     uint64_t pos_in_block = get_shift_in_block(quotient);
-    uint64_t offset;
-    uint64_t occupied;
+    uint64_t offset = get_offset_word(block);
+    uint64_t occupied = get_occupied_word(block);
     uint64_t runend;
 
-    // loop used for sel(rank()) opertion
-
-    // having offset, occupied and runend adj
-    offset = get_offset_word(block);
-    occupied = get_occupied_word(block);
 
     // rank of starting word
     uint64_t searched_position = bitrankasm(occupied, pos_in_block) + offset;
-    if (verbose || debug) std::cout << "[SR]: FIRST SEARCHED_POSITION " << (searched_position) << ";" << std::endl;
+    if (verbose || debug) std::cout << "[SR]: FIRST SEARCHED_POSITION / rank of quot " << (searched_position) << ";" << std::endl;
 
     while(searched_position == 0){
         if(block == 0) return 0;
@@ -944,8 +933,8 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     if (this->verbose) {
         std::cout << "IN FUS "  << std::endl;
     }
-    if (debug)
-        cout << "- first_unused_slot " << curr_quotient << endl;
+
+
     uint64_t rend_pos = get_previous_runend2(curr_quotient);
     if (this->verbose) {
         std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
@@ -961,21 +950,36 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     uint64_t loop_counter = 0;
 
     // why ((bitrankasm(occupied,pos_in_block) + offset) != 0) ?
-    if (debug || verbose) std::cout << "BEFORE WHILE " << std::endl;
-    while((curr_quotient <= rend_pos) || ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && ((bitrankasm(get_occupied_word(get_block_id(curr_quotient)),get_shift_in_block(curr_quotient)) + get_offset_word(get_block_id(curr_quotient))) != 0))){
+    if (debug || verbose) {
+        std::cout << "BEFORE WHILE " << std::endl;
+        cout << "x <= s ? " << (((curr_quotient <= rend_pos))) << endl;
+    }
+
+    while((curr_quotient <= rend_pos) || 
+          ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && 
+           ((bitrankasm(
+                get_occupied_word(get_block_id(curr_quotient)),
+                get_shift_in_block(curr_quotient)) + get_offset_word(get_block_id(curr_quotient))) 
+                    != 0))){
+
+        
         curr_quotient = get_next_quot(rend_pos);
         rend_pos = get_previous_runend2(curr_quotient);
         loop_counter++;
         if (this->verbose) {
-        std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
-        std::cout << "FUS rend_pos " << rend_pos << std::endl;
-        std::cout << "LOOP COUNTER " << loop_counter << std::endl;
+            std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
+            std::cout << "FUS rend_pos " << rend_pos << std::endl;
+            std::cout << "LOOP COUNTER " << loop_counter << std::endl;
+            cout << "x <= s ? " << (((curr_quotient <= rend_pos))) << endl;
+            if (loop_counter > 100000) { exit(0); }
+            
         }
- }
+    }
     if (this->verbose) {
+        std::cout << "AFTER WHILE " << curr_quotient << std::endl;
         std::cout << "FUS curr_quotient " << curr_quotient << std::endl;
     }
-    if (debug || verbose) std::cout << "BEFORE WHILE " << std::endl;
+
     return curr_quotient;
 }
 

@@ -25,7 +25,6 @@ void print_bits(uint64_t x) {
 
 uint64_t mask_right(uint64_t numbits){
     uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1ULL);
-    std::cout << (-(numbits >= MEM_UNIT)) << std::endl;
     return mask;
 }
 
@@ -120,9 +119,9 @@ void set_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t value, uint64_t
 	//std::cout << "value & mask: ";
 	//print_bits(value);
 
-    vec[word] &= ~(mask << shift);
+    vec[word] &= ~(mask << shift); //set to 0 all bits in the range of modified ones
 	//print_bits(vec[word]);
-    vec[word] |= (value << shift);
+    vec[word] |= (value << shift); //OR op between the previous 0s and bits of value
 	//print_bits(vec[word]);
 
     uint64_t stored = MEM_UNIT - shift;
