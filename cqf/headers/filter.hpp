@@ -12,15 +12,14 @@
 class Cqf {
     
     public:
-    
-    Cqf();
-    
     /*
     OPERATIONS ON THE ENTIRE CQF
     */
     // constructor
+
+    Cqf();
     //Cqf(uint64_t quotient_s);
-    //Cqf(uint64_t quotient_s, uint64_t n_blocks); // deprecated, used for early tests
+    Cqf(uint64_t q_size, uint64_t r_size, bool verbose = false); // deprecated, used for early tests, back for debug
 
     /** Constructor that deduces quotient and reminder sizes from the desired struct size
      * @param max_memory The desired (maximum) size of the CQF (in MBytes)

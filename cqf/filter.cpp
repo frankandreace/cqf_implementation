@@ -19,13 +19,35 @@
 #define OFF_POS 0ULL
 #define OCC_POS 1ULL
 #define RUN_POS 2ULL
-#define SCALE_INPUT 8000000ULL
+#define SCALE_INPUT 8388608ULL
 
 using namespace std;
 
 Cqf::Cqf(){
     elements_inside = 0;
 }
+
+Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose), debug(false) {
+    elements_inside = 0;
+    quotient_size = q_size;
+    remainder_size = r_size;
+    uint64_t num_quots = 1ULL << quotient_size; 
+    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT; 
+
+    // In machine words
+    this->block_size = (3 + this->remainder_size);
+    number_blocks = std::ceil(num_quots / MEM_UNIT);
+    
+    //if (this->verbose) {
+    std::cout << "[FS]: QUOTIENT SIZE " << quotient_size << std::endl;
+    std::cout << "[FS]: REMAINDER SIZE " << remainder_size << std::endl;
+    std::cout << "[FS]: NUMBER OF QUOTIENTS " << num_quots << std::endl;
+    //}
+
+    cqf = std::vector<uint64_t>(num_of_words);
+    m_num_bits = num_of_words*MEM_UNIT;
+}
+
 
 Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose), debug(false) {
 
@@ -36,12 +58,13 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose), debug(false) {
     remainder_size = MEM_UNIT - quotient_size;
 
     // Number of quotients must be >= MEM_UNIT
-    uint64_t num_quots = 1ULL << quotient_size;
-    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
+    uint64_t num_quots = 1ULL << quotient_size; //524.288
+    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT; //393.216
 
     // In machine words
     this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
+    
     
     //if (this->verbose) {
     std::cout << "[FILTER STATS]" << max_memory << std::endl;
@@ -82,6 +105,8 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
         if (bit % 4 == 3)
             stream << "  ";
     } stream << endl;
+
+    stream << "first quot = " << block_id * 64 << " of block " << block_id << endl;
     
     // --- Remainders ---
     // Read all bits of the block one by one
@@ -136,6 +161,7 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
         }
     }
 
+    stream << "last quot = " << block_id * 64 + 63 << endl;
     return stream.str();
 }
 
@@ -953,6 +979,9 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     if (debug || verbose) {
         std::cout << "BEFORE WHILE " << std::endl;
         cout << "x <= s ? " << (((curr_quotient <= rend_pos))) << endl;
+        cout << this->block2string(block);
+        cout << "============================" << endl;
+        cout << this->block2string(block+1);
     }
 
     while((curr_quotient <= rend_pos) || 
@@ -971,7 +1000,7 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
             std::cout << "FUS rend_pos " << rend_pos << std::endl;
             std::cout << "LOOP COUNTER " << loop_counter << std::endl;
             cout << "x <= s ? " << (((curr_quotient <= rend_pos))) << endl;
-            if (loop_counter > 100000) { exit(0); }
+            if (loop_counter > 1) { exit(0); }
             
         }
     }
