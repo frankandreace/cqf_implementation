@@ -198,13 +198,15 @@ class Cqf {
     std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient); //const
 
     /** it gets the end of the previous run of the selected quotient. It is the equivalent of doing 
-     * select(runend_vector, rank(occipieds_vector, quotient))
+     * select(runend_vector, rank(occupieds_vector, quotient))
      * @param quotient quotient to give to the function
      * @return the position of the end of the previous run
      */
     uint64_t get_previous_runend(uint64_t quotient); //const
 
     uint64_t get_previous_runend2(uint64_t quotient);
+    
+    uint64_t get_previous_runend3(uint64_t quotient);
 
     /** Generate a string to represent a block. The 3 first lines are offset, occ and runend metadata. Then the other lines are reminders.
      * @param block_id The block to print.

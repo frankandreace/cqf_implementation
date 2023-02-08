@@ -27,10 +27,20 @@ int main (int argc, char * argv[]) {
 
 	//verbose = true;
 	// Creation of the cqf (size is MB)
-	Cqf cqf(filter_size, verbose);
+	//Cqf cqf(filter_size, verbose);
+	//Cqf cqf(8, 64-8, verbose); // ./bin/random_uints -n 255 -r 1675846862
+	Cqf cqf(7, 64-7, verbose);  // ./bin/random_uints -n 83 -r 1675846981
+
+	Cqf cqf2(7, 64-7, verbose);
+	cqf2.insert((2ULL << 30) + 90); 
+	cqf2.insert(2ULL << 31); 
+	cout << cqf2.block2string(0);
+	cout << cqf2.block2string(1);
+
 
 	// uint64 generators
 	default_random_engine generator;
+	cout << "seed " << seed << endl; 
 	generator.seed(seed);
 	uniform_int_distribution<uint64_t> distribution;
 
@@ -40,20 +50,16 @@ int main (int argc, char * argv[]) {
 	// Add the uints one by one into the cqf
 	if (verbose) {std::cout << "insertions 0/" << n << "\n";}
 	for (size_t i=0 ; i<n ; i++) {
-		//std::cout << "i " << i << endl;
+		std::cout << "\n\ni " << i << endl;
 		uint64_t val = distribution(generator);
 		
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
 
-		//if((val == 14541508102286271226ULL) or (val == 16770102985076564731ULL)){
-		/*
-		if (q == 53823) {
-			std::cout << endl << cqf.block2string(840, false) << endl << endl;
-			std::cout << endl << cqf.block2string(841, false) << endl << endl;
-		}
-		*/
+		cout << cqf.block2string(0);
+    	cout << cqf.block2string(1);
+
 		if (verbose){
 			for (const uint64_t check : verif){
 				if (cqf.query(check) != 1) std::cout << "PROBLEM WITH " << check << endl;
@@ -63,10 +69,12 @@ int main (int argc, char * argv[]) {
 		}
 	} std::cout << endl;
 
+	/*
+	cqf.verbose = true; //remettre verbose en private après
 	std::cout << "i " << n << endl;
-	cqf.verbose = true;
 	uint64_t val = distribution(generator);
 	cqf.insert(val);
+	*/
 
 	// std::cout << endl << cqf.block2string(839, false) << endl << endl;
 	// std::cout << endl << cqf.block2string(840, false) << endl << endl;
