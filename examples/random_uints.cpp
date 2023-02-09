@@ -31,11 +31,14 @@ int main (int argc, char * argv[]) {
 	//Cqf cqf(8, 64-8, verbose); // ./bin/random_uints -n 255 -r 1675846862
 	Cqf cqf(7, 64-7, verbose);  // ./bin/random_uints -n 83 -r 1675846981
 
+	/*
+	BUGS
 	Cqf cqf2(7, 64-7, verbose);
 	cqf2.insert((2ULL << 30) + 90); 
 	cqf2.insert(2ULL << 31); 
 	cout << cqf2.block2string(0);
 	cout << cqf2.block2string(1);
+	*/
 
 
 	// uint64 generators

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stdint.h> 
+#include <unordered_set>
 
 #include "additional_methods.hpp"
 
@@ -73,6 +74,8 @@ class Cqf {
      */
     uint64_t remove(uint64_t number);
 
+    std::unordered_set<uint64_t> enumerate(); 
+
 
 
     /** returns the size in bits of the quotient
@@ -101,6 +104,7 @@ class Cqf {
      * It extracts the related bit of the occupied word in the block of the quotient
      */
     bool is_occupied(uint64_t position);
+    bool is_runend(uint64_t position);
 
     /** returns the remainder slot associated to the requested quotient
      * @param position quotient 
@@ -204,10 +208,8 @@ class Cqf {
      */
     uint64_t get_previous_runend(uint64_t quotient); //const
 
-    uint64_t get_previous_runend2(uint64_t quotient);
+    uint64_t get_runend2(uint64_t quotient);
     
-    uint64_t get_previous_runend3(uint64_t quotient);
-
     /** Generate a string to represent a block. The 3 first lines are offset, occ and runend metadata. Then the other lines are reminders.
      * @param block_id The block to print.
      * @param bitformat a flag to print reminders as bitvector instead of numbers.

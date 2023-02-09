@@ -165,10 +165,21 @@ void test_cqf_size(){
 int main(int argc, char** argv) {
     //test_cqf_size();
 
-    Cqf filter(8, 64-8, true);
-    filter.insert(65ULL);
-    std::cout << filter.query(65ULL) << std::endl;
-    std::cout << filter.query(62ULL) << std::endl;
+    Cqf filter(7, 64-7, false);
+    filter.insert((2ULL<<30)+126);
+    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+
+    filter.insert((2ULL<<31)+126);
+    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+
+    filter.insert((2ULL<<32)+126);
+    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+    
+    filter.insert((2ULL<<33)+126);
+    filter.insert((2ULL<<34)+126);
+
+    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+
 
     
     
