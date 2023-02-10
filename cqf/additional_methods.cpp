@@ -55,8 +55,8 @@ uint64_t get_quot_from_block_shift(uint64_t block, uint64_t shift){
 }
 
 uint64_t bitselectasm(uint64_t num, uint64_t rank){
-    assert(rank < MEM_UNIT);
-    uint64_t i = 1ULL << rank; // i = 2^rank
+    assert((rank != 0) && (rank <= MEM_UNIT));
+    uint64_t i = 1ULL << (rank - 1); // i = 2^rank
 
     // SELECT(v,i) = TZCNT(PDEP(2^rank,num))     
 	asm("pdep %[num], %[mask], %[num]"

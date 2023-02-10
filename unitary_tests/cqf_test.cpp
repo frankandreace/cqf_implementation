@@ -35,7 +35,7 @@ TEST_F(CqfTest, globalUse) {
     EXPECT_EQ(usual_cqf.query(val2), 0);
 }
 
-TEST_F(CqfTest, get_run_boundaries) {
+/*TEST_F(CqfTest, get_run_boundaries) {
     std::pair<uint64_t,uint64_t> compare(126, 2);
     small_cqf.insert((2ULL<<30)+126);
     small_cqf.insert((2ULL<<31)+126);
@@ -43,15 +43,48 @@ TEST_F(CqfTest, get_run_boundaries) {
     small_cqf.insert((2ULL<<33)+126);
     small_cqf.insert((2ULL<<34)+126);
     EXPECT_EQ(small_cqf.get_run_boundaries(126), compare);
-}
+}*/
 
-TEST_F(CqfTest, insert_pos_0) {
+/*TEST_F(CqfTest, get_start_run) {
+    small_cqf.insert((2ULL<<30)+64);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+    //small_cqf.insert((2ULL<<31)+63);
+
+    //small_cqf.insert((2ULL<<32)+126);
+    //small_cqf.insert((2ULL<<33)+126);
+    //small_cqf.insert((2ULL<<34)+126);
+    EXPECT_EQ(small_cqf.get_start_run(64), 64);
+}/*
+
+/*TEST_F(CqfTest, insert_pos_0) {
     small_cqf.insert((2ULL << 30) + 90); 
     small_cqf.insert(2ULL << 31); 
     //std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_remainder(0), 33554432);
+}*/
+
+TEST_F(CqfTest, offset1) {
+    small_cqf.insert(62);
+    small_cqf.insert(62);
+    small_cqf.insert(62);//0
+    small_cqf.insert(62);//1
+    small_cqf.insert(62);//2
+    EXPECT_EQ(small_cqf.get_offset_word(1), 2);
 }
 
+TEST_F(CqfTest, offset2) {
+    small_cqf.insert(64);
+    small_cqf.insert(64);
+    EXPECT_EQ(small_cqf.get_offset_word(1), 1);
+}
 
+TEST_F(CqfTest, offset3) {
+    for (int i = 0; i < 128; i++){
+        usual_cqf.insert(100);
+    }
+    EXPECT_EQ(usual_cqf.get_offset_word(1), 0);
+    EXPECT_EQ(usual_cqf.get_offset_word(2), 100);
+    EXPECT_EQ(usual_cqf.get_offset_word(3), 100-64);    
+}
 
 

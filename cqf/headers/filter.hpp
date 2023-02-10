@@ -208,6 +208,8 @@ class Cqf {
      */
     uint64_t get_previous_runend(uint64_t quotient); //const
 
+    uint64_t get_start_run(uint64_t quotient);
+
     uint64_t get_runend2(uint64_t quotient);
     
     /** Generate a string to represent a block. The 3 first lines are offset, occ and runend metadata. Then the other lines are reminders.
@@ -222,7 +224,7 @@ class Cqf {
 
 
     bool verbose; //temporary public
-    private:
+    //private:
     // VALUES
 
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf

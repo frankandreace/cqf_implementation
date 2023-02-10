@@ -65,10 +65,12 @@ TEST(AddMethods, get_quot_from_block_shift) {
 }
 
 TEST(AddMethods, bitselectasm) {
-  EXPECT_EQ (bitselectasm(20, 0),  2);
-  EXPECT_EQ (bitselectasm(365, 5),  8);
-  EXPECT_EQ (bitselectasm(365, 0),  0);
-  EXPECT_EQ (bitselectasm(31, 6),  64);
+  EXPECT_EQ (bitselectasm(0, 1),  64);
+  EXPECT_EQ (bitselectasm(0, 5),  64);
+  EXPECT_EQ (bitselectasm(1, 1), 0);
+  EXPECT_EQ (bitselectasm(1, 2),  64);
+  EXPECT_EQ (bitselectasm(2, 1),  1);
+  EXPECT_EQ (bitselectasm(2, 2),  64);
 }
 
 TEST(AddMethods, bitrankasm) {
