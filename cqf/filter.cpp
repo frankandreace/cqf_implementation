@@ -655,11 +655,19 @@ bool Cqf::is_runend(uint64_t position){
 }
 
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
+    //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
+    //preventing erroneous stop when it jumps from the end of the filter to the beginning 
+    // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
     uint64_t rend_pos = get_runend2(curr_quotient);//127
     uint64_t loop_counter = 0;
 
     // why ((bitrankasm(occupied,pos_in_block) + offset) != 0) ?
 
+    //the conditions are enforced to handle the toricity of the filter as (current_quotient < runend_position) does not consider the fact that I could move 
+    // form the end of the filter to the beginning and the aforemention condition would never be met.
+
+    // why ((bitrankasm(occupied,pos_in_block) + offset) != 0) ?
+    // the idea is that if I move from the end of the filter to the beginning, in the block I should see that occ+offset > 0
     while((curr_quotient <= rend_pos) || 
           ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && 
            ((bitrankasm(
@@ -794,6 +802,8 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient){ //const
 
     return boundaries;
 }
+
+
 
 uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos) const{
     //assert(start_pos < ( 1ULL << quotient_size));
