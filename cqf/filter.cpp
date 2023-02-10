@@ -957,8 +957,13 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     uint64_t occupied = get_occupied_word(block);
     uint64_t loop_counter = 0;
 
-    // why ((bitrankasm(occupied,pos_in_block) + offset) != 0) ?
+    
     if (debug || verbose) std::cout << "BEFORE WHILE " << std::endl;
+    //the conditions are enforced to handle the toricity of the filter as (current_quotient < runend_position) does not consider the fact that I could move 
+    // form the end of the filter to the beginning and the aforemention condition would never be met.
+
+    // why ((bitrankasm(occupied,pos_in_block) + offset) != 0) ?
+    // the idea is that if I move from the end of the filter to the beginning, in the block I should see that occ+offset > 0
     while((curr_quotient <= rend_pos) || ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && ((bitrankasm(get_occupied_word(get_block_id(curr_quotient)),get_shift_in_block(curr_quotient)) + get_offset_word(get_block_id(curr_quotient))) != 0))){
         curr_quotient = get_next_quot(rend_pos);
         rend_pos = get_previous_runend2(curr_quotient);
