@@ -6,14 +6,24 @@ Implementation of a cqf
 
 From the project root
 ```bash
-cmake . && make
+cmake -S . -B build
+cmake --build build 
 ```
-Binaries are in bin
+  
+or   
+  
+From the project root
+```bash
+cmake -S . -B build
+cd build && make 
+```
 
-## Include the library in your project
+## Unitary tests
 
-## CQF API
+From build directory
+```bash
+ctest
+```
 
-## Tests
 
-TODO
+Binaries are in build/bin/
