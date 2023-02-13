@@ -208,7 +208,7 @@ class Cqf {
      */
     uint64_t get_previous_runend(uint64_t quotient); //const
 
-    uint64_t get_start_run(uint64_t quotient);
+    uint64_t get_runstart(uint64_t quotient);
 
     uint64_t get_runend2(uint64_t quotient);
     
