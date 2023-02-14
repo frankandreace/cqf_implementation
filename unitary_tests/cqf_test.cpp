@@ -25,7 +25,7 @@ TEST_F(CqfTest, QuotientSize) {
     EXPECT_EQ(usual_cqf.get_quot_size(), 19);
 }
 
-/* TEST_F(CqfTest, globalUse) {
+TEST_F(CqfTest, globalUse) {
     uint64_t val = distribution(generator);
     uint64_t val2 = distribution(generator);
 
@@ -33,10 +33,10 @@ TEST_F(CqfTest, QuotientSize) {
     usual_cqf.insert(val);
     EXPECT_EQ(usual_cqf.query(val), 1);
     EXPECT_EQ(usual_cqf.query(val2), 0);
-} */
+}
 
 
-/* TEST_F(CqfTest, get_run_boundaries) {
+TEST_F(CqfTest, get_run_boundaries) {
     std::pair<uint64_t,uint64_t> compare(126, 2);
     small_cqf.insert((2ULL<<30)+126);
     small_cqf.insert((2ULL<<31)+126);
@@ -44,7 +44,7 @@ TEST_F(CqfTest, QuotientSize) {
     small_cqf.insert((2ULL<<33)+126);
     small_cqf.insert((2ULL<<34)+126);
     EXPECT_EQ(small_cqf.get_run_boundaries(126), compare);
-} */
+}
 
 
 /* 
@@ -79,25 +79,20 @@ TEST_F(CqfTest, offset1) {
 }
 
 TEST_F(CqfTest, offset2) {
-    small_cqf.insert(64);
-    small_cqf.insert(64);
+    small_cqf.insert((1<<11)+ 64);
+    small_cqf.insert((1<<11)+ 64);
     EXPECT_EQ(small_cqf.get_offset_word(1), 1);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 }
 
-//crash of this test, first insert induces 
-// shift_bits_left_metadata Q 64 SP 65 EP 64
-//when it should be  shift_bits_left_metadata Q 64 SP 64 EP 64
-// ==> look at get_runstart
 
-
-/* TEST_F(CqfTest, offset3) {
+TEST_F(CqfTest, offset3) {
     for (int i = 0; i < 128; i++){
-        usual_cqf.insert(100);
+        usual_cqf.insert((1ULL<<32)+ 100);
     }
     EXPECT_EQ(usual_cqf.get_offset_word(1), 0);
-    EXPECT_EQ(usual_cqf.get_offset_word(2), 100);
-    EXPECT_EQ(usual_cqf.get_offset_word(3), 100-64);    
-} */
+    EXPECT_EQ(usual_cqf.get_offset_word(2), 99);
+    EXPECT_EQ(usual_cqf.get_offset_word(3), 99-64);    
+    std::cout << usual_cqf.block2string(1) << "\n" << usual_cqf.block2string(2) << "\n" << usual_cqf.block2string(3);
+}
 
 
