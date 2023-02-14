@@ -2,6 +2,8 @@
 #include "filter.hpp"
 #include <random>
 
+using namespace std;
+
 class CqfTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -38,11 +40,17 @@ TEST_F(CqfTest, globalUse) {
 
 TEST_F(CqfTest, get_run_boundaries) {
     std::pair<uint64_t,uint64_t> compare(126, 2);
+    
     small_cqf.insert((2ULL<<30)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     small_cqf.insert((2ULL<<31)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     small_cqf.insert((2ULL<<32)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     small_cqf.insert((2ULL<<33)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     small_cqf.insert((2ULL<<34)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_run_boundaries(126), compare);
 }
 
@@ -92,7 +100,6 @@ TEST_F(CqfTest, offset3) {
     EXPECT_EQ(usual_cqf.get_offset_word(1), 0);
     EXPECT_EQ(usual_cqf.get_offset_word(2), 99);
     EXPECT_EQ(usual_cqf.get_offset_word(3), 99-64);    
-    std::cout << usual_cqf.block2string(1) << "\n" << usual_cqf.block2string(2) << "\n" << usual_cqf.block2string(3);
 }
 
 

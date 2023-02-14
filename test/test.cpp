@@ -160,25 +160,19 @@ void test_cqf_size(){
 }
 
 
-
+using namespace std;
 
 int main(int argc, char** argv) {
     //test_cqf_size();
 
-    Cqf filter(7, 64-7, false);
-    filter.insert((2ULL<<30)+126);
-    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+    Cqf small_cqf(7, 64-7, false);
 
-    filter.insert((2ULL<<31)+126);
-    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+    small_cqf.insert((2ULL<<30)+126);
+    //std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+    small_cqf.insert((2ULL<<31)+126);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 
-    filter.insert((2ULL<<32)+126);
-    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
-    
-    filter.insert((2ULL<<33)+126);
-    filter.insert((2ULL<<34)+126);
-
-    std::cout << filter.block2string(0) << "\n" << filter.block2string(1);
+    //insert in wrong position
 
 
     

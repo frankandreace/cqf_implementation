@@ -233,17 +233,20 @@ void Cqf::insert(uint64_t number){
         //getting boundaries of the run
 
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+        cout << "boundaries " << boundary.first << boundary.second <<endl;
 
         //find the place where the remainder should be inserted / all similar to a query
         //getting position where to start shifting right
         starting_position = boundary.first;
+        
 
-        while(starting_position <= boundary.second){
+        while(starting_position != boundary.second){ //bug with this condition ("<=" avant)
+            //cout << "loop" << endl;
             uint64_t remainder_in_filter = get_remainder(starting_position); 
             if (remainder_in_filter > rem) {
                 break;
             }
-            starting_position++;
+            starting_position = get_next_quot(starting_position);
         }
         
         uint64_t metadata_starting_position = boundary.first; //boundary.first;
@@ -253,6 +256,7 @@ void Cqf::insert(uint64_t number){
         shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
         // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
         elements_inside++;
+        cout << "starting_position " << starting_position << endl;
         return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
 }
@@ -647,7 +651,7 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
     //preventing erroneous stop when it jumps from the end of the filter to the beginning 
     // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
-    uint64_t rend_pos = get_runend2(curr_quotient);
+    uint64_t rend_pos = get_runend3(curr_quotient);
     cout << "RUNEND start FUS " << rend_pos << endl;
     uint64_t loop_counter = 0;
 
@@ -658,17 +662,16 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
 
     // the idea is that if I move from the end of the filter to the beginning, 
     // in the block I should see that occ+offset > 0
-    while((curr_quotient <= rend_pos) || 
-          ((get_block_id(curr_quotient) > get_block_id(rend_pos)) && 
-           ((bitrankasm(
-                get_occupied_word(get_block_id(curr_quotient)),
-                get_shift_in_block(curr_quotient)) 
-            + get_offset_word(get_block_id(curr_quotient))) 
-                    != 0))){
-
+    while(curr_quotient <= rend_pos){
         cout << "beginning of loop, curr quot = " << curr_quotient << endl;
+
         curr_quotient = get_next_quot(rend_pos);
-        rend_pos = get_runend2(curr_quotient);
+        rend_pos = get_runend3(curr_quotient);
+        if (rend_pos == 0){
+            uint64_t curr_block = get_block_id(curr_quotient);
+            uint64_t offset = get_offset_word(curr_block);
+            return offset == 0 ? 0 : (curr_block*64 + offset + 1);
+        }
         loop_counter++;
     }
 
@@ -688,7 +691,17 @@ uint64_t Cqf::get_runend3(uint64_t quotient){
     if (nb_runs == 0) { return (quotient - shift + offset); }
 
     uint64_t pos_after_jump = ((current_block * MEM_UNIT) + offset) % (1ULL << quotient_size);
+    current_block = get_block_id(pos_after_jump);
+    uint64_t select_val = bitselectasm(get_runend_word(current_block) & 
+                                        mask_right(get_shift_in_block(pos_after_jump)), 
+                                       nb_runs);
 
+    while (select_val == MEM_UNIT){     
+            current_block = get_next_block_id(current_block);
+            select_val = bitselectasm(get_runend_word(current_block), nb_runs);
+            nb_runs -= bitrankasm(get_runend_word(current_block), MEM_UNIT-1);
+    }
+    return current_block*MEM_UNIT + select_val;
 }
 
 uint64_t Cqf::get_runend2(uint64_t quotient){ //const
@@ -804,19 +817,18 @@ uint64_t Cqf::get_runstart(uint64_t quotient){
     uint64_t pos_after_jump = ((current_block * MEM_UNIT) + offset) % (1ULL << quotient_size);
     // (pos of block[0] + offset) % nbQuotsMax
 
-    // === FIND BLOCK WE JUMPED INTO ===
+    // === FIRST BLOCK WE JUMPED INTO ===
     if (offset < MEM_UNIT){
         // jumped into the same block
         if (nb_runs == 0){
             return pos_after_jump <= quotient ? quotient : get_next_quot(pos_after_jump);
         }
 
-        select_val = bitselectasm(get_runend_word(current_block) & mask_right(pos_after_jump), 
+        select_val = bitselectasm(get_runend_word(current_block) & 
+                                        mask_right(get_shift_in_block(pos_after_jump)), 
                                   nb_runs);
         
-        if (select_val < quotient){
-            return quotient;
-        }
+        if (select_val < quotient){ return quotient; }
     }
     else {
         // jumped w/ offset into further block
@@ -825,21 +837,24 @@ uint64_t Cqf::get_runstart(uint64_t quotient){
         }
 
         current_block = get_block_id(pos_after_jump);
-        select_val = bitselectasm(get_runend_word(current_block) & mask_right(pos_after_jump), 
+        select_val = bitselectasm(get_runend_word(current_block) & 
+                                        mask_right(get_shift_in_block(pos_after_jump)), 
                                   nb_runs);
     }
 
-    nb_runs -= bitrankasm(get_runend_word(current_block) & mask_right(pos_after_jump), 
+    nb_runs -= bitrankasm(get_runend_word(current_block) & 
+                                mask_right(get_shift_in_block(pos_after_jump)), 
                           MEM_UNIT-1);
 
-    // === FIND THE END OF dth RUN === 
+    // === OTHER BLOCKS TO FIND THE END OF dth RUN === 
     while (select_val == MEM_UNIT){     
             current_block = get_next_block_id(current_block);
             select_val = bitselectasm(get_runend_word(current_block), nb_runs);
-        }
+            nb_runs -= bitrankasm(get_runend_word(current_block), MEM_UNIT-1);
+    }
 
     return current_block*MEM_UNIT + select_val + 1; 
-    //+1 because select_val is the end of the dth run before our quot
+    //+1 because select_val is the end of the dth run before our quot's one
 } 
 
 
@@ -848,7 +863,7 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient){ //const
     std::pair<uint64_t, uint64_t> boundaries;
 
     boundaries.first = get_runstart(quotient);
-    boundaries.second = get_runend2(quotient);
+    boundaries.second = get_runend3(quotient);
 
     return boundaries;
 }
