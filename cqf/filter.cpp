@@ -983,7 +983,6 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
     uint64_t save_right;
     uint64_t to_shift;
     uint64_t next_block;
-    uint64_t old_offset;
     uint64_t save_left;
 
     //OFFSET case quotient is in first slot (TEST_F(CqfTest, offset2))
@@ -1062,7 +1061,6 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
     // METHOD FOR DELETION
     //Redundancy with what's done in find_boundary_shift_deletion => twice the iteration over blocks,
     //maybe possible in 1 iteration (shift everything until end or runstart at linked quotient)
-
     uint64_t overflow_bit = flag_bit;
 
     uint64_t current_block = get_block_id(quotient);
@@ -1076,8 +1074,6 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
     uint64_t save_right;
     uint64_t to_shift;
     uint64_t next_block;
-    uint64_t new_offset;
-    uint64_t old_offset;
 
     if (current_shift_in_block == 0) {
         decrement_offset(current_block);
