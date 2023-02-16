@@ -323,6 +323,8 @@ class Cqf {
      */
     void set_offset_word(uint64_t current_block, uint64_t value);
 
+    void decrement_offset(uint64_t current_block);
+
     /** It sets the bit of the occupieds bitvector corresponing to the chosen block and (bit position in the word).
      * e.g. set 5th bit of 3rd block to 1 or 0
      * @param current_block chosen block 

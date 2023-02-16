@@ -167,15 +167,11 @@ int main(int argc, char** argv) {
 
     Cqf small_cqf(7, 64-7, false);
 
-    small_cqf.insert((2ULL<<30)+126);
-    //std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
-    small_cqf.insert((2ULL<<31)+126);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
-
-    //insert in wrong position
-
-
-    
+    small_cqf.insert((1<<11)+ 62);
+    small_cqf.insert((1<<11)+ 62);
+    small_cqf.insert((1<<11)+ 62);//0
+    small_cqf.insert((1<<11)+ 62);//1
+    small_cqf.insert((1<<11)+ 62);//2
     
     return 0;
 }
