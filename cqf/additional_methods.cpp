@@ -42,6 +42,11 @@ uint64_t shift_right(uint64_t value, uint64_t shift){
     else return (value >> shift);
 }
 
+uint64_t rebuild_number(uint64_t quot, uint64_t rem, uint64_t shift){
+    rem = shift_left(rem, shift);
+    return (rem | quot);
+}
+
 uint64_t get_block_id(uint64_t position){
     return position / MEM_UNIT;
 }

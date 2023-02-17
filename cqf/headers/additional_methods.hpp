@@ -38,6 +38,8 @@ uint64_t shift_left(uint64_t value, uint64_t shift);
  */
 uint64_t shift_right(uint64_t value, uint64_t shift);
 
+uint64_t rebuild_number(uint64_t quotient, uint64_t remainder, uint64_t shift);
+
 /** returns the id of the block associated to the requested quotient
  * @param position the quotient of wich you want to know the block
  * @return the block id

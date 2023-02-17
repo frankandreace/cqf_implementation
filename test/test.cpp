@@ -167,11 +167,7 @@ int main(int argc, char** argv) {
 
     Cqf small_cqf(7, 64-7, false);
 
-    small_cqf.insert((1<<11)+ 62);
-    small_cqf.insert((1<<11)+ 62);
-    small_cqf.insert((1<<11)+ 62);//0
-    small_cqf.insert((1<<11)+ 62);//1
-    small_cqf.insert((1<<11)+ 62);//2
+    print_bits(rebuild_number(30, 16, 7));
     
     return 0;
 }

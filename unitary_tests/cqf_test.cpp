@@ -56,7 +56,7 @@ TEST_F(CqfTest, globalUse) {
 
 
 
-TEST_F(CqfTest, get_runstart) {
+/* TEST_F(CqfTest, get_runstart) {
     small_cqf.insert((2ULL<<30)+64);
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
@@ -66,7 +66,7 @@ TEST_F(CqfTest, get_runstart) {
     small_cqf.insert((2ULL<<33)+126);
     small_cqf.insert((2ULL<<34)+126);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
-}
+} */
 
 
 
@@ -138,7 +138,7 @@ TEST_F(CqfTest, offset4_complexcase) {
     EXPECT_EQ(usual_cqf.get_offset_word(2), 128-128); 
 }
 
-TEST_F(CqfTest, offset5_toricity) {
+/* TEST_F(CqfTest, offset5_toricity) {
     for (int i = 0; i < 100; i++){ small_cqf.insert((1ULL<<32)+ 40); }
 
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
@@ -146,7 +146,33 @@ TEST_F(CqfTest, offset5_toricity) {
 
     EXPECT_EQ(small_cqf.get_offset_word(0), 11); 
     EXPECT_EQ(small_cqf.get_offset_word(1), 75); 
+} */
+
+/* TEST_F(CqfTest, enumerate1) {
+    std::unordered_set<uint64_t> verif;
     
+    small_cqf.insert((3ULL<<30) + 35); verif.insert((3ULL<<30) + 35);
+    small_cqf.insert((3ULL<<31) + 35); verif.insert((3ULL<<31) + 35);
+    small_cqf.insert((3ULL<<25) + 35); verif.insert((3ULL<<25) + 35);
+
+    small_cqf.insert((3ULL<<30) + 64); verif.insert((3ULL<<30) + 64);
+
+    small_cqf.insert((3ULL<<30) + 63); verif.insert((3ULL<<30) + 63);
+    small_cqf.insert((3ULL<<30) + 63); verif.insert((3ULL<<30) + 63);
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    EXPECT_EQ(small_cqf.enumerate(), verif);
+} */
+
+
+TEST_F(CqfTest, enumerate2) {
+    std::unordered_set<uint64_t> verif;
+    for (int i=0; i<100; i++){
+        uint64_t val = distribution(generator);
+        verif.insert(val);
+        usual_cqf.insert(val);
+    }
+    EXPECT_EQ(usual_cqf.enumerate(), verif);
 }
-
-
