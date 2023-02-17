@@ -167,7 +167,21 @@ int main(int argc, char** argv) {
 
     Cqf small_cqf(7, 64-7, false);
 
-    print_bits(rebuild_number(30, 16, 7));
+    /* small_cqf.insert((3ULL<<30) + 35);
+    small_cqf.insert((3ULL<<31) + 35);
+    small_cqf.insert((3ULL<<25) + 35); */
+
+    
+
+    small_cqf.insert((3ULL<<30) + 63);
+    small_cqf.insert((3ULL<<30) + 63);
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+    small_cqf.insert((3ULL<<31) + 64);
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+    
     
     return 0;
 }

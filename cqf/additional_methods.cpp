@@ -79,6 +79,8 @@ uint64_t bitselectasm(uint64_t num, uint64_t rank){
 uint64_t bitrankasm(uint64_t val, uint64_t pos) {
     assert(pos < MEM_UNIT);
 	val = val & ((2ULL << pos) - 1);
+
+    // POPCOUNT(v & (2^i − 1)
 	asm("popcnt %[val], %[val]"
 			: [val] "+r" (val)
 			:

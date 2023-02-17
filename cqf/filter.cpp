@@ -239,15 +239,22 @@ void Cqf::insert(uint64_t number){
         //find the place where the remainder should be inserted / all similar to a query
         //getting position where to start shifting right
         starting_position = boundary.first;
+        uint64_t remainder_in_filter = get_remainder(starting_position); 
         
-
-        while(starting_position <= boundary.second){ //bug with this condition ("<=" avant)
+        if (starting_position == boundary.second){
+            if (remainder_in_filter < rem) {
+                starting_position = get_next_quot(starting_position);
+            }
+        }
+        else{
+            while(starting_position != boundary.second){ //bug with this condition ("<=" avant)
             //cout << "loop" << endl;
-            uint64_t remainder_in_filter = get_remainder(starting_position); 
+            remainder_in_filter = get_remainder(starting_position); 
             if (remainder_in_filter > rem) {
                 break;
             }
             starting_position = get_next_quot(starting_position);
+        }
         }
         
         uint64_t metadata_starting_position = boundary.first; //boundary.first;
@@ -392,7 +399,7 @@ std::unordered_set<uint64_t> Cqf::enumerate(){
                 quotient = block*MEM_UNIT + i;
                 bounds = get_run_boundaries(quotient);
                 cursor = bounds.first;
-                while (cursor != (bounds.second)){
+                while (cursor != (bounds.second)){ //every remainder of the run
                     number = rebuild_number(quotient, get_remainder(quotient), quotient_size);
                     finalSet.insert(number);
                     cursor = get_next_quot(cursor);
@@ -401,10 +408,9 @@ std::unordered_set<uint64_t> Cqf::enumerate(){
                 finalSet.insert(number); 
             }
 
-            curr_occ >>= 1ULL;
+            curr_occ >>= 1ULL; //next bit of occupied vector
         }
     }
-
 
     return finalSet;
 }

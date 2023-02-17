@@ -56,7 +56,7 @@ TEST_F(CqfTest, globalUse) {
 
 
 
-/* TEST_F(CqfTest, get_runstart) {
+TEST_F(CqfTest, get_runstart) {
     small_cqf.insert((2ULL<<30)+64);
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
@@ -66,7 +66,7 @@ TEST_F(CqfTest, globalUse) {
     small_cqf.insert((2ULL<<33)+126);
     small_cqf.insert((2ULL<<34)+126);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
-} */
+}
 
 
 
@@ -78,7 +78,7 @@ TEST_F(CqfTest, insert_pos_0) {
 }
 
 
-TEST_F(CqfTest, offset1_blockoverflow) {
+TEST_F(CqfTest, offset1_blockOverflow) {
     for (int i = 0; i < 5; i++) { small_cqf.insert((1<<11)+ 62); }
 
     //std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
@@ -92,7 +92,17 @@ TEST_F(CqfTest, offset1_blockoverflow) {
     EXPECT_EQ(small_cqf.get_offset_word(1), 0);
 }
 
-TEST_F(CqfTest, offset2_insertshift0) {
+/* TEST_F(CqfTest, offset2_runOverflowsBy1) {
+    //bugs because of offset being 0 when there is an element in pos 0 and nothing in 1(we dont know)
+    small_cqf.insert((3ULL<<31) + 64);
+
+    small_cqf.insert((3ULL<<30) + 63);
+    small_cqf.insert((3ULL<<30) + 63);
+
+    EXPECT_EQ(small_cqf.get_remainder(64), 3ULL<<30);
+} */
+
+TEST_F(CqfTest, offset3_insertshift0) {
     small_cqf.insert((1<<11)+ 64); EXPECT_EQ(small_cqf.get_offset_word(1), 0);
     small_cqf.insert((1<<11)+ 64); EXPECT_EQ(small_cqf.get_offset_word(1), 1);
 
@@ -102,7 +112,7 @@ TEST_F(CqfTest, offset2_insertshift0) {
 }
 
 
-TEST_F(CqfTest, offset3_multiblockrun) {
+TEST_F(CqfTest, offset4_multiBlockRun) {
     for (int i = 0; i < 128; i++){ usual_cqf.insert((1ULL<<32)+ 100); }
     EXPECT_EQ(usual_cqf.get_offset_word(1), 0);
     EXPECT_EQ(usual_cqf.get_offset_word(2), 99);
@@ -114,7 +124,7 @@ TEST_F(CqfTest, offset3_multiblockrun) {
     EXPECT_EQ(usual_cqf.get_offset_word(3), 0); 
 }
 
-TEST_F(CqfTest, offset4_complexcase) {
+TEST_F(CqfTest, offset5_complexCase) {
     for (int i = 0; i < 60; i++){ usual_cqf.insert((1ULL<<32)+ 20); } 
     //run of quot 20, starts @20 ends up @79
     for (int i = 0; i < 69; i++){ usual_cqf.insert((1ULL<<32)+ 40); } 
@@ -138,7 +148,7 @@ TEST_F(CqfTest, offset4_complexcase) {
     EXPECT_EQ(usual_cqf.get_offset_word(2), 128-128); 
 }
 
-/* TEST_F(CqfTest, offset5_toricity) {
+/* TEST_F(CqfTest, offset6_toricity) {
     for (int i = 0; i < 100; i++){ small_cqf.insert((1ULL<<32)+ 40); }
 
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
@@ -148,7 +158,14 @@ TEST_F(CqfTest, offset4_complexcase) {
     EXPECT_EQ(small_cqf.get_offset_word(1), 75); 
 } */
 
+
+
+
+
+
+
 /* TEST_F(CqfTest, enumerate1) {
+    //bugs because of offset2_runOverflowsBy1
     std::unordered_set<uint64_t> verif;
     
     small_cqf.insert((3ULL<<30) + 35); verif.insert((3ULL<<30) + 35);
