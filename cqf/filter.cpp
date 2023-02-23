@@ -194,9 +194,13 @@ void Cqf::insert(uint64_t number){
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
+    std::cout << "[INSERT] quot " << quot << std::endl;
+    std::cout << "[INSERT] rem " << rem << std::endl;
+
     // GET FIRST UNUSED SLOT
     uint64_t fu_slot = first_unused_slot(quot);
     
+    std::cout << "[INSERT] FUS " << fu_slot << std::endl;
 
     if (!is_occupied(quot)){
         uint64_t starting_position = get_runstart(quot, 0);
@@ -210,6 +214,7 @@ void Cqf::insert(uint64_t number){
     else{
         //getting boundaries of the run
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
+        cout << "[INSERT] boundaries " << boundary.first << " || " << boundary.second << endl;
 
         //find the place where the remainder should be inserted / all similar to a query
         //getting position where to start shifting right
@@ -421,6 +426,7 @@ uint64_t Cqf::get_remainder_shift_position(uint64_t quotient){
 }
 
 void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder){
+    cout << "[shift_left_and_set_circ]" << " SQ " << start_quotient << " EQ " << end_quotient << " next_rem" << next_remainder << endl;
     assert(start_quotient < ( 1ULL << quotient_size));
     assert(end_quotient < ( 1ULL << quotient_size)); //( 1ULL << quotient_size));
 
@@ -440,7 +446,6 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
         next_remainder = to_shift;
         curr_word_shift = remainder_size - (MEM_UNIT - curr_word_shift);
         curr_word_pos = get_next_remainder_word(curr_word_pos);
-        //cout << endl << block2string(start_quotient/64, false) << endl << endl;
     }
 
     while (curr_word_pos != end_word_pos){
@@ -648,15 +653,20 @@ bool Cqf::is_runend(uint64_t position){
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     std::pair<uint64_t, bool> rend_pos = get_runend(curr_quotient);
 
+    int loop = 0;
     // rend_pos.second == true means we left the quotient block while looking for runend (handles toricity)
     while( rend_pos.second || curr_quotient <= rend_pos.first ){ 
+        loop++;
         curr_quotient = get_next_quot(rend_pos.first);
         rend_pos = get_runend(curr_quotient);
+        cout << "runend returned " << rend_pos.first << " || " << rend_pos.second << endl;
         if (get_shift_in_block(rend_pos.first) == 0){
             uint64_t curr_block = get_block_id(curr_quotient);
             uint64_t offset = get_offset_word(curr_block);
             return offset == 0 ? curr_quotient : (curr_block*64 + offset + 1);
         }
+
+        if (loop > 5) assert (loop < 5);
     }
 
     return curr_quotient;
@@ -667,16 +677,13 @@ std::pair<uint64_t, bool> Cqf::get_runend(uint64_t quotient){
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift = get_shift_in_block(quotient);
     uint64_t offset = get_offset_word(current_block);
+
+    cout << "[get_runend] quot " << quotient << " offset " << offset << endl;
     
     if (current_shift == 0) {
-        if (offset == 0){
+        cout << "currshift == 1" << endl;
+        if (offset <= 1){
             return std::make_pair(quotient, false);
-        }
-        else if (offset == 1){
-            // offset = 1 => else first quotient has a run of size 1 attached to it
-            // else another run from previous blocks overflowed, we return -1 for first_unused_slot()
-            return std::make_pair(is_occupied(quotient) ? quotient : -1, 
-                                  false);
         }
         else {
             return std::make_pair(quotient + offset - 1, (offset-1 >= MEM_UNIT));

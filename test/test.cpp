@@ -4,6 +4,7 @@ PRINTING, DEBUGGING AND TESTING
 #include <iostream>
 #include <bitset>
 #include <stdint.h> 
+#include <limits>
 
 #include "filter.hpp" 
 #include "ext_methods.hpp"
@@ -30,7 +31,22 @@ void show(uint64_t value, std::string name){
 using namespace std;
 
 int main(int argc, char** argv) {
+    
+
+
     Cqf small_cqf(7, 64-7, false);
+
+    //small_cqf.insert((1ULL<<32)+ 99);
+
+    for (int i = 0; i < 12; i++){ small_cqf.insert((1ULL<<15)+ 100); }
+
+
+    for (int i = 0; i < 5; i++){ small_cqf.insert((1ULL<<17)+ 96); } //48
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+    small_cqf.insert((1ULL<<17)+ 96);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
 
     
 
