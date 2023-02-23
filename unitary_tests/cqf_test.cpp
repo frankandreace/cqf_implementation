@@ -38,25 +38,9 @@ TEST_F(CqfTest, globalUse) {
 }
 
 
-TEST_F(CqfTest, get_run_boundaries) {
-    std::pair<uint64_t,uint64_t> compare(126, 2);
-    
-    small_cqf.insert((2ULL<<30)+126);
-    small_cqf.insert((2ULL<<31)+126);
-    small_cqf.insert((2ULL<<32)+126);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
-    small_cqf.insert((2ULL<<33)+126);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
-    /* small_cqf.insert((2ULL<<34)+126);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1); */
-    EXPECT_EQ(small_cqf.get_run_boundaries(126), compare);
-}
-
-
 
 TEST_F(CqfTest, get_runstart) {
     small_cqf.insert((2ULL<<30)+64);
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
     small_cqf.insert((2ULL<<31)+63);
 
@@ -64,6 +48,7 @@ TEST_F(CqfTest, get_runstart) {
     small_cqf.insert((2ULL<<33)+126);
     small_cqf.insert((2ULL<<34)+126);
     EXPECT_EQ(small_cqf.get_runstart(64), 64);
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 }
 
 
@@ -79,7 +64,6 @@ TEST_F(CqfTest, insert_pos_0) {
 TEST_F(CqfTest, offset1_blockOverflow) {
     for (int i = 0; i < 5; i++) { small_cqf.insert((1<<11)+ 62); }
 
-    //std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
     EXPECT_EQ(small_cqf.get_offset_word(1), 3);
 
     small_cqf.remove((1<<11)+ 62);
@@ -91,7 +75,6 @@ TEST_F(CqfTest, offset1_blockOverflow) {
 }
 
 TEST_F(CqfTest, offset2_runOverflowsBy1) {
-    //bugs because of offset being 0 when there is an element in pos 0 and nothing in 1(we dont know)
     small_cqf.insert((3ULL<<31) + 64);
 
     small_cqf.insert((3ULL<<30) + 63);
@@ -148,16 +131,21 @@ TEST_F(CqfTest, offset5_complexCase) {
     EXPECT_EQ(usual_cqf.get_offset_word(2), 129-128); 
 }
 
-/* TEST_F(CqfTest, offset6_toricity) {
+TEST_F(CqfTest, toricity1) {
     for (int i = 0; i < 100; i++){ small_cqf.insert((1ULL<<32)+ 40); }
 
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+    EXPECT_EQ(small_cqf.get_offset_word(0), 12); 
+    EXPECT_EQ(small_cqf.get_offset_word(1), 76); 
+}
 
 
-    EXPECT_EQ(small_cqf.get_offset_word(0), 11); 
-    EXPECT_EQ(small_cqf.get_offset_word(1), 75); 
-} */
+TEST_F(CqfTest, toricity2) {
+    for (int i = 0; i < 20; i++){ small_cqf.insert((1ULL<<32)+ 50); }
+    for (int i = 0; i < 20; i++){ small_cqf.insert((1ULL<<31)+ 120); }
 
+    EXPECT_EQ(small_cqf.get_offset_word(0), 12); 
+    EXPECT_EQ(small_cqf.get_offset_word(1), 6); 
+}
 
 
 TEST_F(CqfTest, enumerate1) {
@@ -173,8 +161,6 @@ TEST_F(CqfTest, enumerate1) {
     small_cqf.insert((3ULL<<30) + 63); verif.insert((3ULL<<30) + 63);
     small_cqf.insert((3ULL<<30) + 63); verif.insert((3ULL<<30) + 63);
 
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
-
 
     EXPECT_EQ(small_cqf.enumerate(), verif);
 }
@@ -189,3 +175,44 @@ TEST_F(CqfTest, enumerate2) {
     }
     EXPECT_EQ(usual_cqf.enumerate(), verif);
 }
+
+
+
+TEST_F(CqfTest, get_run_boundaries) {
+    std::pair<uint64_t,uint64_t> compare(126, 2);
+    small_cqf.insert((2ULL<<30)+126);
+    small_cqf.insert((2ULL<<31)+126);
+    small_cqf.insert((2ULL<<32)+126);
+    small_cqf.insert((2ULL<<33)+126);
+    small_cqf.insert((2ULL<<34)+126);
+    EXPECT_EQ(small_cqf.get_run_boundaries(126), compare);
+}
+
+TEST_F(CqfTest, get_run_boundaries2) {
+    std::pair<uint64_t,uint64_t> compare;
+
+    for (int i = 0; i < 16; i++){ small_cqf.insert((1ULL<<11)+ 20); } 
+    //run of quot 20, starts @20 ends up @35
+    for (int i = 0; i < 28; i++){ small_cqf.insert((1ULL<<13)+ 40); } 
+    //run of quot 40, starts @40 ends up @67
+    small_cqf.insert((1ULL<<32)+ 99);
+    //run of quot 99, starts @99 ends up @99 
+    for (int i = 0; i < 12; i++){ small_cqf.insert((1ULL<<15)+ 100); }
+    //run of quot 100, starts @100 ends up @111 
+    
+    for (int i = 0; i < 48; i++){ small_cqf.insert((1ULL<<17)+ 96); }
+    //run of quot 96, starts @96 ends up @15
+    //run of quot 99 is shifted, starts @16 ends up @16 
+    //run of quot 100 is shifted, starts @17 ends up @28 
+    //run of quot 20 is shifted, starts @29 ends up @44
+    //run of quot 40 is shifted, starts @45 ends up @72
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+    compare = std::make_pair(29, 44);   EXPECT_EQ(small_cqf.get_run_boundaries(20), compare);
+    compare = std::make_pair(45, 72);   EXPECT_EQ(small_cqf.get_run_boundaries(40), compare);
+    compare = std::make_pair(96, 15);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
+    compare = std::make_pair(16, 16);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
+    compare = std::make_pair(17, 28);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
+}
+

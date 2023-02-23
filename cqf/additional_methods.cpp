@@ -116,28 +116,15 @@ void set_bits(std::vector<uint64_t>& vec, uint64_t pos, uint64_t value, uint64_t
     uint64_t word = get_block_id(pos);
     uint64_t shift = get_shift_in_block(pos);
 
-	//std::cout << "mask: ";
-	//print_bits(mask);
-    //std::cout << "word: " << word << std::endl;
-    //std::cout << "shift: " << shift << std::endl;
-
     value &= mask;
 
-	//std::cout << "value & mask: ";
-	//print_bits(value);
-
     vec[word] &= ~(mask << shift); //set to 0 all bits in the range of modified ones
-	//print_bits(vec[word]);
     vec[word] |= (value << shift); //OR op between the previous 0s and bits of value
-	//print_bits(vec[word]);
 
     uint64_t stored = MEM_UNIT - shift;
 
-	//std::cout << "len " << len << std::endl;
-	//std::cout << "stored " << stored << std::endl;
     if (len > stored){
         vec[word+1] &= ~(mask_right(len-stored));
         vec[word+1] |= (value >> stored);
     }
-	//std::cout << "OUT " << std::endl;
 }

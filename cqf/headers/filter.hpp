@@ -86,16 +86,6 @@ class Cqf {
      */ 
     uint64_t get_num_el_inserted();
 
-    /** Prints the entire cqf, block by block at the bit level 
-     */ 
-    void show() const;
-
-    /** Prints a slice of the cqf, block by block at the bit level
-     * @param start starting block 
-     * @param end ending block 
-     */ 
-    void show_slice(uint64_t start, uint64_t end) const;
-
     // FUNCTIONS
 
     /** check if the occupied bit of the given quotient is 1 or 0.
@@ -204,11 +194,10 @@ class Cqf {
     /** it gets the end of the previous run of the selected quotient. It is the equivalent of doing 
      * select(runend_vector, rank(occupieds_vector, quotient))
      * @param quotient quotient to give to the function
-     * @return the position of the end of the previous run
+     * @return - the position of the end of the previous run
+     *         - true if the pos is out of quotient block, else false (useful for first_unused_slot)
      */
-    uint64_t get_previous_runend(uint64_t quotient); //const
-    uint64_t get_runend2(uint64_t quotient);
-    uint64_t get_runend(uint64_t quotient);
+    std::pair<uint64_t, bool> get_runend(uint64_t quotient);
 
     uint64_t get_runstart(uint64_t quotient, bool occ_bit=1);
     uint64_t get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offset, bool occ_bit);
@@ -226,7 +215,8 @@ class Cqf {
     uint64_t remainder(uint64_t num) const;
 
 
-    bool verbose; //temporary public
+    //===== Private (but temporary public for debug) =======
+    bool verbose; 
     //private:
     // VALUES
 

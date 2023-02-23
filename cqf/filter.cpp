@@ -38,12 +38,6 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose), deb
     // In machine words
     this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
-    
-    //if (this->verbose) {
-    std::cout << "[FS]: QUOTIENT SIZE " << quotient_size << std::endl;
-    std::cout << "[FS]: REMAINDER SIZE " << remainder_size << std::endl;
-    std::cout << "[FS]: NUMBER OF QUOTIENTS " << num_quots << std::endl;
-    //}
 
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
@@ -66,15 +60,6 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose), debug(false) {
     this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
     
-    
-    //if (this->verbose) {
-    std::cout << "[FILTER STATS]" << max_memory << std::endl;
-    std::cout << "[FS]: MAX MEMORY " << max_memory << std::endl;
-    std::cout << "[FS]: QUOTIENT SIZE " << quotient_size << std::endl;
-    std::cout << "[FS]: REMAINDER SIZE " << remainder_size << std::endl;
-    std::cout << "[FS]: NUMBER OF QUOTIENTS " << num_quots << std::endl;
-    //}
-
     cqf = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }
@@ -205,19 +190,12 @@ using namespace std;
 void Cqf::insert(uint64_t number){
     if (elements_inside == number_blocks*MEM_UNIT) return;
 
-
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
-    std::cout << "[INSERT] quot " << quot << std::endl;
-    std::cout << "[INSERT] rem " << rem << std::endl;
-
-
     // GET FIRST UNUSED SLOT
-    //if (debug || verbose) {cout << "[INSERT] before first unused slot " << endl;}
     uint64_t fu_slot = first_unused_slot(quot);
-    cout << "[INSERT] first unused slot " << fu_slot << endl;
     
 
     if (!is_occupied(quot)){
@@ -230,11 +208,8 @@ void Cqf::insert(uint64_t number){
     // IF THE QUOTIENT HAS BEEN USED BEFORE
     // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
     else{
-        cout << "[INSERT] occupied" << endl;
         //getting boundaries of the run
-
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
-        cout << "boundaries " << boundary.first << " " << boundary.second <<endl;
 
         //find the place where the remainder should be inserted / all similar to a query
         //getting position where to start shifting right
@@ -266,7 +241,6 @@ void Cqf::insert(uint64_t number){
         shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
         // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
         elements_inside++;
-        cout << "starting_position " << starting_position << endl;
         return shift_left_and_set_circ(starting_position, fu_slot, rem);
     }
 }
@@ -312,15 +286,9 @@ uint64_t Cqf::remove(uint64_t number){
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
-    //std::cout << "quot " << quot << std::endl;
-    //std::cout << "rem " << rem << std::endl;
-
     if (is_occupied(quot) == false) return 0;
 
     std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
-    
-    //std::cout << "boundary.first " << boundary.first << std::endl;
-    //std::cout << "boundary.second " << boundary.second << std::endl;
 
     // TODO:
     // OPTIMIZE TO LOG LOG SEARCH ?
@@ -335,7 +303,6 @@ uint64_t Cqf::remove(uint64_t number){
         if (remainder_in_filter == rem) {
             pos_element = position;
             found = true;
-            //std::cout << "FOUND el at pos " << pos_element << std::endl;
             break;
         }
         else if (remainder_in_filter > rem) return 0;
@@ -345,21 +312,14 @@ uint64_t Cqf::remove(uint64_t number){
     if (remainder_in_filter == rem) {
         pos_element = position;
         found = true;
-        //std::cout << "FOUND el at pos " << pos_element << std::endl;
         }
     if (!found) return 0; //not found
 
     // GET FIRST UNUSED SLOT
     uint64_t end_slot = first_unused_slot(quot);
 
-    //std::cout << "fus " << end_slot << std::endl;
-
     // FIND THE EXACT RIGHTMOST ELEMENT TO SHIFT LEFT
-    cout << "SP " << pos_element << " EP " << get_prev_quot(end_slot) << endl;
     end_slot = find_boundary_shift_deletion(pos_element, get_prev_quot(end_slot));
-    cout << "FBSD " << end_slot << endl;
-
-    //std::cout << "end_slot_shift " << end_slot << std::endl;
 
     // REMOVE ELEMENT BY SHIFTING EVERYTHING LEFT OF ONE REMINDER
     shift_right_and_rem_circ(pos_element, end_slot);
@@ -378,7 +338,6 @@ uint64_t Cqf::remove(uint64_t number){
     }
 
     elements_inside--;
-    //std::cout << "elements_inside " << elements_inside << std::endl;
     return 1;
 }
 
@@ -394,27 +353,21 @@ std::unordered_set<uint64_t> Cqf::enumerate(){
     uint64_t number;
 
     for(uint block = 0; block < number_blocks; ++block){
-        cout << "block " << block << endl;
         curr_occ = get_occupied_word(block);
         if (curr_occ == 0) continue;
 
         for (uint64_t i=0; i<MEM_UNIT; i++){
             if (curr_occ & 1ULL){ //occupied
-                cout << "i " << i << " occupied" << endl;
                 quotient = block*MEM_UNIT + i;
                 bounds = get_run_boundaries(quotient);
-                cout << bounds.first << " || " << bounds.second << endl;
                 cursor = bounds.first;
                 while (cursor != (bounds.second)){ //every remainder of the run
-                    cout << "loop" << endl;
                     number = rebuild_number(quotient, get_remainder(cursor), quotient_size);
                     finalSet.insert(number);
-                    cout << "insert number " << number << endl; 
                     cursor = get_next_quot(cursor);
                 }
                 number = rebuild_number(quotient, get_remainder(cursor), quotient_size);
                 finalSet.insert(number); 
-                cout << "insert number " << number << endl; 
             }
 
             curr_occ >>= 1ULL; //next bit of occupied vector
@@ -693,83 +646,78 @@ bool Cqf::is_runend(uint64_t position){
 }
 
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
-    //if ((rend_pos == 0) && (curr_quotient != 0)) return curr_quotient;
-    //preventing erroneous stop when it jumps from the end of the filter to the beginning 
-    // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
-    uint64_t rend_pos = get_runend(curr_quotient);
-    cout << "RUNEND start FUS " << rend_pos << endl;
-    uint64_t loop_counter = 0;
+    std::pair<uint64_t, bool> rend_pos = get_runend(curr_quotient);
 
-
-    //the conditions are enforced to handle the toricity of the filter as 
-    // (current_quotient < runend_position) does not consider the fact that I could move 
-    // form the end of the filter to the beginning and the aforemention condition would never be met.
-
-    // the idea is that if I move from the end of the filter to the beginning, 
-    // in the block I should see that occ+offset > 0
-    while(curr_quotient <= rend_pos ){ // t o r i c i t y 
-        curr_quotient = get_next_quot(rend_pos);
+    // rend_pos.second == true means we left the quotient block while looking for runend (handles toricity)
+    while( rend_pos.second || curr_quotient <= rend_pos.first ){ 
+        curr_quotient = get_next_quot(rend_pos.first);
         rend_pos = get_runend(curr_quotient);
-        cout << "loop new currquot + runend " << curr_quotient << " + " << rend_pos << endl;
-        if (get_shift_in_block(rend_pos) == 0){
-            cout << "FUS case rendpos=0" << endl;
+        if (get_shift_in_block(rend_pos.first) == 0){
             uint64_t curr_block = get_block_id(curr_quotient);
             uint64_t offset = get_offset_word(curr_block);
             return offset == 0 ? curr_quotient : (curr_block*64 + offset + 1);
         }
-        loop_counter++;
     }
 
     return curr_quotient;
 }
 
-uint64_t Cqf::get_runend(uint64_t quotient){
-    cout << "getrunend3" << endl;
+
+std::pair<uint64_t, bool> Cqf::get_runend(uint64_t quotient){
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift = get_shift_in_block(quotient);
     uint64_t offset = get_offset_word(current_block);
     
     if (current_shift == 0) {
         if (offset == 0){
-            return quotient;
+            return std::make_pair(quotient, false);
         }
         else if (offset == 1){
             // offset = 1 => else first quotient has a run of size 1 attached to it
             // else another run from previous blocks overflowed, we return -1 for first_unused_slot()
-            return is_occupied(quotient) ? quotient : -1;
+            return std::make_pair(is_occupied(quotient) ? quotient : -1, 
+                                  false);
         }
         else {
-            return quotient + offset - 1;
+            return std::make_pair(quotient + offset - 1, (offset-1 >= MEM_UNIT));
         }
     }
 
-    offset = (offset==0) ? 0 : offset-1;
-
-    uint64_t nb_runs = bitrankasm(get_occupied_word(current_block),
+    //paper : d = rank(occupied[i+1, ..., j], j-i-1)
+    uint64_t nb_runs = bitrankasm(get_occupied_word(current_block) & mask_left(MEM_UNIT-1),
                                   current_shift);
 
     if (nb_runs == 0) { 
-        return (quotient - current_shift + offset);
+        uint64_t offset_orig = (offset==0) ? 0 : offset-1;
+        return std::make_pair(quotient - current_shift + offset_orig, (offset_orig >= MEM_UNIT));
     }
 
+    bool left_block;
     uint64_t pos_after_jump = ((current_block * MEM_UNIT) + offset) % (1ULL << quotient_size);
+    left_block = (current_block != get_block_id(pos_after_jump));
+
     current_block = get_block_id(pos_after_jump);
     current_shift = get_shift_in_block(pos_after_jump);
 
-    uint64_t runend_mask = (current_shift == 0) ? mask_right(MEM_UNIT) : mask_right(current_shift);
+    uint64_t runend_mask = mask_left(MEM_UNIT-current_shift);
+    //mask runend[pos_after_jump : end]
 
+    //paper : t = select(runends[i+O(i)+1, ..., end], d)
     uint64_t select_val = bitselectasm(get_runend_word(current_block) & runend_mask, 
                                        nb_runs);
+                                       
+    
     nb_runs -= bitrankasm(get_runend_word(current_block) & runend_mask, 
                           MEM_UNIT-1);
 
-    cout << "sel_val " << select_val << endl;
-    while (select_val == MEM_UNIT){    
+    while (select_val == MEM_UNIT){   
+        left_block = true;
         current_block = get_next_block_id(current_block);
         select_val = bitselectasm(get_runend_word(current_block), nb_runs);
         nb_runs -= bitrankasm(get_runend_word(current_block), MEM_UNIT-1);
     }
-    return current_block*MEM_UNIT + select_val;
+
+    return std::make_pair(current_block*MEM_UNIT + select_val, left_block);
 }
 
 
@@ -799,7 +747,7 @@ uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
     }
 
     current_shift = get_shift_in_block(pos_after_jump);
-    uint64_t runend_mask = (current_shift == 0) ? mask_right(MEM_UNIT) : mask_right(current_shift);
+    uint64_t runend_mask = mask_left(MEM_UNIT-current_shift);
 
     // === FIRST BLOCK WE JUMP INTO ===
     if (offset < MEM_UNIT){
@@ -860,7 +808,7 @@ uint64_t Cqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offs
     }
 
 
-    //jumped other block
+    //jumped into further block
     uint64_t final_block = get_block_id(paj);
     while (current_block != final_block){
         nth_runend += bitrankasm(get_runend_word(current_block), MEM_UNIT-1);
@@ -886,12 +834,12 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient){ //const
     //SUB OPTI
     assert(is_occupied(quotient));
     // !! must be used only on occupied quotient !! 
-    //(because -1 in case runend is before current looked block in get_runend)
+    //(because -1 is returned in case runend is before current looked block in get_runend)
     
     std::pair<uint64_t, uint64_t> boundaries;
 
     boundaries.first = get_runstart(quotient, 1);
-    boundaries.second = get_runend(quotient);
+    boundaries.second = get_runend(quotient).first;
 
     return boundaries;
 }
@@ -979,8 +927,6 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
 
 
 void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position){
-    cout << "- shift_bits_left_metadata Q " << quotient << " SP " << start_position << " EP " << end_position << endl;
-
     // METHOD FOR INSERTION
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift_in_block = get_shift_in_block(start_position);
@@ -1024,6 +970,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_
 
         current_block = get_next_block_id(current_block);
         current_shift_in_block = 0;
+        set_offset_word(current_block, get_offset_word(current_block)+1);
     }
 
 
@@ -1109,6 +1056,7 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
 
         current_block = next_block;
         current_shift_in_block = 0;
+        //decrement_offset(current_block);        
     }
 
     while ( current_block != end_block ){
@@ -1147,38 +1095,3 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64
     //to_shift |= (save_left | overflow_bit);
     set_runend_word(current_block, to_shift); 
 }
-
-void Cqf::show() const{
-    for(uint i = 0; i < number_blocks; ++i){
-        std::cout << get_offset_word(i) << std::endl;
-        print_bits(get_occupied_word(i));
-        print_bits(get_runend_word(i));
-        std::cout << std::endl;
-        for(uint j = 0; j < remainder_size; ++j){
-            print_bits(cqf[i*(MET_UNIT + remainder_size) + MET_UNIT + j]);
-        }
-        std::cout << std::endl << std::endl;
-    }
-    std::cout << "----------------------------------------------------------------" << std::endl;
-}
-
-void Cqf::show_slice(uint64_t start, uint64_t end) const{
-    std::cout << "start" << start << std::endl;
-    std::cout << "end" << end << std::endl;
-    for(uint i = start; i < end; ++i){
-        std::cout << "start" << start << std::endl;
-        std::cout << "end" << end << std::endl;
-        std::cout << "i" << i << std::endl;
-        std::cout << get_offset_word(i) << std::endl;
-        print_bits(get_occupied_word(i));
-        print_bits(get_runend_word(i));
-        std::cout << std::endl;
-        for(uint j = 0; j < remainder_size; ++j){
-            print_bits(cqf[i*(MET_UNIT + remainder_size) + MET_UNIT + j]);
-        }
-        std::cout << std::endl << std::endl;
-    }
-    std::cout << "----------------------------------------------------------------" << std::endl;
-}
-
-
