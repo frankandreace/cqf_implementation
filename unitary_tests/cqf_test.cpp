@@ -207,12 +207,27 @@ TEST_F(CqfTest, get_run_boundaries2) {
     //run of quot 20 is shifted, starts @29 ends up @44
     //run of quot 40 is shifted, starts @45 ends up @72
 
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 
     compare = std::make_pair(29, 44);   EXPECT_EQ(small_cqf.get_run_boundaries(20), compare);
     compare = std::make_pair(45, 72);   EXPECT_EQ(small_cqf.get_run_boundaries(40), compare);
     compare = std::make_pair(96, 15);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
     compare = std::make_pair(16, 16);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
     compare = std::make_pair(17, 28);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
+    //works until here
+
+    
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    for (int i = 0; i < 28; i++){ small_cqf.remove((1ULL<<17)+ 96); }
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    compare = std::make_pair(20, 35);   EXPECT_EQ(small_cqf.get_run_boundaries(20), compare);
+    compare = std::make_pair(40, 67);   EXPECT_EQ(small_cqf.get_run_boundaries(40), compare);
+    compare = std::make_pair(96, 125);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
+    compare = std::make_pair(126, 126);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
+    compare = std::make_pair(127, 11);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
 }
 
