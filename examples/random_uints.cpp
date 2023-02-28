@@ -31,15 +31,6 @@ int main (int argc, char * argv[]) {
 	//Cqf cqf(8, 64-8, verbose); // ./bin/random_uints -n 255 -r 1675846862
 	Cqf cqf(7, 64-7, verbose);  // ./bin/random_uints -n 83 -r 1675846981
 
-	/*
-	BUGS
-	Cqf cqf2(7, 64-7, verbose);
-	cqf2.insert((2ULL << 30) + 90); 
-	cqf2.insert(2ULL << 31); 
-	cout << cqf2.block2string(0);
-	cout << cqf2.block2string(1);
-	*/
-
 
 	// uint64 generators
 	default_random_engine generator;
@@ -53,15 +44,13 @@ int main (int argc, char * argv[]) {
 	// Add the uints one by one into the cqf
 	if (verbose) {std::cout << "insertions 0/" << n << "\n";}
 	for (size_t i=0 ; i<n ; i++) {
-		std::cout << "\n\ni " << i << endl;
+		std::cout << "i " << i << endl;
 		uint64_t val = distribution(generator);
 		
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
 
-		cout << cqf.block2string(0);
-    	cout << cqf.block2string(1);
 
 		if (verbose){
 			for (const uint64_t check : verif){

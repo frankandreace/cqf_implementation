@@ -31,35 +31,19 @@ void show(uint64_t value, std::string name){
 using namespace std;
 
 int main(int argc, char** argv) {
-    
-
-
     Cqf small_cqf(7, 64-7, false);
+    Cqf usual_cqf(4);
 
-    for (int i = 0; i < 16; i++){ small_cqf.insert((1ULL<<11)+ 20); } 
 
-    for (int i = 0; i < 28; i++){ small_cqf.insert((1ULL<<13)+ 40); } 
 
-    small_cqf.insert((1ULL<<32)+ 99);
-    
-    //for (int i = 0; i < 12; i++){ small_cqf.insert((1ULL<<15)+ 100); }
+    for (int i = 0; i < 128; i++){ usual_cqf.insert((1ULL<<32)+ 100); }
 
-    for (int i = 0; i < 55; i++){ small_cqf.insert((1ULL<<17)+ 96); }
+    std::cout << usual_cqf.block2string(1) << "\n" << usual_cqf.block2string(2) << "\n" << usual_cqf.block2string(3);
 
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+    usual_cqf.remove((1ULL<<32)+ 100);
+    //for (int i = 0; i < 50; i++){ usual_cqf.remove((1ULL<<32)+ 100); }
 
-    small_cqf.insert((1ULL<<17)+ 96); //fus=36 when it shd be 64
-    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 
-    
-    pair<uint64_t, uint64_t> bnd;
-    bnd = small_cqf.get_run_boundaries(99); cout << bnd.first << " || " << bnd.second << endl;
-    //bnd = small_cqf.get_run_boundaries(100); cout << bnd.first << " || " << bnd.second << endl;
-    bnd = small_cqf.get_run_boundaries(96); cout << bnd.first << " || " << bnd.second << endl;
-    bnd = small_cqf.get_run_boundaries(20); cout << bnd.first << " || " << bnd.second << endl;
-    bnd = small_cqf.get_run_boundaries(40); cout << bnd.first << " || " << bnd.second << endl;
-
-    
 
     return 0;
 }

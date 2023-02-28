@@ -226,8 +226,8 @@ TEST_F(CqfTest, get_run_boundaries2) {
 
     compare = std::make_pair(20, 35);   EXPECT_EQ(small_cqf.get_run_boundaries(20), compare);
     compare = std::make_pair(40, 67);   EXPECT_EQ(small_cqf.get_run_boundaries(40), compare);
-    compare = std::make_pair(96, 125);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
-    compare = std::make_pair(126, 126);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
-    compare = std::make_pair(127, 11);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
+    compare = std::make_pair(96, 115);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
+    compare = std::make_pair(116, 116);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
+    compare = std::make_pair(117, 0);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
 }
 
