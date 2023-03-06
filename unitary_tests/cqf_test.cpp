@@ -213,7 +213,6 @@ TEST_F(CqfTest, get_run_boundaries2) {
     compare = std::make_pair(96, 15);   EXPECT_EQ(small_cqf.get_run_boundaries(96), compare);
     compare = std::make_pair(16, 16);   EXPECT_EQ(small_cqf.get_run_boundaries(99), compare);
     compare = std::make_pair(17, 28);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
-    //works until here
 
     
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
@@ -231,3 +230,40 @@ TEST_F(CqfTest, get_run_boundaries2) {
     compare = std::make_pair(117, 0);   EXPECT_EQ(small_cqf.get_run_boundaries(100), compare);
 }
 
+
+
+TEST_F(CqfTest, first_unused_slot1) {
+    for (int i = 0; i < 2; i++){ small_cqf.insert((123<<7) + 123); }
+    small_cqf.insert((124<<7) + 124);
+    for (int i = 0; i < 2; i++){ small_cqf.insert((125<<7) + 125); }
+    small_cqf.insert((126<<7) + 126);
+    small_cqf.insert((1<<7) + 1);
+    for (int i = 0; i < 3; i++){ small_cqf.insert((2<<7) + 2); }
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    EXPECT_EQ(small_cqf.first_unused_slot(123), 5);
+}
+
+TEST_F(CqfTest, first_unused_slot2) {
+    for (int i = 0; i < 2; i++){ small_cqf.insert((123<<7) + 123); }
+    for (int i = 0; i < 4; i++){ small_cqf.insert((124<<7) + 124); }
+    for (int i = 0; i < 3; i++){ small_cqf.insert((1<<7) + 1); }
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    EXPECT_EQ(small_cqf.first_unused_slot(123), 4);
+}
+
+
+TEST_F(CqfTest, first_unused_slot3) {
+    small_cqf.insert((63<<7) + 63);
+    small_cqf.insert((65<<7) + 65);
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+
+    EXPECT_EQ(small_cqf.first_unused_slot(63), 64);
+}

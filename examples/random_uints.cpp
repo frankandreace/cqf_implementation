@@ -29,7 +29,8 @@ int main (int argc, char * argv[]) {
 	// Creation of the cqf (size is MB)
 	//Cqf cqf(filter_size, verbose);
 	//Cqf cqf(8, 64-8, verbose); // ./bin/random_uints -n 255 -r 1675846862
-	Cqf cqf(7, 64-7, verbose);  // ./bin/random_uints -n 83 -r 1675846981
+	Cqf cqf(7, 64-7, verbose);  // make && ./bin/random_uints -n 100 -r 5
+
 
 
 	// uint64 generators
@@ -44,22 +45,20 @@ int main (int argc, char * argv[]) {
 	// Add the uints one by one into the cqf
 	if (verbose) {std::cout << "insertions 0/" << n << "\n";}
 	for (size_t i=0 ; i<n ; i++) {
-		std::cout << "i " << i << endl;
+		std::cout << "\n\ni " << i << endl;
 		uint64_t val = distribution(generator);
 		
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
 
+		cout << cqf.block2string(0);
+    	cout << cqf.block2string(1);
 
-		if (verbose){
-			for (const uint64_t check : verif){
-				if (cqf.query(check) != 1) std::cout << "PROBLEM WITH " << check << endl;
-			}
-			std::cout << "insertions " << (i+1) << "/" << n << "\n";
-
-		}
-	} std::cout << endl;
+	
+	} 
+	
+	std::cout << endl;
 
 	/*
 	cqf.verbose = true; //remettre verbose en private après

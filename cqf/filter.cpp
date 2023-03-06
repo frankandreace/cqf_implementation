@@ -188,17 +188,32 @@ uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
 using namespace std;
 
 void Cqf::insert(uint64_t number){
-    if (elements_inside == number_blocks*MEM_UNIT) return;
+    if (elements_inside == number_blocks*MEM_UNIT - 1) return; //100%-1 is max number
 
     //get quotient q and remainder r
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
 
+    if (verbose){
+        std::cout << "[INSERT] quot " << quot << std::endl;
+        std::cout << "[INSERT] rem " << rem << std::endl;
+    }
+    
+
     // GET FIRST UNUSED SLOT
     uint64_t fu_slot = first_unused_slot(quot);
     
+    if (verbose) {
+        std::cout << "[INSERT] FUS " << fu_slot << std::endl;
+    }
+
     if (!is_occupied(quot)){
         uint64_t starting_position = get_runstart(quot, 0);
+
+        if (verbose) {
+            cout << "starting_position " << starting_position << endl; 
+        }
+        
         set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
         shift_bits_left_metadata(quot, 1, starting_position,fu_slot);
         elements_inside++;
@@ -207,9 +222,16 @@ void Cqf::insert(uint64_t number){
     // IF THE QUOTIENT HAS BEEN USED BEFORE
     // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
     else{
+        if (verbose){
+            cout << "occupied" << endl;
+        }
         //getting boundaries of the run
         std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
+        if (verbose){
+            cout << "boundaries " << boundary.first << " || " << boundary.second << endl;
+        }
+        
         //find the place where the remainder should be inserted / all similar to a query
         //getting position where to start shifting right
         uint64_t starting_position = boundary.first;
@@ -237,7 +259,9 @@ void Cqf::insert(uint64_t number){
         
         uint64_t metadata_starting_position = boundary.first; 
         
+        
         shift_bits_left_metadata(quot, 0, metadata_starting_position, fu_slot);
+        
         // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
         elements_inside++;
         return shift_left_and_set_circ(starting_position, fu_slot, rem);
@@ -349,21 +373,29 @@ std::unordered_set<uint64_t> Cqf::enumerate(){
     uint64_t quotient;
     uint64_t number;
 
+    std::cout << this->block2string(0) << "\n\n" << this->block2string(1);
+
+
     for(uint block = 0; block < number_blocks; ++block){
+        cout << "block " << block << endl;
         curr_occ = get_occupied_word(block);
         if (curr_occ == 0) continue;
 
         for (uint64_t i=0; i<MEM_UNIT; i++){
+            cout << "i " << i << endl;
             if (curr_occ & 1ULL){ //occupied
                 quotient = block*MEM_UNIT + i;
                 bounds = get_run_boundaries(quotient);
+                cout << "bnd " << bounds.first << " -|- " << bounds.second << endl;
                 cursor = bounds.first;
                 while (cursor != (bounds.second)){ //every remainder of the run
                     number = rebuild_number(quotient, get_remainder(cursor), quotient_size);
+                    cout << "insert number " << number << endl;
                     finalSet.insert(number);
                     cursor = get_next_quot(cursor);
                 }
                 number = rebuild_number(quotient, get_remainder(cursor), quotient_size);
+                cout << "insert number " << number << endl;
                 finalSet.insert(number); 
             }
 
@@ -655,16 +687,35 @@ bool Cqf::is_runend(uint64_t position){
 
 uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
     std::pair<uint64_t, bool> rend_pos = get_runend(curr_quotient);
+    
+    if (verbose){
+        cout << "[FUS] first runend " << rend_pos.first << " | " <<  rend_pos.second << " (quot " << curr_quotient << ")" << endl;
+    }
 
+    if (get_shift_in_block(rend_pos.first) == 0 && get_offset_word(get_block_id(rend_pos.first)) == 0){
+        //case we jumped at quot (shift) 0 and runend(shift0) = 0 but 3 cases possible:
+        //run overflows by 1 || run of 1 starts at this quotient || no run at the beginning of this block (offset==0)
+        //in 3rd case, we return the curr_quot  
+        return curr_quotient;
+    }
+
+    int loop = 0;
     // rend_pos.second == true means we left the quotient block while looking for runend (handles toricity)
     while( rend_pos.second || curr_quotient <= rend_pos.first ){ 
         curr_quotient = get_next_quot(rend_pos.first);
         rend_pos = get_runend(curr_quotient);
-        if (get_shift_in_block(rend_pos.first) == 0){
-            uint64_t curr_block = get_block_id(rend_pos.first);
-            uint64_t offset = get_offset_word(curr_block);
-            return offset == 0 ? rend_pos.first : (curr_block*64 + offset + 1);
+
+        if (get_shift_in_block(rend_pos.first) == 0 && get_offset_word(get_block_id(rend_pos.first)) == 0){
+            break;
         }
+
+        if (verbose){
+            cout << "[FUS] loop runend " << rend_pos.first << " | " <<  rend_pos.second << " (quot " << curr_quotient << ")" << endl;
+        }
+
+        
+        loop ++;
+        assert(loop < 100);
     }
 
     return curr_quotient;
@@ -695,14 +746,14 @@ std::pair<uint64_t, bool> Cqf::get_runend(uint64_t quotient){
         return std::make_pair(quotient - current_shift + offset_orig, (offset_orig >= MEM_UNIT));
     }
 
-    bool left_block;
+    
     uint64_t pos_after_jump = ((current_block * MEM_UNIT) + offset) % (1ULL << quotient_size);
-    left_block = (current_block != get_block_id(pos_after_jump));
+    bool left_block = (current_block != get_block_id(pos_after_jump));
 
     current_block = get_block_id(pos_after_jump);
     current_shift = get_shift_in_block(pos_after_jump);
 
-    uint64_t runend_mask = mask_left(MEM_UNIT-current_shift); //MEM_UNIT-current_shift-1 ???
+    uint64_t runend_mask = mask_left(MEM_UNIT-current_shift); 
     //mask runend[pos_after_jump : end]
 
     //paper : t = select(runends[i+O(i)+1, ..., end], d)
@@ -738,7 +789,7 @@ uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
 
     if (current_shift == 0){
         //particular case of shift == 0 
-        //(offset jumps to end of this run so we need to compute before instead of going backwards)
+        //(offset jumps to the end of this run)
         return get_runstart_shift0(quotient, pos_after_jump, offset, occ_bit);
     } 
     
@@ -747,23 +798,31 @@ uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
         uint64_t nb_runs; 
         //nb_runs = d in the paper, number of runs that have to end before ours can start
         nb_runs = bitrankasm(get_occupied_word(current_block),
-                             current_shift-1);
-        
+                             current_shift-1);   
+
+        if (verbose){
+            cout << "[RUNSTART] d " << nb_runs << endl; 
+        }
+            
 
         current_shift = get_shift_in_block(pos_after_jump);
-        uint64_t runend_mask = mask_left(MEM_UNIT-current_shift-1);
+        
+        uint64_t runend_mask = mask_left(MEM_UNIT - current_shift - (!is_occupied(current_block*MEM_UNIT))); 
+        // if slot 0 of block is not occupied, look runend[paj+1:end]
+        // if slot 0 of block is occupied, look runend[paj:end]
 
         // === FIRST BLOCK WE JUMP INTO ===
         if (offset < MEM_UNIT){
             // jumped into the same block
             if (nb_runs == 0){
-                return pos_after_jump <= quotient ? quotient : get_next_quot(pos_after_jump);
+                return pos_after_jump < quotient ? quotient : get_next_quot(pos_after_jump); // changed <= to < (might bug, maybe check if block[0] is occupied)
             }
 
             select_val = bitselectasm(get_runend_word(current_block) & runend_mask, 
-                                      nb_runs);
-            
-                                                
+                                      nb_runs);            
+
+            //cout << "select_val " << select_val << endl;
+                                            
             if (select_val < get_shift_in_block(quotient)){ return quotient; }
         }
         else {
@@ -787,12 +846,15 @@ uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
                 nb_runs -= bitrankasm(get_runend_word(current_block), MEM_UNIT-1);
         }
 
-        return current_block*MEM_UNIT + select_val + 1; 
+        return (current_block*MEM_UNIT + select_val + 1) % (1ULL << quotient_size); 
         //+1 because select_val is the end of the dth run before our quot's one
     }
 } 
 
 uint64_t Cqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offset, bool occ_bit){
+    if (verbose){
+        cout << "get_runstart_shift0 " << quotient << " " << paj << " " << offset << " " << occ_bit << endl; 
+    } 
     //Used in get_runstart, NOT OPTI AT ALL
     //example of case where this func is needed :
     // run 1 : quotient50; start50; end70
@@ -807,7 +869,7 @@ uint64_t Cqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offs
         if (nth_runend-occ_bit <= 0){ return quotient; } //only one run in beginning of block, ours
         
         else { //more runs before the interesting one, we find the end of the last then next quot
-            uint64_t last_run_runend_shift = bitselectasm(get_runend_word(current_block), nth_runend-1);
+            uint64_t last_run_runend_shift = bitselectasm(get_runend_word(current_block), nth_runend-occ_bit);
             return get_next_quot(current_block*64 + last_run_runend_shift); 
         }
         
@@ -941,6 +1003,13 @@ uint64_t Cqf::find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos)
 
 
 void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position){
+    if (verbose){
+        cout << "shift_bits_left_metadata quotient " << quotient << " SP " << start_position << " EP " << end_position << endl;
+    }
+    
+    assert(start_position < (1ULL << quotient_size));
+    assert(end_position < (1ULL << quotient_size));
+    
     // METHOD FOR INSERTION
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift_in_block = get_shift_in_block(start_position);
