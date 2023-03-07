@@ -41,11 +41,11 @@ void test_lots_of_full_cqf(){
   uniform_int_distribution<uint64_t> distribution;
 
 
-  Cqf small_cqf(7, 64-7, false);
-  //Cqf small_cqf(9, 64-9, false);
-  Cqf usual_cqf(4);
+  int qsize = 19; 
+  Cqf small_cqf(qsize, 64-qsize, false);
+  Cqf usual_cqf(4); //524288, qsize=19
 
-  for (size_t j=0 ; j<500000 ; j++) {
+  for (size_t j=0 ; j<1000 ; j++) {
     uint64_t seedTMP = distribution(generator);
     cout << "\nseed " << seedTMP << endl;
 
@@ -54,49 +54,151 @@ void test_lots_of_full_cqf(){
     generatorTMP.seed(seedTMP);
     uniform_int_distribution<uint64_t> distributionTMP;
 
-    std::cout << "j " << j << endl;
-    Cqf small_cqf(7, 64-7, false);
+    cout << "j " << j << endl;
+    Cqf small_cqf(qsize, 64-qsize, false);
 
-    for (size_t i=0 ; i<128 ; i++) {
-      cout << "llooooopppp" << endl;
-      cout << i << " ";
+    for (size_t i=0 ; i<(1ULL<<qsize) ; i++) { //fill to 2^qsize elements (100%-1)
+      //cout << "llooooopppp" << endl;
+      //cout << i << " ";
       uint64_t val = distributionTMP(generatorTMP);      
       small_cqf.insert(val);
     }     
-
   }
+}
+
+
+void test_lots_of_full_cqf_enumerate() {
+  uint64_t seed = time(NULL);
+  default_random_engine generator;
+  generator.seed(seed);
+  uniform_int_distribution<uint64_t> distribution;
+
+  int qsize = 24; 
+
+  for (size_t j=0 ; j<1000 ; j++) {
+    
+    uint64_t seedTMP = distribution(generator);
+    cout << "\nseed " << seedTMP << endl;
+
+    default_random_engine generatorTMP;
+    generatorTMP.seed(seedTMP);
+    uniform_int_distribution<uint64_t> distributionTMP;
+
+    cout << "j " << j << endl;
+    Cqf small_cqf(qsize, 64-qsize, false);
+    std::unordered_set<uint64_t> verif;
+
+    for (size_t i=0 ; i<(1ULL<<qsize)-1 ; i++) { //fill to 2^qsize elements (100%-1)
+      uint64_t val = distributionTMP(generatorTMP);      
+      small_cqf.insert(val);
+      verif.insert(val);
+    }   
+
+    if (verif != small_cqf.enumerate()) {
+      cout << "error verif != enum" << endl;
+      exit(0);
+    }
+  }  
+}
+
+
+
+void test_lots_of_full_cqf_remove() {
+  uint64_t seed = time(NULL);
+  default_random_engine generator;
+  generator.seed(seed);
+  uniform_int_distribution<uint64_t> distribution;
+
+  int qsize = 7; 
+  uint64_t val;
+
+  for (size_t j=0 ; j<1000 ; j++) {
+    
+    uint64_t seedTMP = distribution(generator);
+    cout << "\nseed " << seedTMP << endl;
+
+    default_random_engine generatorTMP;
+    generatorTMP.seed(seedTMP);
+    uniform_int_distribution<uint64_t> distributionTMP;
+
+    cout << "j " << j << endl;
+    Cqf small_cqf(qsize, 64-qsize, false);
+    std::unordered_set<uint64_t> verif;
+
+
+
+
+    for (size_t i=0 ; i<(1ULL<<qsize)-1 ; i++) { //fill to 2^qsize elements (100%-1)
+      val = distributionTMP(generatorTMP);      
+      small_cqf.insert(val);
+      verif.insert(val);
+    }   
+
+    if (verif != small_cqf.enumerate()) {
+      cout << "error verif != enum" << endl;
+      exit(0);
+    }
+
+    for (size_t i=0 ; i<(1ULL<<qsize)/2 ; i++) { 
+      val = *verif.begin();
+      verif.extract(val);
+      small_cqf.remove(val);
+    } 
+
+    if (verif != small_cqf.enumerate()) {
+      cout << "error verif != enum (post remove)" << endl;
+      exit(0);
+    }
+  }  
+}
+
+
+
+
+
+
+void test_one_cqf(){
+  uint64_t seed = 6030154409310195692ULL; 
+  default_random_engine generator;
+  generator.seed(seed);
+  uniform_int_distribution<uint64_t> distribution;
+
+
+  int qsize = 11;
+  Cqf small_cqf(qsize, 64-qsize, false);
+
+  std::unordered_set<uint64_t> verif;
+
+  for (size_t i=0 ; i<1023 ; i++) {
+    std::cout << "\ni " << i << endl;
+    uint64_t val = distribution(generator);
+    val &= mask_right(qsize);
+    if (val == 0) { val += (1ULL << 45); }
+    else { val += (val<<qsize); }
+    
+    small_cqf.insert(val);
+    verif.insert(val);
+  }
+
+  
+  //cout << small_cqf.enumerate().size() << endl;
+  //cout << verif.size() << endl;
+  cout << (verif == small_cqf.enumerate()) << endl;
+
+  
 }
 
 
 
 
 int main(int argc, char** argv) {
-    /* uint64_t seed = 11454997566774698965ULL;
-    default_random_engine generator;
-    generator.seed(seed);
-    uniform_int_distribution<uint64_t> distribution;
+    //test_one_cqf();
 
+    //test_lots_of_full_cqf();
 
-    Cqf small_cqf(7, 64-7, true);
-    Cqf usual_cqf(4);
+    //test_lots_of_full_cqf_enumerate();
 
-
-    for (size_t i=0 ; i<128 ; i++) {
-      std::cout << "i " << i << endl;
-      uint64_t val = distribution(generator);
-      val &= mask_right(7);
-      if (val == 0) { val += (1ULL << 15); }
-      else { val += (val<<7); }
-    
-      
-      small_cqf.insert(val);
-
-      std::cout << small_cqf.block2string(0) << "\n\n" << small_cqf.block2string(1);
-
-    } */
-
-
-    test_lots_of_full_cqf();
+    test_lots_of_full_cqf_remove();
 
 
   return 0;

@@ -27,10 +27,7 @@ int main (int argc, char * argv[]) {
 
 	//verbose = true;
 	// Creation of the cqf (size is MB)
-	//Cqf cqf(filter_size, verbose);
-	//Cqf cqf(8, 64-8, verbose); // ./bin/random_uints -n 255 -r 1675846862
-	Cqf cqf(7, 64-7, verbose);  // make && ./bin/random_uints -n 100 -r 5
-
+	Cqf cqf(filter_size, verbose);
 
 
 	// uint64 generators
@@ -51,26 +48,11 @@ int main (int argc, char * argv[]) {
 		if (debug)
 			verif.insert(val);
 		cqf.insert(val);
-
-		cout << cqf.block2string(0);
-    	cout << cqf.block2string(1);
-
 	
 	} 
 	
 	std::cout << endl;
 
-	/*
-	cqf.verbose = true; //remettre verbose en private après
-	std::cout << "i " << n << endl;
-	uint64_t val = distribution(generator);
-	cqf.insert(val);
-	*/
-
-	// std::cout << endl << cqf.block2string(839, false) << endl << endl;
-	// std::cout << endl << cqf.block2string(840, false) << endl << endl;
-	// std::cout << endl << cqf.block2string(841, false) << endl << endl;
-	// std::exit(0);
 
 	// Verification
 	if (debug) {
