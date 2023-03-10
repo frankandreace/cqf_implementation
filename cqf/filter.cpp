@@ -145,7 +145,7 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
         end_remainder = true;
 
         // Format the string using decimal numbers
-        if (not bit_format) {
+        if (! bit_format) {
             if (remainder_id % 4 == 0)
                 stream << "         ";
             stream << current_remainder << '\t';

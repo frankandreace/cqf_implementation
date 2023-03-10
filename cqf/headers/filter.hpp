@@ -7,7 +7,7 @@
 
 #include "additional_methods.hpp"
 
-#endif
+
 
 
 class Cqf {
@@ -32,12 +32,14 @@ class Cqf {
     */
 
     /** Deduce a quotient size from the memory occupation limit
-     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and 'r' words of remainders (since ther are 64 remainders inside) --> (r + 3) words == ((64 - q) + 3) words;
-     * There are 2^(q) quotients in the filter. Each block contains 64 quotients --> #blocks = 2^(q)/64. Since I cannot analitycally get q from the equation MAX_MEM = (2^(q) / 64)((64 - q) + 3),I try values in a for loop. Starting with q = 63, I lower the size of q till I get the mem of the filter <= of max memory.
-     * P.S.: To solve some problems with the comparison of numbers, for large values of q, I divide the 2^(q) by the number of bytes in a MB. For the smaller values I multiply the MAX_MEM value by the same amount.
-     * 
+     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and 'r' words of remainders 
+     * (since ther are 64 remainders inside) --> (r + 3) words == ((64 - q) + 3) words;
+     * There are 2^(q) quotients in the filter. Each block contains 64 quotients --> #blocks = 2^(q)/64. 
+     * Since I cannot analitycally get q from the equation MAX_MEM = (2^(q) / 64)((64 - q) + 3),I try values in a for loop. 
+     * Starting with q = 63, I lower the size of q till I get the mem of the filter <= of max memory.
+     * P.S.: To solve some problems with the comparison of numbers, for large values of q, I divide the 2^(q) by the 
+     * number of bytes in a MB. For the smaller values I multiply the MAX_MEM value by the same amount.
      * @param max_memory Max size to occupy with the CQF (in MBytes). The memory of the CQF is given by 1 parameter: the quotient size(q), the remainder size(r) is (64 - q).
-     * 
      * @return Quotient size in bits
      **/
     uint64_t find_quotient_given_memory(uint64_t max_memory);
@@ -70,10 +72,16 @@ class Cqf {
      * saved in a slot before it. There are some edge cases where the remainder slots are all occupied up to a certain
      * slot but I cannot shift left part of the remainders beacuse they would be moved in a position that is smaller
      * than the one of their quotient. This vould violate one of the rules of the QF.
-     * 
      */
     uint64_t remove(uint64_t number);
 
+
+    /** Enumerate every number that has been inserted in the filter (possibly hashes)
+     * @return a uint_64t unordered set of number, present in the filter
+     * This method iterates over every slot in the filter, for occupied ones it gets the positions of the corresponding run.
+     * Then it computes for every remainder in the run, the original number inserted (by concatenating the remainder value
+     * and the quotient value (of the run)) and pushes it into the unordered_set
+     */
     std::unordered_set<uint64_t> enumerate(); 
 
 
@@ -100,10 +108,6 @@ class Cqf {
      * @return an uint64 with the value stored in the slot
      */
     uint64_t get_remainder(uint64_t position);
-
-    /** deprecated version of the get_remainder function. Not used anymore in the filter
-     */
-    uint64_t get_remainder_func(uint64_t position);
 
     /** sets the remainder slot associated to the requested quotient to a given value
      * @param position quotient associated to the slot to set 
@@ -174,6 +178,12 @@ class Cqf {
      */
     uint64_t first_unused_slot(uint64_t curr_quotient); //const
 
+    /** Returns the first slot that can't be shifted during a deletion. 
+     * @param curr_quotient the quotient from where to find the first unshiftable slot
+     * @return uint64 of the position of the last shiftable slot.
+     * It iterates over all the slots after curr_quotient, and stops when it finds else an unused slot
+     * or an occupied slot whose run starts at this precise slot. (the run of a quotient can't start before the quotient itself)
+     */
     uint64_t first_unshiftable_slot(uint64_t curr_quotient); //const
 
     /** returns the start and the end of the run that contains all the remainders of the numbers inserted that have 
@@ -193,7 +203,26 @@ class Cqf {
      */
     std::pair<uint64_t, bool> get_runend(uint64_t quotient);
 
+    /** It returns the start of the run associated with quotient in parameter, if quotient is not occupied
+     * it returns the first slot where would be inserted a remainder linked to this quotient
+     * @param quotient quotient of which we want the beginning of the run 
+     * @param occ_bit the information of occupation of the quotient (1=the quotient is occupied) 
+     * @return a uint64_t, the position of the beginning of the run
+     * Counts how many runs begin before the quotient using rank(), then find the position of the end of the last
+     * run. The next slot is the beginning of our interest run, if it is before our quotient, then the slot "quotient"
+     * is the beginning of the run
+     */
     uint64_t get_runstart(uint64_t quotient, bool occ_bit=1);
+
+    /** Used in get runstart(), for the special case where the quotient if the first slot of a block
+     * @param quotient quotient of which we want the beginning of the run 
+     * @param paj the position after the jump done using the offset of the block 
+     * @param offset the information of the offset of the block (might be different of paj)
+     * @param occ_bit the information of occupation of the quotient (1=the quotient is occupied) 
+     * @return a uint64_t, the position of the beginning of the run
+     * Because we start counting in the block how many runs start before our quotient (the occupieds
+     * we can't do it if it is in first position, so we start by counting the runends.
+     */
     uint64_t get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offset, bool occ_bit);
 
     
@@ -202,11 +231,18 @@ class Cqf {
      * @param block_id The block to print.
      * @param bitformat a flag to print reminders as bitvector instead of numbers.
      * @return The block represented as string
-     **/
-    
+     */
     std::string block2string(size_t block_id, bool bit_format = false);
 
+    /// @brief Computes the remainder from a number to insert/find in the filter
+    /// @param num the number (hash) we want to insert/query
+    /// @return the remainder part that will be inserted or queried in the filter
     uint64_t remainder(uint64_t num) const;
+
+    /// @brief Computes the quotient from a number to insert/find in the filter
+    /// @param num the number (hash) we want to insert/query
+    /// @return the quotient (slot index) where the remainder of the number will be inserted (or found if it was inserted)
+    uint64_t quotient(uint64_t num) const;
 
 
     //===== Private (but temporary public for debug) =======
@@ -217,17 +253,15 @@ class Cqf {
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
     
     bool debug;
-    uint64_t m_num_bits;    // max number of bits occupied by the cqf to check no memory leaks
+    uint64_t m_num_bits; // max number of bits occupied by the cqf to check no memory leaks
     uint64_t quotient_size; // value of q
-    uint64_t remainder_size;    // value of r
+    uint64_t remainder_size; // value of r
     uint64_t block_size; // Block size (in machine words (64 bits multiples))
     uint64_t number_blocks; // number of blocks the cqf is divided into
-    uint64_t elements_inside;
+    uint64_t elements_inside; //number of elements (non distinct) inserted in the filter
 
 
 
-    uint64_t quotient(uint64_t num) const;
-    
     /** For circular CQF, it gives back the runend_word after the one given. If the one given is at the end, 
      * it gives back the one at the beginning of the filter. It also skips the metadata words. It is used for 
      * remainder slot shifting
@@ -308,6 +342,8 @@ class Cqf {
      */
     void set_offset_word(uint64_t current_block, uint64_t value);
 
+    /// @brief Decrease the chosen block offset value by 1
+    /// @param current_block chosen block;
     void decrement_offset(uint64_t current_block);
 
     /** It sets the bit of the occupieds bitvector corresponing to the chosen block and (bit position in the word).
@@ -329,3 +365,5 @@ class Cqf {
     void set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos);
 };  
 
+
+#endif
