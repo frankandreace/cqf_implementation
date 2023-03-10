@@ -94,7 +94,6 @@ class Cqf {
      * It extracts the related bit of the occupied word in the block of the quotient
      */
     bool is_occupied(uint64_t position);
-    bool is_runend(uint64_t position);
 
     /** returns the remainder slot associated to the requested quotient
      * @param position quotient 
@@ -146,6 +145,8 @@ class Cqf {
      */
     void shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient);
 
+
+    void shift_runend_right(uint64_t start_shift, uint64_t end_shift, uint64_t block);
     /** Metadata function that shifts the bits right in the runend word when there is a deletion.
      * It also handles cases when occupieds and offsets have to be adjourned.
      * @param quotient quotient of the number to delete.
@@ -153,7 +154,7 @@ class Cqf {
      * @param start_position starting position of the shifting.
      * @param end_position end position of the shifting.
      */
-    void shift_bits_right_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
+    void shift_bits_right_metadata(uint64_t quotient, uint64_t start_position, uint64_t end_position);
 
     /** Metadata function that shifts the bits left in the runend word when there is an insertion.
      * It also handles cases when occupieds and offsets have to be adjourned.
@@ -164,15 +165,6 @@ class Cqf {
      */
     void shift_bits_left_metadata(uint64_t quotient, uint64_t flag_bit, uint64_t start_position, uint64_t end_position);
 
-    /** This function finds the rightmost slot to shift when deleting a runend slot. It is needed because there are
-     * cases where I cannot shift from the slot to the first unused slot. (for example there are no free slots for a lot
-     * of slots in the right but I cannot shift the block next to the one I am deleting because it is exactly in the position
-     * associated to it quotient (i.e. quotient of remainder is 5 and the block is the 5th (there is a 0th))).
-     * @param start_position position of the slot to delete
-     * @param end_position position of the first unused slot
-     * @return the last position I have to shift.
-     */
-    uint64_t find_boundary_shift_deletion(uint64_t start_pos, uint64_t end_pos) const;
 
     /** Returns the first unused slot as described in the paper. 
      * Used on insertion and to find the shifting window of deletions.
@@ -181,6 +173,8 @@ class Cqf {
      * It extracts the related bit of the occupied word in the block of the quotient
      */
     uint64_t first_unused_slot(uint64_t curr_quotient); //const
+
+    uint64_t first_unshiftable_slot(uint64_t curr_quotient); //const
 
     /** returns the start and the end of the run that contains all the remainders of the numbers inserted that have 
      * the given quotient. I.e. I have quotient 1 and want to see where the run that contains the remainders that are linked to it in the cqf

@@ -118,7 +118,6 @@ TEST_F(CqfTest, offset5_complexCase) {
     for (int i = 0; i < 11; i++){ usual_cqf.insert((1ULL<<32)+ 150); }
     //run of quot 150, starts @150 ends up @160 (FUS == 161)
 
-    EXPECT_EQ(usual_cqf.find_boundary_shift_deletion(100, 161), 148); 
     EXPECT_EQ(usual_cqf.get_offset_word(0), 0); 
     EXPECT_EQ(usual_cqf.get_offset_word(1), 149-64); 
     EXPECT_EQ(usual_cqf.get_offset_word(2), 149-128); 
@@ -191,16 +190,16 @@ TEST_F(CqfTest, get_run_boundaries) {
 TEST_F(CqfTest, get_run_boundaries2) {
     std::pair<uint64_t,uint64_t> compare;
 
-    for (int i = 0; i < 16; i++){ small_cqf.insert((1ULL<<11)+ 20); } 
+    for (int i = 0; i < 16; i++){ small_cqf.insert((20ULL<<7)+ 20); } 
     //run of quot 20, starts @20 ends up @35
-    for (int i = 0; i < 28; i++){ small_cqf.insert((1ULL<<13)+ 40); } 
+    for (int i = 0; i < 28; i++){ small_cqf.insert((40ULL<<7)+ 40); } 
     //run of quot 40, starts @40 ends up @67
-    small_cqf.insert((1ULL<<32)+ 99);
+    small_cqf.insert((99ULL<<7)+ 99);
     //run of quot 99, starts @99 ends up @99 
-    for (int i = 0; i < 12; i++){ small_cqf.insert((1ULL<<15)+ 100); }
+    for (int i = 0; i < 12; i++){ small_cqf.insert((100ULL<<7)+ 100); }
     //run of quot 100, starts @100 ends up @111 
     
-    for (int i = 0; i < 48; i++){ small_cqf.insert((1ULL<<17)+ 96); }
+    for (int i = 0; i < 48; i++){ small_cqf.insert((96ULL<<7)+ 96); }
     //run of quot 96, starts @96 ends up @15
     //run of quot 99 is shifted, starts @16 ends up @16 
     //run of quot 100 is shifted, starts @17 ends up @28 
@@ -218,7 +217,7 @@ TEST_F(CqfTest, get_run_boundaries2) {
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 
 
-    for (int i = 0; i < 28; i++){ small_cqf.remove((1ULL<<17)+ 96); }
+    for (int i = 0; i < 28; i++){ small_cqf.remove((96ULL<<7)+ 96); }
 
     std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
 
@@ -266,4 +265,41 @@ TEST_F(CqfTest, first_unused_slot3) {
 
 
     EXPECT_EQ(small_cqf.first_unused_slot(63), 64);
+}
+
+
+TEST_F(CqfTest, shift_bits_right_metadata) {
+    small_cqf.insert((63<<7) + 63);
+    small_cqf.insert((3000<<7) + 63);
+    small_cqf.insert((64<<7) + 64);
+
+    small_cqf.remove((3000<<7) + 63);
+
+    std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+
+    EXPECT_EQ(small_cqf.get_runend_word(0), 1ULL<<63);
+}
+
+
+TEST_F(CqfTest, finalTest) {
+    uint64_t val;
+    unordered_set<uint64_t> verif; 
+
+    //INSERT
+    for (uint64_t i=0; i < (1ULL<<19)-1; i++){
+        val = distribution(generator);      
+        usual_cqf.insert(val);
+        verif.insert(val);
+    }
+
+    EXPECT_EQ(usual_cqf.enumerate(), verif);
+
+    //REMOVE
+    for (uint64_t i=0; i < (1ULL<<19)-1; i++){
+        val = *verif.begin(); 
+        verif.extract(val);    
+        usual_cqf.remove(val);
+    }
+
+    EXPECT_EQ(usual_cqf.enumerate(), verif);
 }

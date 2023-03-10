@@ -42,7 +42,6 @@ int main (int argc, char * argv[]) {
 	// Add the uints one by one into the cqf
 	if (verbose) {std::cout << "insertions 0/" << n << "\n";}
 	for (size_t i=0 ; i<n ; i++) {
-		std::cout << "\n\ni " << i << endl;
 		uint64_t val = distribution(generator);
 		
 		if (debug)
