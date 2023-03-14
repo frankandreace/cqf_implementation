@@ -24,11 +24,11 @@
 
 using namespace std;
 
-Cqf::Cqf(){
+Rsqf::Rsqf(){
     elements_inside = 0;
 }
 
-Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose), debug(false) {
+Rsqf::Rsqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose) {
     elements_inside = 0;
     quotient_size = q_size;
     remainder_size = r_size;
@@ -39,12 +39,12 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose), deb
     this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
 
-    cqf = std::vector<uint64_t>(num_of_words);
+    filter = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }
 
 
-Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose), debug(false) {
+Rsqf::Rsqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
 
     elements_inside = 0;
     
@@ -60,25 +60,25 @@ Cqf::Cqf(uint64_t max_memory, bool verbose) : verbose(verbose), debug(false) {
     this->block_size = (3 + this->remainder_size);
     number_blocks = std::ceil(num_quots / MEM_UNIT);
     
-    cqf = std::vector<uint64_t>(num_of_words);
+    filter = std::vector<uint64_t>(num_of_words);
     m_num_bits = num_of_words*MEM_UNIT;
 }
 
-std::string Cqf::block2string(size_t block_id, bool bit_format) {
+std::string Rsqf::block2string(size_t block_id, bool bit_format) {
     std::stringstream stream;
 
-    // Init the position in cqf to the first machine word of the block
-    uint64_t cqf_position = block_id * this->block_size;
+    // Init the position in filter to the first machine word of the block
+    uint64_t position = block_id * this->block_size;
 
     stream << "BLOCK " << block_id;
     stream << "   first quotient: " << block_id*64 << endl;
 
     // --- Offset ---
-    stream << "offset : " << this->cqf[cqf_position++] << endl;
+    stream << "offset : " << this->filter[position++] << endl;
     
     // --- Occurences ---
     stream << "occ    : ";
-    uint64_t occ_register = this->cqf[cqf_position++];
+    uint64_t occ_register = this->filter[position++];
     for (size_t bit=0 ; bit<MEM_UNIT ; bit++) {
         stream << ((occ_register & 0b1) ? '1' : '0');
         occ_register >>= 1;
@@ -88,7 +88,7 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
 
     // --- Runends ---
     stream << "runends: ";
-    uint64_t runs_register = this->cqf[cqf_position++];
+    uint64_t runs_register = this->filter[position++];
     for (size_t bit=0 ; bit<MEM_UNIT ; bit++) {
         stream << ((runs_register & 0b1) ? '1' : '0');
         runs_register >>= 1;
@@ -112,7 +112,7 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
         for (size_t remainder_bit=0 ; remainder_bit<this->remainder_size ; remainder_bit++) {
             // Add one bit to the remainder
             size_t byte_position = bit_position / MEM_UNIT;
-            uint64_t bit_value = (this->cqf[cqf_position + byte_position] >> (bit_position % MEM_UNIT)) & 0b1;
+            uint64_t bit_value = (this->filter[position + byte_position] >> (bit_position % MEM_UNIT)) & 0b1;
             current_remainder += bit_value << remainder_bit;
 
             // Pretty print the bit format
@@ -159,19 +159,17 @@ std::string Cqf::block2string(size_t block_id, bool bit_format) {
 
 
 /*
-
 HIGH LEVEL OPERATIONS
-
 */
-uint64_t Cqf::get_quot_size(){
+uint64_t Rsqf::get_quot_size(){
     return quotient_size;
 }
 
-uint64_t Cqf::get_num_el_inserted(){
+uint64_t Rsqf::get_num_el_inserted(){
     return elements_inside;
 }
 
-uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
+uint64_t Rsqf::find_quotient_given_memory(uint64_t max_memory){
     uint64_t quotient_size;
     uint64_t curr_m;
     
@@ -194,7 +192,7 @@ uint64_t Cqf::find_quotient_given_memory(uint64_t max_memory){
 
 using namespace std;
 
-void Cqf::insert(uint64_t number){
+void Rsqf::insert(uint64_t number){
     if (elements_inside == number_blocks*MEM_UNIT - 1) return; //100%-1 is max number
 
     //get quotient q and remainder r
@@ -278,7 +276,7 @@ void Cqf::insert(uint64_t number){
 }
 
 
-uint64_t Cqf::query(uint64_t number){
+bool Rsqf::query(uint64_t number){
     //std::cout << "elements_inside " << elements_inside << std::endl;
     if (elements_inside == 0) return 0;
     //get quotient q and remainder r
@@ -309,7 +307,7 @@ uint64_t Cqf::query(uint64_t number){
 }
 
 
-uint64_t Cqf::remove(uint64_t number){
+bool Rsqf::remove(uint64_t number){
 
     if (elements_inside == 0) return 0;
     //get quotient q and remainder r
@@ -392,7 +390,7 @@ uint64_t Cqf::remove(uint64_t number){
 }
 
 
-std::unordered_set<uint64_t> Cqf::enumerate(){
+std::unordered_set<uint64_t> Rsqf::enumerate(){
     std::unordered_set<uint64_t> finalSet;
     uint64_t curr_occ;
     
@@ -432,28 +430,28 @@ std::unordered_set<uint64_t> Cqf::enumerate(){
 
 
 //
-uint64_t Cqf::quotient(uint64_t num) const{
+uint64_t Rsqf::quotient(uint64_t num) const{
     return num & mask_right(quotient_size);
 }
 
-uint64_t Cqf::remainder(uint64_t num) const{
+uint64_t Rsqf::remainder(uint64_t num) const{
     return num >> (MEM_UNIT - remainder_size);
 }
 
 // REMAINDER OPERATIONS
 
-uint64_t Cqf::get_remainder(uint64_t position){
+uint64_t Rsqf::get_remainder(uint64_t position){
 
     uint64_t block = get_block_id(position);
     uint64_t pos_in_block = get_shift_in_block(position);
 
     uint64_t pos = (block*((MET_UNIT+remainder_size)*MEM_UNIT)+MET_UNIT*MEM_UNIT+pos_in_block*remainder_size); 
 
-    return get_bits(cqf, pos, remainder_size);
+    return get_bits(filter, pos, remainder_size);
 }
 
 
-void Cqf::set_remainder(uint64_t position, uint64_t value){
+void Rsqf::set_remainder(uint64_t position, uint64_t value){
     assert(position < number_blocks*MEM_UNIT);
 
     uint64_t block = get_block_id(position);
@@ -461,18 +459,18 @@ void Cqf::set_remainder(uint64_t position, uint64_t value){
 
     uint64_t pos = (block*((3+remainder_size)*MEM_UNIT)+3*MEM_UNIT+pos_in_block*remainder_size);
 
-    set_bits(cqf, pos, value, remainder_size);
+    set_bits(filter, pos, value, remainder_size);
 }
 
-uint64_t Cqf::get_remainder_word_position(uint64_t quotient){
+uint64_t Rsqf::get_remainder_word_position(uint64_t quotient){
     return (get_block_id(quotient) * (MET_UNIT + remainder_size) + MET_UNIT + ((remainder_size * get_shift_in_block(quotient)) / MEM_UNIT)); 
 }
 
-uint64_t Cqf::get_remainder_shift_position(uint64_t quotient){
+uint64_t Rsqf::get_remainder_shift_position(uint64_t quotient){
     return (get_shift_in_block(quotient) * remainder_size ) % MEM_UNIT;
 }
 
-void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder){
+void Rsqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder){
     assert(start_quotient < ( 1ULL << quotient_size));
     assert(end_quotient < ( 1ULL << quotient_size)); 
 
@@ -486,23 +484,23 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
 
     if (curr_word_pos == end_word_pos){
         if (curr_word_shift != end_word_shift){
-            to_shift = get_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
+            to_shift = get_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
             next_remainder = to_shift;
 
             curr_word_shift += remainder_size;
         }
         
         //curr_word_pos == end_word_pos && curr_word_shift == end_word_shift
-        set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
+        set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
     }
 
 
     else {
         // WHILE CURR_WORD != END_WORD
         while (curr_word_pos != end_word_pos){
-            to_shift = get_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
+            to_shift = get_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
             next_remainder = to_shift;
 
             if (curr_word_shift + remainder_size >= MEM_UNIT){
@@ -516,20 +514,20 @@ void Cqf::shift_left_and_set_circ(uint64_t start_quotient,uint64_t end_quotient,
 
         //curr_word_pos == end_word_pos
         if (curr_word_shift != end_word_shift){
-            to_shift = get_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
+            to_shift = get_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
             next_remainder = to_shift;
 
             curr_word_shift += remainder_size;
         }
 
         //curr_word_pos == end_word_pos && curr_word_shift == end_word_shift
-        set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
+        set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, next_remainder, remainder_size);
     }
 }
 
 
-void Cqf::shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient){
+void Rsqf::shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient){
     assert(start_quotient < ( 1ULL << quotient_size));
     assert(end_quotient < ( 1ULL << quotient_size)); 
 
@@ -544,14 +542,14 @@ void Cqf::shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient
 
     if (curr_word_pos == end_word_pos){
         if (curr_word_shift != end_word_shift){
-            to_shift = get_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
+            to_shift = get_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
 
             curr_word_shift += remainder_size;
         }
         
         //curr_word_pos == end_word_pos && curr_word_shift == end_word_shift
-        set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, 0, remainder_size);
+        set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, 0, remainder_size);
     }
 
 
@@ -570,8 +568,8 @@ void Cqf::shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient
             }
 
 
-            to_shift = get_bits(cqf, to_copy_pos * MEM_UNIT + to_copy_shift, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
+            to_shift = get_bits(filter, to_copy_pos * MEM_UNIT + to_copy_shift, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
 
             curr_word_pos = to_copy_pos;
             curr_word_shift = to_copy_shift;
@@ -579,20 +577,20 @@ void Cqf::shift_right_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient
 
         //curr_word_pos == end_word_pos
         if (curr_word_shift != end_word_shift){
-            to_shift = get_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, remainder_size);
-            set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
+            to_shift = get_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift + remainder_size, remainder_size);
+            set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, to_shift, remainder_size);
 
             curr_word_shift += remainder_size;
         }
 
         //curr_word_pos == end_word_pos && curr_word_shift == end_word_shift
-        set_bits(cqf, curr_word_pos * MEM_UNIT + curr_word_shift, 0, remainder_size);
+        set_bits(filter, curr_word_pos * MEM_UNIT + curr_word_shift, 0, remainder_size);
     }
 }
 
 // CIRCULAR FILTER OPERATIONS
 
-uint64_t Cqf::get_next_remainder_word(uint64_t current_word) const{
+uint64_t Rsqf::get_next_remainder_word(uint64_t current_word) const{
     uint64_t current_block = current_word / (MET_UNIT + remainder_size);
     uint64_t pos_in_block = current_word % (MET_UNIT + remainder_size);
 
@@ -603,71 +601,60 @@ uint64_t Cqf::get_next_remainder_word(uint64_t current_word) const{
     }
 }
 
-uint64_t Cqf::get_prev_remainder_word(uint64_t current_word) const{
-    uint64_t current_block = current_word / (MET_UNIT + remainder_size);
-    uint64_t pos_in_block = current_word % (MET_UNIT + remainder_size);
 
-    if (pos_in_block > MET_UNIT) return --current_word;
-    else{
-        uint64_t prev_block = get_prev_block_id(current_block);
-        return prev_block * (MET_UNIT + remainder_size) + (MET_UNIT + remainder_size - 1); 
-    }
-}
-
-
-uint64_t Cqf::get_next_quot(uint64_t current_quot) const{
+uint64_t Rsqf::get_next_quot(uint64_t current_quot) const{
     if (current_quot < number_blocks*MEM_UNIT - 1) return ++current_quot;
     else return 0;
 }
 
-uint64_t Cqf::get_prev_quot(uint64_t current_quot) const{
+uint64_t Rsqf::get_prev_quot(uint64_t current_quot) const{
     if (current_quot > 0 ) return --current_quot;
     else return number_blocks*MEM_UNIT - 1;
 }
 
 
-uint64_t Cqf::get_prev_block_id(uint64_t current_block) const{
+uint64_t Rsqf::get_prev_block_id(uint64_t current_block) const{
     if (current_block > 0 ) return --current_block;
     else return number_blocks - 1;
 }
 
-uint64_t Cqf::get_next_block_id(uint64_t current_block) const{
+uint64_t Rsqf::get_next_block_id(uint64_t current_block) const{
     if (current_block < number_blocks - 1 ) return ++current_block;
     else return 0;
 }
 
-uint64_t Cqf::get_runend_word(uint64_t current_block) const{
+uint64_t Rsqf::get_runend_word(uint64_t current_block) const{
     uint64_t runend_id = (current_block *(MET_UNIT+remainder_size)) + RUN_POS;
-    return cqf[runend_id];
+    return filter[runend_id];
 }
 
-uint64_t Cqf::get_occupied_word(uint64_t current_block) const{
+uint64_t Rsqf::get_occupied_word(uint64_t current_block) const{
     uint64_t occupied_id = (current_block *(MET_UNIT+remainder_size)) + OCC_POS;
-    return cqf[occupied_id];
+    return filter[occupied_id];
 }
 
-uint64_t Cqf::get_offset_word(uint64_t current_block) const{
+uint64_t Rsqf::get_offset_word(uint64_t current_block) const{
     uint64_t offset_id = (current_block *(MET_UNIT+remainder_size)) + OFF_POS;
-    assert(cqf[offset_id] >= 0);
-    return cqf[offset_id];
+    assert(filter[offset_id] >= 0);
+    return filter[offset_id];
 }
 
-void Cqf::set_runend_word(uint64_t current_block, uint64_t value ){
+void Rsqf::set_runend_word(uint64_t current_block, uint64_t value ){
     uint64_t runend_id = (current_block *(MET_UNIT+remainder_size)) + RUN_POS;
-    cqf[runend_id] = value;
+    filter[runend_id] = value;
 }
 
-void Cqf::set_offset_word(uint64_t current_block, uint64_t value ){
+void Rsqf::set_offset_word(uint64_t current_block, uint64_t value ){
     uint64_t offset_id = (current_block *(MET_UNIT+remainder_size)) + OFF_POS;
-    cqf[offset_id] = value;
+    filter[offset_id] = value;
 }
 
-void Cqf::decrement_offset(uint64_t current_block){
+void Rsqf::decrement_offset(uint64_t current_block){
     uint64_t old_offset = get_offset_word(current_block);
     set_offset_word(current_block, (0 == old_offset)? 0 : old_offset-1);
 }
 
-void Cqf::set_occupied_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos){
+void Rsqf::set_occupied_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos){
     uint64_t occupied_id = (current_block *(MET_UNIT+remainder_size)) + OCC_POS;
     uint64_t occ_word = get_occupied_word(current_block);
 
@@ -676,11 +663,11 @@ void Cqf::set_occupied_bit(uint64_t current_block, uint64_t value ,uint64_t bit_
     uint64_t out_value = ((occ_word & mask_right(bit_pos)) | value);
 
     out_value |= (occ_word & mask_left(MEM_UNIT-bit_pos-1));
-    cqf[occupied_id] = out_value;
+    filter[occupied_id] = out_value;
 
 }
 
-void Cqf::set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos){
+void Rsqf::set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos){
     uint64_t runend_id = (current_block *(MET_UNIT+remainder_size)) + RUN_POS;
     uint64_t rend_word = get_runend_word(current_block);
 
@@ -689,20 +676,20 @@ void Cqf::set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_po
     uint64_t out_value = ((rend_word & mask_right(bit_pos)) | value);
 
     out_value |= (rend_word & mask_left(MEM_UNIT-bit_pos-1));
-    cqf[runend_id] = out_value;
+    filter[runend_id] = out_value;
 
 }
 
 //BITVECTOR AND METADATA OPERATIONS
 
-bool Cqf::is_occupied(uint64_t position){
+bool Rsqf::is_occupied(uint64_t position){
     uint64_t block = get_block_id(position);
     uint64_t pos_in_block = get_shift_in_block(position);
     return get_bit_from_word(get_occupied_word(block) ,pos_in_block);
 }
 
 
-uint64_t Cqf::first_unshiftable_slot(uint64_t curr_quotient){ //const
+uint64_t Rsqf::first_unshiftable_slot(uint64_t curr_quotient){ //const
     std::pair<uint64_t, bool> rend_pos = get_runend(curr_quotient);
     
     if (verbose){
@@ -736,7 +723,7 @@ uint64_t Cqf::first_unshiftable_slot(uint64_t curr_quotient){ //const
     return curr_quotient;
 }
 
-uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
+uint64_t Rsqf::first_unused_slot(uint64_t curr_quotient){ //const
     std::pair<uint64_t, bool> rend_pos = get_runend(curr_quotient);
     
     if (verbose){
@@ -768,7 +755,7 @@ uint64_t Cqf::first_unused_slot(uint64_t curr_quotient){ //const
 }
 
 
-std::pair<uint64_t, bool> Cqf::get_runend(uint64_t quotient){
+std::pair<uint64_t, bool> Rsqf::get_runend(uint64_t quotient){
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift = get_shift_in_block(quotient);
     uint64_t offset = get_offset_word(current_block);
@@ -824,7 +811,7 @@ std::pair<uint64_t, bool> Cqf::get_runend(uint64_t quotient){
 }
 
 
-uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
+uint64_t Rsqf::get_runstart(uint64_t quotient, bool occ_bit){
     uint64_t current_block = get_block_id(quotient);
     uint64_t current_shift = get_shift_in_block(quotient);
     uint64_t offset = get_offset_word(current_block);
@@ -900,7 +887,7 @@ uint64_t Cqf::get_runstart(uint64_t quotient, bool occ_bit){
     }
 } 
 
-uint64_t Cqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offset, bool occ_bit){
+uint64_t Rsqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offset, bool occ_bit){
     if (verbose){
         cout << "get_runstart_shift0 " << quotient << " " << paj << " " << offset << " " << occ_bit << endl; 
     } 
@@ -945,7 +932,7 @@ uint64_t Cqf::get_runstart_shift0(uint64_t quotient, uint64_t paj, uint64_t offs
 }
 
 
-std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient){ //const
+std::pair<uint64_t,uint64_t> Rsqf::get_run_boundaries(uint64_t quotient){ //const
     //SUB OPTI
     assert(is_occupied(quotient));
     
@@ -958,7 +945,7 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient){ //const
 }
 
 
-void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uint64_t start_position, uint64_t end_position){
+void Rsqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uint64_t start_position, uint64_t end_position){
     if (verbose){
         cout << "shift_bits_left_metadata quotient " << quotient << " SP " << start_position << " EP " << end_position << endl;
     }
@@ -982,7 +969,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
     uint64_t next_block;
     uint64_t save_left;
 
-    //OFFSET case quotient is in first slot (TEST_F(CqfTest, offset2))
+    //OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
     if (get_shift_in_block(quotient) == 0) {
         set_offset_word(current_block, get_offset_word(current_block)+1);
     }
@@ -1042,7 +1029,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 }
 
 
-void Cqf::shift_runend_right(uint64_t start_shift, uint64_t end_shift, uint64_t block){
+void Rsqf::shift_runend_right(uint64_t start_shift, uint64_t end_shift, uint64_t block){
     uint64_t word_to_shift = get_runend_word(block);
 
     uint64_t save_right = word_to_shift & mask_right(start_shift); //start_shift in pos @5, we want to save the 5 first elem (0,1,2,3,4)
@@ -1061,7 +1048,7 @@ void Cqf::shift_runend_right(uint64_t start_shift, uint64_t end_shift, uint64_t 
     set_runend_word(block, word_to_shift);
 }
 
-void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t start_position, uint64_t end_position){
+void Rsqf::shift_bits_right_metadata(uint64_t quotient, uint64_t start_position, uint64_t end_position){
     if (verbose){
         cout << "shift_bits_RIGHT_metadata quotient " << quotient << " SP " << start_position << " EP " << end_position << endl;
     }
@@ -1088,7 +1075,7 @@ void Cqf::shift_bits_right_metadata(uint64_t quotient, uint64_t start_position, 
     current_shift_in_block = get_shift_in_block(start_position);
 
     if (current_shift_in_block == 0) {
-        //unitary test TEST_F(CqfTest, shift_bits_right_metadata)
+        //unitary test TEST_F(RsqfTest, shift_bits_right_metadata)
         uint_fast64_t prev_block = get_prev_block_id(current_block);
         uint64_t overflow_bit = shift_left(get_runend_word(current_block) & 1ULL, MEM_UNIT-1);
         set_runend_word(prev_block, get_runend_word(prev_block) | overflow_bit);

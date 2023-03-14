@@ -1,6 +1,3 @@
-/*
-ADDITIONAL METHODS NOT USED BY THE CQF CLASS
-*/
 #include <iostream>
 #include <bitset>
 #include <stdint.h> 

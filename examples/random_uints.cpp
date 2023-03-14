@@ -27,7 +27,7 @@ int main (int argc, char * argv[]) {
 
 	//verbose = true;
 	// Creation of the cqf (size is MB)
-	Cqf cqf(filter_size, verbose);
+	Rsqf cqf(filter_size, verbose);
 
 
 	// uint64 generators

@@ -12,8 +12,6 @@ PRINTING, DEBUGGING AND TESTING
 #include <algorithm>
 
 #include "filter.hpp" 
-#include "ext_methods.hpp"
-
 
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
@@ -43,8 +41,8 @@ void test_lots_of_full_cqf(){
 
 
   int qsize = 19; 
-  Cqf small_cqf(qsize, 64-qsize, false);
-  Cqf usual_cqf(4); //524288, qsize=19
+  Rsqf small_qf(qsize, 64-qsize, false);
+  Rsqf usual_qf(4); //524288, qsize=19
 
   for (size_t j=0 ; j<1000 ; j++) {
     uint64_t seedTMP = distribution(generator);
@@ -56,13 +54,13 @@ void test_lots_of_full_cqf(){
     uniform_int_distribution<uint64_t> distributionTMP;
 
     cout << "j " << j << endl;
-    Cqf small_cqf(qsize, 64-qsize, false);
+    Rsqf small_qf(qsize, 64-qsize, false);
 
     for (size_t i=0 ; i<(1ULL<<qsize) ; i++) { //fill to 2^qsize elements (100%-1)
       //cout << "llooooopppp" << endl;
       //cout << i << " ";
       uint64_t val = distributionTMP(generatorTMP);      
-      small_cqf.insert(val);
+      small_qf.insert(val);
     }     
   }
 }
@@ -86,16 +84,16 @@ void test_lots_of_full_cqf_enumerate() {
     uniform_int_distribution<uint64_t> distributionTMP;
 
     cout << "j " << j << endl;
-    Cqf small_cqf(qsize, 64-qsize, false);
+    Rsqf small_qf(qsize, 64-qsize, false);
     std::unordered_set<uint64_t> verif;
 
     for (size_t i=0 ; i<(1ULL<<qsize)-1 ; i++) { //fill to 2^qsize elements (100%-1)
       uint64_t val = distributionTMP(generatorTMP);      
-      small_cqf.insert(val);
+      small_qf.insert(val);
       verif.insert(val);
     }   
 
-    if (verif != small_cqf.enumerate()) {
+    if (verif != small_qf.enumerate()) {
       cout << "error verif != enum" << endl;
       exit(0);
     }
@@ -124,13 +122,13 @@ void test_lots_of_full_cqf_remove() {
     uniform_int_distribution<uint64_t> distributionTMP;
 
     cout << "j " << j << endl;
-    Cqf small_cqf(qsize, 64-qsize, false);
+    Rsqf small_qf(qsize, 64-qsize, false);
     std::vector<uint64_t> verif;
 
     //INSERT
     for (size_t i=0 ; i<(1ULL<<qsize)-1 ; i++) { //fill to 2^qsize elements (100%-1) (1ULL<<qsize)-1
       val = distributionTMP(generatorTMP);      
-      small_cqf.insert(val);
+      small_qf.insert(val);
       verif.push_back(val);
     }   
 
@@ -138,11 +136,11 @@ void test_lots_of_full_cqf_remove() {
     for (size_t i=0 ; i<(1ULL<<qsize)-1 ; i++) { //(1ULL<<qsize)/2
       val = verif.back();
       verif.pop_back();
-      small_cqf.remove(val);
+      small_qf.remove(val);
     } 
 
     //CHECK ENUMERATE
-    enu = small_cqf.enumerate();
+    enu = small_qf.enumerate();
     if (verif.size() != enu.size()) {
       cout << "error verif != enum" << endl;
       exit(0);
@@ -169,7 +167,7 @@ void test_one_cqf(){
   int qsize = 7;
   uint64_t val;
   std::unordered_set<uint64_t> enu;
-  Cqf small_cqf(qsize, 64-qsize, true);
+  Rsqf small_qf(qsize, 64-qsize, true);
 
   std::vector<uint64_t> verif;
 
@@ -180,7 +178,7 @@ void test_one_cqf(){
     if (val == 0) { val += (1ULL << 45); }
     else { val += (val<<qsize); } */
     
-    small_cqf.insert(val);
+    small_qf.insert(val);
     if (find(verif.begin(), verif.end(), val) == verif.end()) { verif.push_back(val); } 
   }
 
@@ -189,10 +187,10 @@ void test_one_cqf(){
 
   
   //CHECK ENUMERATE
-  enu = small_cqf.enumerate();
+  enu = small_qf.enumerate();
   cout << "done inserting, verif size " << verif.size() << " enum size " << enu.size() << endl;
 
-  std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+  std::cout << small_qf.block2string(0) << "\n" << small_qf.block2string(1);
 
   if (verif.size() != enu.size()) {
     cout << "error verif != enum" << endl;
@@ -211,14 +209,14 @@ void test_one_cqf(){
   for (size_t i=0 ; i<127 ; i++) { //(1ULL<<qsize)/2
     val = verif.back();
     verif.pop_back();
-    small_cqf.remove(val);
+    small_qf.remove(val);
   }
 
 
-  std::cout << small_cqf.block2string(0) << "\n" << small_cqf.block2string(1);
+  std::cout << small_qf.block2string(0) << "\n" << small_qf.block2string(1);
 
   //CHECK ENUMERATE
-  enu = small_cqf.enumerate();
+  enu = small_qf.enumerate();
   if (verif.size() != enu.size()) {
     cout << "error verif != enum (post remove, size) verif:" << verif.size() << "  " << enu.size() << endl;
     exit(0);
