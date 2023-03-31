@@ -11,3 +11,6 @@ CQF
 bin/
 lib/
 Testing/
+
+benchmark/statsFiles/*
+benchmark/figs/*
