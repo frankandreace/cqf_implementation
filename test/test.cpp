@@ -12,6 +12,7 @@ PRINTING, DEBUGGING AND TESTING
 #include <algorithm>
 
 #include "filter.hpp" 
+#include "backpack_cqf.hpp" 
 
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
@@ -241,9 +242,24 @@ int main(int argc, char** argv) {
 
     //test_lots_of_full_cqf_enumerate();
 
-    test_lots_of_full_cqf_remove();
+    //test_lots_of_full_cqf_remove();
+    
 
+    Backpack_cqf cqf(4, 5, false);
 
+    cqf.insert(64ULL << 7, 5);
+
+    cqf.insert(64ULL << 7, 2);
+
+    cout << cqf.block2string(0, true) << endl;
+
+    cout << cqf.query(64ULL << 7) << endl;
+
+    cqf.remove(64ULL << 7, 9);
+
+    cout << cqf.block2string(0, true) << endl;
+
+    cout << cqf.query(64ULL << 7) << endl;
   
   return 0;
 }
