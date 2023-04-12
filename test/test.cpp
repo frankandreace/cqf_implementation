@@ -12,7 +12,8 @@ PRINTING, DEBUGGING AND TESTING
 #include <algorithm>
 
 #include "filter.hpp" 
-#include "backpack_cqf.hpp" 
+#include "bcqf_ec.hpp" 
+#include "bcqf_oom.hpp" 
 
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
@@ -167,7 +168,7 @@ void test_one_cqf(){
 
   int qsize = 7;
   std::map<uint64_t, uint64_t> enu;
-  Backpack_cqf cqf(qsize, 64-qsize, 5, true);
+  Bcqf_ec cqf(qsize, 64-qsize, 5, true);
 
   std::map<uint64_t, uint64_t> verif;
 
@@ -242,14 +243,25 @@ void test_one_cqf(){
 
 
 int main(int argc, char** argv) {
-    test_one_cqf();
+    //test_one_cqf();
 
     //test_lots_of_full_cqf();
 
     //test_lots_of_full_cqf_enumerate();
 
     //test_lots_of_full_cqf_remove();
+
+  Bcqf_oom cqf(7, 64-7, 5, true);
+
+  cqf.insert((22ULL << 7) + 16, 32150);
+
+  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
   
+  cout << cqf.query((22ULL << 7) + 16) << endl;
+
+  cqf.remove((22ULL << 7) + 16);
+
+  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
 
   return 0;
 }
