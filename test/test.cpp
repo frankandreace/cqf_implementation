@@ -251,17 +251,8 @@ int main(int argc, char** argv) {
 
     //test_lots_of_full_cqf_remove();
 
-  Bcqf_oom cqf(7, 64-7, 5, true);
-
-  cqf.insert((22ULL << 7) + 16, 32150);
-
-  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
-  
-  cout << cqf.query((22ULL << 7) + 16) << endl;
-
-  cqf.remove((22ULL << 7) + 16);
-
-  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
-
-  return 0;
+    cout << bitselectasm(500000000000, bitrankasm(500000000000, 63))+1 << endl;;
+    
+    
+    return 0;
 }
