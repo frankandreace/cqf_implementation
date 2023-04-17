@@ -174,7 +174,7 @@ void test_one_cqf(){
 
   
 
-  for (size_t i=0 ; i<1 ; i++) {
+  for (size_t i=0 ; i<127 ; i++) {
     //std::cout << "\ni " << i << endl;
     uint64_t val = distribution(generator);
     //val &= mask_right(qsize);
@@ -243,15 +243,13 @@ void test_one_cqf(){
 
 
 int main(int argc, char** argv) {
-    //test_one_cqf();
+    test_one_cqf();
 
     //test_lots_of_full_cqf();
 
     //test_lots_of_full_cqf_enumerate();
 
     //test_lots_of_full_cqf_remove();
-
-    cout << bitselectasm(500000000000, bitrankasm(500000000000, 63))+1 << endl;;
     
     
     return 0;

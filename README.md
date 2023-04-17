@@ -46,3 +46,10 @@ From build directory
 ```bash
 ctest
 ```
+
+## Flamegraph
+
+From root directory  
+```bash
+flamegraph/flamegraph.sh [cqf_test|random_uints|unit_tests]
+```
