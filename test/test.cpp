@@ -15,6 +15,8 @@ PRINTING, DEBUGGING AND TESTING
 #include "sys/sysinfo.h"
 
 #include "filter.hpp" 
+#include "bcqf_ec.hpp" 
+#include "bcqf_oom.hpp" 
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -201,39 +203,44 @@ void test_one_cqf(){
 
 
   int qsize = 7;
-  uint64_t val;
-  std::unordered_set<uint64_t> enu;
-  Rsqf small_qf(qsize, 64-qsize, true);
+  std::map<uint64_t, uint64_t> enu;
+  Bcqf_ec cqf(qsize, 64-qsize, 5, true);
 
-  std::vector<uint64_t> verif;
+  std::map<uint64_t, uint64_t> verif;
+
+  
 
   for (size_t i=0 ; i<127 ; i++) {
     //std::cout << "\ni " << i << endl;
     uint64_t val = distribution(generator);
-    /* val &= mask_right(qsize);
-    if (val == 0) { val += (1ULL << 45); }
-    else { val += (val<<qsize); } */
+    //val &= mask_right(qsize);
+    //if (val == 0) { val += (1ULL << 45); }
+    //else { val += (val<<qsize); }
     
-    small_qf.insert(val);
-    if (find(verif.begin(), verif.end(), val) == verif.end()) { verif.push_back(val); } 
+    cout << "inserting " << val << " => " << val%63 << endl; 
+    cqf.insert(val, val%63);
+    verif.insert({ val, val%63 });
   }
 
+  
 
   //REMOVE ELEMS
 
   
   //CHECK ENUMERATE
-  enu = small_qf.enumerate();
+  enu = cqf.enumerate();
   cout << "done inserting, verif size " << verif.size() << " enum size " << enu.size() << endl;
 
-  std::cout << small_qf.block2string(0) << "\n" << small_qf.block2string(1);
+  std::cout << cqf.block2string(0, 1) << "\n" << cqf.block2string(1, 1);
 
   if (verif.size() != enu.size()) {
     cout << "error verif != enum" << endl;
     exit(0);
   }
   for ( auto it = verif.begin(); it != verif.end(); ++it ){
-    if (enu.find(*it) == enu.end()){
+    cout << (*it).first << endl;
+    cout << enu[(*it).first] << endl;
+    if (enu.find((*it).first) == enu.end()){
       cout << "error verif != enum (diff)" << endl;
       exit(0);
     }
@@ -242,23 +249,24 @@ void test_one_cqf(){
   
 
    //REMOVE ELEMS
-  for (size_t i=0 ; i<127 ; i++) { //(1ULL<<qsize)/2
-    val = verif.back();
-    verif.pop_back();
-    small_qf.remove(val);
+  for (std::map<uint64_t,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
+    cout << "removing " << (*it).first << " => " << (*it).second << endl; 
+    cout << cqf.query((*it).first) << endl;
+    cqf.remove((*it).first, (*it).second);
   }
+  verif.clear();
 
 
-  std::cout << small_qf.block2string(0) << "\n" << small_qf.block2string(1);
+  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
 
   //CHECK ENUMERATE
-  enu = small_qf.enumerate();
+  enu = cqf.enumerate();
   if (verif.size() != enu.size()) {
     cout << "error verif != enum (post remove, size) verif:" << verif.size() << "  " << enu.size() << endl;
     exit(0);
   }
   for ( auto it = verif.begin(); it != verif.end(); ++it ){
-    if (enu.find(*it) == enu.end()){
+    if (enu.find((*it).first) == enu.end()){
       cout << "error verif != enum (post remove, diff)" << endl;
       exit(0);
     }
@@ -312,13 +320,13 @@ void test_time_fill_cqf(int q, int n){
 
 
 int main(int argc, char** argv) {
-    //test_one_cqf();
+    test_one_cqf();
 
     //test_lots_of_full_cqf();
 
     //test_lots_of_full_cqf_enumerate();
 
-    //test_lots_of_full_cqf_remove();
+    ////test_lots_of_full_cqf_remove();
 
     test_time_fill_cqf(22, 1);
 
@@ -327,8 +335,7 @@ int main(int argc, char** argv) {
     
     
 
+            
     
-    
-  
-  return 0;
+    return 0;
 }

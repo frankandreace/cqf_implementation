@@ -29,6 +29,7 @@ Rsqf::Rsqf(){
 }
 
 Rsqf::Rsqf(uint64_t q_size, uint64_t r_size, bool verbose) : verbose(verbose) {
+    assert(q_size >= 7);
     elements_inside = 0;
     quotient_size = q_size;
     remainder_size = r_size;
@@ -50,6 +51,7 @@ Rsqf::Rsqf(uint64_t max_memory, bool verbose) : verbose(verbose) {
     
     // Size of the quotient/remainder to fit into max_memory MB
     quotient_size = find_quotient_given_memory(max_memory);
+    assert(quotient_size >= 7);
     remainder_size = MEM_UNIT - quotient_size;
 
     // Number of quotients must be >= MEM_UNIT
@@ -207,7 +209,6 @@ void Rsqf::insert(uint64_t number){
 
     // GET FIRST UNUSED SLOT
     uint64_t fu_slot = first_unused_slot(quot);
-    //assert(fu_slot.remainder == 0)
     assert(get_remainder(fu_slot) == 0);
     
     if (verbose) {
@@ -333,6 +334,7 @@ bool Rsqf::remove(uint64_t number){
     // GET POSITION
     while(position != boundary.second){
         remainder_in_filter = get_remainder(position); 
+        cout << "rem_infilt " << remainder_in_filter << endl;
         if (remainder_in_filter == rem) {
             pos_element = position;
             found = true;
@@ -341,7 +343,9 @@ bool Rsqf::remove(uint64_t number){
         else if (remainder_in_filter > rem) return 0;
         position = get_next_quot(position);
     }
+    
     remainder_in_filter = get_remainder(boundary.second); 
+    cout << "rem_infilt " << remainder_in_filter << endl;
     if (remainder_in_filter == rem) {
         pos_element = position;
         found = true;
@@ -441,7 +445,6 @@ uint64_t Rsqf::remainder(uint64_t num) const{
 // REMAINDER OPERATIONS
 
 uint64_t Rsqf::get_remainder(uint64_t position){
-
     uint64_t block = get_block_id(position);
     uint64_t pos_in_block = get_shift_in_block(position);
 
