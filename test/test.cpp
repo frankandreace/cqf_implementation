@@ -24,8 +24,6 @@ PRINTING, DEBUGGING AND TESTING
 
 #include <iostream>
 #include <fstream>
-using namespace std;
-
 
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
@@ -176,23 +174,27 @@ void test_one_cqf(){
   generator.seed(seed);
   uniform_int_distribution<uint64_t> distribution;
 
-
-  int qsize = 7;
   std::map<uint64_t, uint64_t> enu;
-  Bcqf_ec cqf(qsize, 64-qsize, 5, true);
-
   std::map<uint64_t, uint64_t> verif;
+
+  int qsize = 15;
+  int hashsize = 60;
+  Bcqf_ec cqf(qsize, hashsize-qsize, 5, true);
 
   
 
-  for (size_t i=0 ; i<127 ; i++) {
+  //INSERT ELEMS
+  for (size_t i=0 ; i<(1ULL << qsize)-1 ; i++) {
     //std::cout << "\ni " << i << endl;
     uint64_t val = distribution(generator);
     //val &= mask_right(qsize);
     //if (val == 0) { val += (1ULL << 45); }
     //else { val += (val<<qsize); }
-    
-    cout << "inserting " << val << " => " << val%63 << endl; 
+
+    val &= mask_right(hashsize); 
+
+    print_bits(val);
+    std::cout << "inserting " << val << " => " << (val%63) << endl; 
     cqf.insert(val, val%63);
     verif.insert({ val, val%63 });
   }
@@ -213,20 +215,21 @@ void test_one_cqf(){
     exit(0);
   }
   for ( auto it = verif.begin(); it != verif.end(); ++it ){
-    cout << (*it).first << endl;
-    cout << enu[(*it).first] << endl;
+    cout << "checking if " << (*it).first << " => " << verif[(*it).first] << " is in enu " << endl;
     if (enu.find((*it).first) == enu.end()){
       cout << "error verif != enum (diff)" << endl;
+      /* cout << "enu atm:" << endl;
+      for ( auto ite = enu.begin(); ite != enu.end(); ++ite ){
+        cout << (*ite).first << " => " << (*ite).second << endl;
+      } */
       exit(0);
     }
   }
 
-  
 
    //REMOVE ELEMS
   for (std::map<uint64_t,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
     cout << "removing " << (*it).first << " => " << (*it).second << endl; 
-    cout << cqf.query((*it).first) << endl;
     cqf.remove((*it).first, (*it).second);
   }
   verif.clear();
