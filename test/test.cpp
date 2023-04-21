@@ -298,7 +298,7 @@ void test_time_fill_cqf(int q, int n){
 
 
 int main(int argc, char** argv) {
-    test_one_cqf();
+    //test_one_cqf();
 
     //test_lots_of_full_cqf();
 
@@ -309,10 +309,34 @@ int main(int argc, char** argv) {
     //test_time_fill_cqf(22, 1);
 
 
+    cout << "coucou\n";
 
-    
-    
+    /* uint64_t seed = time(NULL); //time(NULL)
+    default_random_engine generator;
+    generator.seed(seed);
+    uniform_int_distribution<uint64_t> distribution;
 
+    uint64_t val = distribution(generator);
+    int size = 16;
+    val >>= 64-size;
+    cout << "val " << val << endl;
+
+    uint64_t hash = bfc_hash_64(val, mask_right(size));
+    cout << "hash " << hash << endl;
+    
+    uint64_t revhash = bfc_hash_64_inv(hash, mask_right(size));
+    cout << "revhash " << revhash << endl; */
+
+
+    string testi = "ATCGGTCGAGGAGGGA";
+
+    uint64_t hash = kmer_to_hash(testi, 16);
+
+    cout << "hash " << hash << endl;
+
+    string res = hash_to_kmer(hash, 16);
+
+    cout << "res " << res << endl;
             
     
     return 0;
