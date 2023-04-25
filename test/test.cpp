@@ -174,8 +174,8 @@ void test_one_cqf(){
   generator.seed(seed);
   uniform_int_distribution<uint64_t> distribution;
 
-  std::map<uint64_t, uint64_t> enu;
-  std::map<uint64_t, uint64_t> verif;
+  std::map<string, uint64_t> enu;
+  std::map<string, uint64_t> verif;
 
   int qsize = 15;
   int hashsize = 60;
@@ -196,7 +196,7 @@ void test_one_cqf(){
     print_bits(val);
     std::cout << "inserting " << val << " => " << (val%63) << endl; 
     cqf.insert(val, val%63);
-    verif.insert({ val, val%63 });
+    verif.insert({ hash_to_kmer(val, hashsize/2), val%63 });
   }
 
   
@@ -228,7 +228,7 @@ void test_one_cqf(){
 
 
    //REMOVE ELEMS
-  for (std::map<uint64_t,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
+  for (std::map<string,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
     cout << "removing " << (*it).first << " => " << (*it).second << endl; 
     cqf.remove((*it).first, (*it).second);
   }
@@ -309,35 +309,28 @@ int main(int argc, char** argv) {
     //test_time_fill_cqf(22, 1);
 
 
+    std::string cwd = TEST_DIR;
     cout << "coucou\n";
 
-    /* uint64_t seed = time(NULL); //time(NULL)
-    default_random_engine generator;
-    generator.seed(seed);
-    uniform_int_distribution<uint64_t> distribution;
+    Bcqf_ec cqf(31, 56-31, 5, false);
 
-    uint64_t val = distribution(generator);
-    int size = 16;
-    val >>= 64-size;
-    cout << "val " << val << endl;
+    auto ttot = std::chrono::high_resolution_clock::now();
 
-    uint64_t hash = bfc_hash_64(val, mask_right(size));
-    cout << "hash " << hash << endl;
-    
-    uint64_t revhash = bfc_hash_64_inv(hash, mask_right(size));
-    cout << "revhash " << revhash << endl; */
+    cqf.insert(cwd + "../data/AHX_ACXIOSF_6_1occs.txt");
 
-
-    string testi = "ATCGGTCGAGGAGGGA";
-
-    uint64_t hash = kmer_to_hash(testi, 16);
-
-    cout << "hash " << hash << endl;
-
-    string res = hash_to_kmer(hash, 16);
-
-    cout << "res " << res << endl;
+    cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
             
+    ttot = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i<2000; i++){
+      cqf.query("CAACAGCGGTGTTTTTGTGGGTTGGTGGCTGG", 32);
+      cqf.query("ATGTAGCAGAAGGGGTGTAATCATGGCTAAGA", 32);
+      cqf.query("AACTGCTGGCAGTGGGGCATTAGCTCGAATCT", 32);
+      cqf.query("GCTTCTTCTGGACTGAACGAAGATGAAATCCA", 32);
+      cqf.query("TTAATTTATATATTTAATGCATTAATTCTCAA", 32);
+    }
     
+    cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (10.000 query 32)\n";
+
     return 0;
 }
