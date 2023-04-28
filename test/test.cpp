@@ -177,14 +177,14 @@ void test_one_cqf(){
   std::map<string, uint64_t> enu;
   std::map<string, uint64_t> verif;
 
-  int qsize = 15;
-  int hashsize = 60;
-  Bcqf_ec cqf(qsize, hashsize-qsize, 5, true);
+  int qsize = 16;
+  int hashsize = 56;
+  Bcqf_ec cqf(qsize, hashsize-qsize, 5, false);
 
   
 
   //INSERT ELEMS
-  for (size_t i=0 ; i<(1ULL << qsize)-1 ; i++) {
+  for (size_t i=0 ; i<(1ULL << qsize) - 150 ; i++) {
     //std::cout << "\ni " << i << endl;
     uint64_t val = distribution(generator);
     //val &= mask_right(qsize);
@@ -193,7 +193,7 @@ void test_one_cqf(){
 
     val &= mask_right(hashsize); 
 
-    print_bits(val);
+    //print_bits(val);
     std::cout << "inserting " << val << " => " << (val%63) << endl; 
     cqf.insert(val, val%63);
     verif.insert({ hash_to_kmer(val, hashsize/2), val%63 });
@@ -208,7 +208,7 @@ void test_one_cqf(){
   enu = cqf.enumerate();
   cout << "done inserting, verif size " << verif.size() << " enum size " << enu.size() << endl;
 
-  std::cout << cqf.block2string(0, 1) << "\n" << cqf.block2string(1, 1);
+  std::cout << cqf.block2string(0) << "\n" << cqf.block2string(1) << "\n" << cqf.block2string(2) << "\n" << cqf.block2string(3);
 
   if (verif.size() != enu.size()) {
     cout << "error verif != enum" << endl;
@@ -235,7 +235,7 @@ void test_one_cqf(){
   verif.clear();
 
 
-  std::cout << cqf.block2string(0, true) << "\n" << cqf.block2string(1, true);
+  //std::cout << cqf.block2string(0) << "\n" << cqf.block2string(1);
 
   //CHECK ENUMERATE
   enu = cqf.enumerate();
@@ -250,6 +250,7 @@ void test_one_cqf(){
     }
   }
 
+  cout << "all good 👍" << endl;
   
 }
 
@@ -295,10 +296,46 @@ void test_time_fill_cqf(int q, int n){
 }
 
 
+void test_8GB_cqf(){
+  /* 
+  Results : 
+  q 31 r 25 remainder_size 30 count_size 5
+  4869.097392 ms (build) = 4.87s
+  1295757.885060 ms (1B3 inserts) = 1295s = 21.6min
+  1462827.337473 ms (1B3 28-mers query) = 24.4min
+  36.443450 ms (10k 32-mers query)
+  */
+
+  std::string cwd = TEST_DIR;
+  cout << "hello genouest\n";
+
+  auto ttot = std::chrono::high_resolution_clock::now();
+
+  Bcqf_ec cqf(31, 56-31, 5, false);
+
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
+  ttot = std::chrono::high_resolution_clock::now();
+
+  cqf.insert(cwd + "../examples/data/AHX_ACXIOSF_6_1occs.txt"); //big file
+
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (1B3 inserts)\n";
+  ttot = std::chrono::high_resolution_clock::now();
+
+  for (int i = 0; i<2000; i++){
+    cqf.query("CAACAGCGGTGTTTTTGTGGGTTGGTGGCTGG", 32);
+    cqf.query("ATGTAGCAGAAGGGGTGTAATCATGGCTAAGA", 32);
+    cqf.query("AACTGCTGGCAGTGGGGCATTAGCTCGAATCT", 32);
+    cqf.query("GCTTCTTCTGGACTGAACGAAGATGAAATCCA", 32);
+    cqf.query("TTAATTTATATATTTAATGCATTAATTCTCAA", 32);
+  }
+
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (10k 32-mers query)\n";
+
+}
 
 
 int main(int argc, char** argv) {
-    //test_one_cqf();
+    test_one_cqf();
 
     //test_lots_of_full_cqf();
 
@@ -308,29 +345,5 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-
-    std::string cwd = TEST_DIR;
-    cout << "coucou\n";
-
-    Bcqf_ec cqf(31, 56-31, 5, false);
-
-    auto ttot = std::chrono::high_resolution_clock::now();
-
-    cqf.insert(cwd + "../data/AHX_ACXIOSF_6_1occs.txt");
-
-    cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
-            
-    ttot = std::chrono::high_resolution_clock::now();
-
-    for (int i = 0; i<2000; i++){
-      cqf.query("CAACAGCGGTGTTTTTGTGGGTTGGTGGCTGG", 32);
-      cqf.query("ATGTAGCAGAAGGGGTGTAATCATGGCTAAGA", 32);
-      cqf.query("AACTGCTGGCAGTGGGGCATTAGCTCGAATCT", 32);
-      cqf.query("GCTTCTTCTGGACTGAACGAAGATGAAATCCA", 32);
-      cqf.query("TTAATTTATATATTTAATGCATTAATTCTCAA", 32);
-    }
-    
-    cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (10.000 query 32)\n";
-
-    return 0;
+    //test_8GB_cqf();
 }

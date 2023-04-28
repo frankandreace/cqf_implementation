@@ -1,10 +1,10 @@
 # cqf_implementation
 
-Implementation of a RSQF
+Implementation of a Backpack CQF
 
 ## Compilation of the project
   
-else
+either
 
 From the project root
 ```bash
@@ -29,6 +29,8 @@ From project root
 ```bash
 ./build/bin/random_uints -h
 ./build/bin/random_uints -n 500 -s 6 (insert 500 numbers in a 6MB RSQF)
+
+./build/bin/ecoli_example
 ```
 
 ## Documentation
@@ -59,5 +61,5 @@ make && bin/benchmark && python ../benchmark/plot.py
 
 From root directory  
 ```bash
-flamegraph/flamegraph.sh [cqf_test|random_uints|unit_tests]
+flamegraph/flamegraph.sh [quicktests|random_uints|unit_tests]
 ```
