@@ -11,6 +11,7 @@ PRINTING, DEBUGGING AND TESTING
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <string>
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 
@@ -40,6 +41,22 @@ void print_pair(std::pair<uint64_t,uint64_t> bound){
 void show(uint64_t value, std::string name){
   std::cout << name << std::endl;
   print_bits(value);
+}
+
+
+std::string generateRandom32Mer() {
+    static const char alphabet[] = "ACGT";
+    static const int alphabetSize = sizeof(alphabet) - 1;
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, alphabetSize - 1);
+
+    std::string random32Mer;
+    for (int i = 0; i < 32; ++i) {
+        random32Mer += alphabet[dis(gen)];
+    }
+
+    return random32Mer;
 }
 
 
@@ -177,14 +194,14 @@ void test_one_cqf(){
   std::map<string, uint64_t> enu;
   std::map<string, uint64_t> verif;
 
-  int qsize = 16;
+  int qsize = 8;
   int hashsize = 56;
-  Bcqf_ec cqf(qsize, hashsize-qsize, 5, false);
+  Bcqf_ec cqf(qsize, hashsize-qsize, 5, true);
 
   
 
   //INSERT ELEMS
-  for (size_t i=0 ; i<(1ULL << qsize) - 150 ; i++) {
+  for (size_t i=0 ; i<3 ; i++) {
     //std::cout << "\ni " << i << endl;
     uint64_t val = distribution(generator);
     //val &= mask_right(qsize);
@@ -192,8 +209,10 @@ void test_one_cqf(){
     //else { val += (val<<qsize); }
 
     val &= mask_right(hashsize); 
+    val &= mask_left(64-qsize);
+    val |= 64; 
 
-    //print_bits(val);
+    print_bits(val);
     std::cout << "inserting " << val << " => " << (val%63) << endl; 
     cqf.insert(val, val%63);
     verif.insert({ hash_to_kmer(val, hashsize/2), val%63 });
@@ -250,7 +269,6 @@ void test_one_cqf(){
     }
   }
 
-  cout << "all good 👍" << endl;
   
 }
 
@@ -297,17 +315,11 @@ void test_time_fill_cqf(int q, int n){
 
 
 void test_8GB_cqf(){
-  /* 
-  Results : 
-  q 31 r 25 remainder_size 30 count_size 5
-  4869.097392 ms (build) = 4.87s
-  1295757.885060 ms (1B3 inserts) = 1295s = 21.6min
-  1462827.337473 ms (1B3 28-mers query) = 24.4min
-  36.443450 ms (10k 32-mers query)
-  */
-
   std::string cwd = TEST_DIR;
-  cout << "hello genouest\n";
+  cout << "coucou\n";
+
+  std::vector<std::string> random32MerList;
+  std::vector<std::string> positive32MerList;
 
   auto ttot = std::chrono::high_resolution_clock::now();
 
@@ -316,26 +328,103 @@ void test_8GB_cqf(){
   cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
   ttot = std::chrono::high_resolution_clock::now();
 
-  cqf.insert(cwd + "../examples/data/AHX_ACXIOSF_6_1occs.txt"); //big file
+  cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
+	
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (1B622 inserts)\n"; 
+    
+ 
+  std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_32_all.txt");
 
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (1B3 inserts)\n";
+  std::cout << "start verif" << std::endl;
+    std::string a;
+    uint64_t b;
+
+    int surestim = 0;
+    int totsurestim = 0;
+    int bug = 0;
+    
+    int i = 0;
+    uint64_t query;
+    int count_limit = 0;
+
+    while (infile >> a >> b) {
+        if (i < 100000){
+            positive32MerList.push_back(a);
+        }
+        i++;
+        if (i%1000000 == 0){
+          std::cout << i/1000000.0 << " / 1583" << std::endl;
+        }
+
+        query = cqf.query(a, 32);
+        if (query > b){
+            surestim ++;
+            totsurestim += query - b;
+        } 
+        if (query < b && b < 31 && query !=-1){
+            //std::cout << a << " a--b " << b << "  vs query : " << query << std::endl;
+            bug ++;
+        } 
+        if (b > 31){
+            count_limit ++;
+        } 
+    }
+    
+    std::cout << "nb elems inserted : " << i << std::endl;
+    std::cout << "nb count limited : " << count_limit << std::endl;
+    std::cout << "nb surestim : " << surestim << std::endl;
+    std::cout << "avg surestim : " << totsurestim / (double)surestim << std::endl;
+    std::cout << "nb bug : " << bug << std::endl;
+    std::cout << "end verif" << std::endl;
+
+
+
+
+
   ttot = std::chrono::high_resolution_clock::now();
+  for (const auto& mer : positive32MerList) {
+          cqf.query(mer, 32);
+  }
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
 
-  for (int i = 0; i<2000; i++){
-    cqf.query("CAACAGCGGTGTTTTTGTGGGTTGGTGGCTGG", 32);
-    cqf.query("ATGTAGCAGAAGGGGTGTAATCATGGCTAAGA", 32);
-    cqf.query("AACTGCTGGCAGTGGGGCATTAGCTCGAATCT", 32);
-    cqf.query("GCTTCTTCTGGACTGAACGAAGATGAAATCCA", 32);
-    cqf.query("TTAATTTATATATTTAATGCATTAATTCTCAA", 32);
+  for (int i = 0; i < 100000; ++i) {
+        std::string random32Mer = generateRandom32Mer();
+        random32MerList.push_back(random32Mer);
   }
 
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (10k 32-mers query)\n";
+  ttot = std::chrono::high_resolution_clock::now();
+  for (const auto& mer : random32MerList) {
+	  cqf.query(mer, 32);
+  }
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 
+  int nbFP = 0;
+
+  for (int i = 0; i < 99900000; ++i) {
+        std::string random32Mer = generateRandom32Mer();
+        random32MerList.push_back(random32Mer);
+  }
+
+  for  (int k=0; k<1; k++) {
+	cout << "a la recherche du fp perdu " << k << "/100" << endl;  
+  	for (int j=0; j<100000000; j++) {
+    		if (cqf.query(random32MerList[j], 32) > 0){
+      			nbFP++;
+    		}
+  	}
+        for (int i = 0; i < 100000000; ++i) {
+        	std::string random32Mer = generateRandom32Mer();
+        	random32MerList[i] = random32Mer;
+  	}
+  }
+
+  
+  std::cout << "nb fp (sur 50.000.000.000) : " << nbFP << std::endl;
 }
 
 
 int main(int argc, char** argv) {
-    test_one_cqf();
+    //test_one_cqf();
 
     //test_lots_of_full_cqf();
 
@@ -345,5 +434,5 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-    //test_8GB_cqf();
+    test_8GB_cqf();
 }
