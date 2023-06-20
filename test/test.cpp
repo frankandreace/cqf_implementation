@@ -323,103 +323,62 @@ void test_8GB_cqf(){
 
   auto ttot = std::chrono::high_resolution_clock::now();
 
-  Bcqf_ec cqf(31, 56-31, 5, false);
+  Bcqf_ec cqf(31, 54-31, 5, false);
 
   cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
   ttot = std::chrono::high_resolution_clock::now();
 
-  cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
+  //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
+  cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
 	
   cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (1B622 inserts)\n"; 
     
  
   std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_32_all.txt");
+  //std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
+
 
   std::cout << "start verif" << std::endl;
-    std::string a;
-    uint64_t b;
+  std::string a;
+  uint64_t b;
 
-    int surestim = 0;
-    int totsurestim = 0;
-    int bug = 0;
-    
-    int i = 0;
-    uint64_t query;
-    int count_limit = 0;
-
-    while (infile >> a >> b) {
-        if (i < 100000){
-            positive32MerList.push_back(a);
-        }
-        i++;
-        if (i%1000000 == 0){
-          std::cout << i/1000000.0 << " / 1583" << std::endl;
-        }
-
-        query = cqf.query(a, 32);
-        if (query > b){
-            surestim ++;
-            totsurestim += query - b;
-        } 
-        if (query < b && b < 31 && query !=-1){
-            //std::cout << a << " a--b " << b << "  vs query : " << query << std::endl;
-            bug ++;
-        } 
-        if (b > 31){
-            count_limit ++;
-        } 
-    }
-    
-    std::cout << "nb elems inserted : " << i << std::endl;
-    std::cout << "nb count limited : " << count_limit << std::endl;
-    std::cout << "nb surestim : " << surestim << std::endl;
-    std::cout << "avg surestim : " << totsurestim / (double)surestim << std::endl;
-    std::cout << "nb bug : " << bug << std::endl;
-    std::cout << "end verif" << std::endl;
-
-
-
-
-
-  ttot = std::chrono::high_resolution_clock::now();
-  for (const auto& mer : positive32MerList) {
-          cqf.query(mer, 32);
-  }
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
-
-  for (int i = 0; i < 100000; ++i) {
-        std::string random32Mer = generateRandom32Mer();
-        random32MerList.push_back(random32Mer);
-  }
-
-  ttot = std::chrono::high_resolution_clock::now();
-  for (const auto& mer : random32MerList) {
-	  cqf.query(mer, 32);
-  }
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
-
-  int nbFP = 0;
-
-  for (int i = 0; i < 99900000; ++i) {
-        std::string random32Mer = generateRandom32Mer();
-        random32MerList.push_back(random32Mer);
-  }
-
-  for  (int k=0; k<1; k++) {
-	cout << "a la recherche du fp perdu " << k << "/100" << endl;  
-  	for (int j=0; j<100000000; j++) {
-    		if (cqf.query(random32MerList[j], 32) > 0){
-      			nbFP++;
-    		}
-  	}
-        for (int i = 0; i < 100000000; ++i) {
-        	std::string random32Mer = generateRandom32Mer();
-        	random32MerList[i] = random32Mer;
-  	}
-  }
-
+  int surestim = 0;
+  int totsurestim = 0;
+  int bug = 0;
   
-  std::cout << "nb fp (sur 50.000.000.000) : " << nbFP << std::endl;
+  int i = 0;
+  uint64_t query;
+  int count_limit = 0;
+
+  while (infile >> a >> b) {
+      if (i < 100000){
+          positive32MerList.push_back(a);
+      }
+      i++;
+      if (i%1000000 == 0){
+        std::cout << i/1000000.0 << " / 1583" << std::endl;
+      }
+
+      query = cqf.query(a, 32);
+      if (query > b){
+          surestim ++;
+          totsurestim += query - b;
+      } 
+      if (query < b && b < 31 && query !=-1){
+          std::cout << a << " a--b " << b << "  vs query : " << query << std::endl;
+          bug ++;
+      } 
+      if (b > 31){
+          count_limit ++;
+      } 
+  }
+  
+  std::cout << "nb elems inserted : " << i << std::endl;
+  std::cout << "nb count limited : " << count_limit << std::endl;
+  std::cout << "nb surestim : " << surestim << std::endl;
+  std::cout << "avg surestim : " << totsurestim / (double)surestim << std::endl;
+  std::cout << "nb bug : " << bug << std::endl;
+  std::cout << "end verif" << std::endl;
 }
 
 
