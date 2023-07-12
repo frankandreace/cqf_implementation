@@ -314,29 +314,32 @@ void test_time_fill_cqf(int q, int n){
 }
 
 
-void test_8GB_cqf(){
-  std::string cwd = TEST_DIR;
-  cout << "coucou\n";
+void experiments(){
+  cout << "START EXPERIMENT\n";
 
-  std::vector<std::string> random32MerList;
-  std::vector<std::string> positive32MerList;
+  std::vector<std::string> random32MerList; //pour requêtes positives 
+  std::vector<std::string> positive32MerList; //requêtes supposément négatives
 
-  auto ttot = std::chrono::high_resolution_clock::now();
+  auto ttot = std::chrono::high_resolution_clock::now(); //timer build structure + inserts
 
-  Bcqf_ec cqf(31, 54-31, 5, false);
+  //Bcqf_ec cqf(q, r, c, debug_print); 
+  //on choisit q tel que : 2^(q-1) < #nb_kmers_uniques_insérés < 2^q
+  //on choisit r tel que : taille_hash - q (avec taille_hash = 2s = 2*taille_s-mers)
+  //on choisit c selon la précision voulue sur les compteurs et l'espace qu'on souhaite économiser
+  Bcqf_ec cqf(31, 54-31, 5, false); 
 
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (build)\n";
-  ttot = std::chrono::high_resolution_clock::now();
-
+  //Insertion des s-mers comptés avec KMC
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
 	
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (1B622 inserts)\n"; 
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
     
- 
-  std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_32_all.txt");
-  //std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
 
+
+  //Verification (pour l'expé) des sur-estimations / sous-estimations avec les valeurs de 32-mers commptés,
+  //qu'on essaie de retrouver via les 27-mers insérés dans le BQF
+  /*
+  std::ifstream infile("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_32_all.txt");
 
   std::cout << "start verif" << std::endl;
   std::string a;
@@ -355,9 +358,6 @@ void test_8GB_cqf(){
           positive32MerList.push_back(a);
       }
       i++;
-      if (i%1000000 == 0){
-        std::cout << i/1000000.0 << " / 1583" << std::endl;
-      }
 
       query = cqf.query(a, 32);
       if (query > b){
@@ -379,6 +379,23 @@ void test_8GB_cqf(){
   std::cout << "avg surestim : " << totsurestim / (double)surestim << std::endl;
   std::cout << "nb bug : " << bug << std::endl;
   std::cout << "end verif" << std::endl;
+
+  ttot = std::chrono::high_resolution_clock::now();
+  for (const auto& mer : positive32MerList) {
+      cqf.query(mer, 32);
+  }
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
+  */
+
+  ttot = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < 100000; ++i) {
+      std::string random32Mer = generateRandom32Mer();
+      random32MerList.push_back(random32Mer);
+  }
+  for (const auto& mer : random32MerList) {
+	    cqf.query(mer, 32);
+  }
+  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 }
 
 
@@ -393,5 +410,5 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-    test_8GB_cqf();
+    experiments();
 }
