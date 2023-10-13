@@ -398,6 +398,75 @@ void experiments(){
   cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 }
 
+void query_fimpera(const std::string& query){
+  int res_query = 100; //hardcoded
+
+  char str[] = "ATCGGACTAACGTTAATGGGCCAATGATAGCGAT"; //hardcoded
+  int k = 11; //hardcoded
+  int z = 4; //hardcoded need z+1?
+  int n = strlen(str);
+  int s = k-z;
+  int last_smers_abundances[z+1];
+  int* kmer_abundance;
+
+  int nb_presence = 0;
+  int avg = 0;
+  int min = std::numeric_limits<int>::max();
+
+  /*ATCGATCG
+  ATCGAT     8-6+1 = 3 kmers 
+   TCGATC
+    CGATCG
+
+  ATCG 
+   TCGA 
+    CGAT    8-4+1 = 5 smers
+     GATC 
+      ATCG*/
+
+  char *current_smer = (char*) malloc(sizeof(char)*s);
+  char *rc = (char*) malloc(sizeof(char)*s);
+
+  //first kmer
+  for(int i=0; i<z+1; i++){
+    strncpy(current_smer, str+i, s);
+    cout << current_smer << endl;
+    last_smers_abundances[i] = res_query;
+  }
+
+  kmer_abundance = std::min_element(last_smers_abundances, last_smers_abundances+z+1);
+  if (*kmer_abundance == 0){
+    min = 0;
+  } else {
+    min = std::min(min, *kmer_abundance);
+    avg = avg + *kmer_abundance;
+    nb_presence ++;
+  }
+
+  
+  //other kmers but adding 1 char at a time
+  for (int i = z+1; i < n-s+1; i++) {
+    strncpy(current_smer, str+i, s);
+    cout << current_smer << endl;
+    last_smers_abundances[i%z+1] = res_query;
+
+    kmer_abundance = std::min_element(last_smers_abundances, last_smers_abundances+z+1);
+    if (*kmer_abundance == 0){
+      min = 0;
+    } else {
+      min = std::min(min, *kmer_abundance);
+      avg = avg + *kmer_abundance;
+      nb_presence ++;
+    }
+  } 
+
+  // VA FALLOIR PASSER EN BINAIRE A = 00, T = 11 ...
+
+  free(current_smer);
+  
+
+  cout << query.length()-k+1 << endl;
+}
 
 int main(int argc, char** argv) {
     //test_one_cqf();
@@ -410,5 +479,7 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-    experiments();
+    //experiments();
+
+    query_fimpera("ATCGGACTAACGTTAATGGGCCAATGATAGCGAT");
 }
