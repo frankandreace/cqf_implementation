@@ -16,6 +16,7 @@ PRINTING, DEBUGGING AND TESTING
 #include "sys/sysinfo.h"
 
 #include "filter.hpp" 
+#include "additional_methods.hpp" 
 #include "bcqf_ec.hpp" 
 #include "bcqf_oom.hpp" 
 
@@ -44,19 +45,19 @@ void show(uint64_t value, std::string name){
 }
 
 
-std::string generateRandom32Mer() {
+std::string generateRandomKMer(int k) {
     static const char alphabet[] = "ACGT";
     static const int alphabetSize = sizeof(alphabet) - 1;
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_int_distribution<> dis(0, alphabetSize - 1);
 
-    std::string random32Mer;
-    for (int i = 0; i < 32; ++i) {
-        random32Mer += alphabet[dis(gen)];
+    std::string randomKMer;
+    for (int i = 0; i < k; ++i) {
+        randomKMer += alphabet[dis(gen)];
     }
 
-    return random32Mer;
+    return randomKMer;
 }
 
 
@@ -74,14 +75,14 @@ void test_lots_of_full_cqf(){
 
   for (size_t j=0 ; j<1000 ; j++) {
     uint64_t seedTMP = distribution(generator);
-    cout << "\nseed " << seedTMP << endl;
+    std::cout << "\nseed " << seedTMP << endl;
 
     
     default_random_engine generatorTMP;
     generatorTMP.seed(seedTMP);
     uniform_int_distribution<uint64_t> distributionTMP;
 
-    cout << "j " << j << endl;
+    std::cout << "j " << j << endl;
     Rsqf small_qf(qsize, 64-qsize, false);
 
     for (size_t i=0 ; i<(1ULL<<qsize) ; i++) { //fill to 2^qsize elements (100%-1)
@@ -105,13 +106,13 @@ void test_lots_of_full_cqf_enumerate() {
   for (size_t j=0 ; j<1000 ; j++) {
     
     uint64_t seedTMP = distribution(generator);
-    cout << "\nseed " << seedTMP << endl;
+    std::cout << "\nseed " << seedTMP << endl;
 
     default_random_engine generatorTMP;
     generatorTMP.seed(seedTMP);
     uniform_int_distribution<uint64_t> distributionTMP;
 
-    cout << "j " << j << endl;
+    std::cout << "j " << j << endl;
     Rsqf small_qf(qsize, 64-qsize, false);
     std::unordered_set<uint64_t> verif;
 
@@ -122,7 +123,7 @@ void test_lots_of_full_cqf_enumerate() {
     }   
 
     if (verif != small_qf.enumerate()) {
-      cout << "error verif != enum" << endl;
+      std::cout << "error verif != enum" << endl;
       exit(0);
     }
   }  
@@ -143,13 +144,13 @@ void test_lots_of_full_cqf_remove() {
   for (size_t j=0 ; j<10000 ; j++) {
     
     uint64_t seedTMP = distribution(generator);
-    cout << "\nseed " << seedTMP << endl;
+    std::cout << "\nseed " << seedTMP << endl;
 
     default_random_engine generatorTMP;
     generatorTMP.seed(seedTMP);
     uniform_int_distribution<uint64_t> distributionTMP;
 
-    cout << "j " << j << endl;
+    std::cout << "j " << j << endl;
     Rsqf small_qf(qsize, 64-qsize, false);
     std::vector<uint64_t> verif;
 
@@ -170,12 +171,12 @@ void test_lots_of_full_cqf_remove() {
     //CHECK ENUMERATE
     enu = small_qf.enumerate();
     if (verif.size() != enu.size()) {
-      cout << "error verif != enum" << endl;
+      std::cout << "error verif != enum" << endl;
       exit(0);
     }
     for ( auto it = verif.begin(); it != verif.end(); ++it ){
       if (enu.find(*it) == enu.end()){
-        cout << "error verif != enum" << endl;
+        std::cout << "error verif != enum" << endl;
         exit(0);
       }
     }
@@ -191,8 +192,8 @@ void test_one_cqf(){
   generator.seed(seed);
   uniform_int_distribution<uint64_t> distribution;
 
-  std::map<string, uint64_t> enu;
-  std::map<string, uint64_t> verif;
+  std::map<uint64_t, uint64_t> enu;
+  std::map<uint64_t, uint64_t> verif;
 
   int qsize = 8;
   int hashsize = 56;
@@ -215,7 +216,7 @@ void test_one_cqf(){
     print_bits(val);
     std::cout << "inserting " << val << " => " << (val%63) << endl; 
     cqf.insert(val, val%63);
-    verif.insert({ hash_to_kmer(val, hashsize/2), val%63 });
+    verif.insert({ val, val%63 });
   }
 
   
@@ -225,21 +226,21 @@ void test_one_cqf(){
   
   //CHECK ENUMERATE
   enu = cqf.enumerate();
-  cout << "done inserting, verif size " << verif.size() << " enum size " << enu.size() << endl;
+  std::cout << "done inserting, verif size " << verif.size() << " enum size " << enu.size() << endl;
 
   std::cout << cqf.block2string(0) << "\n" << cqf.block2string(1) << "\n" << cqf.block2string(2) << "\n" << cqf.block2string(3);
 
   if (verif.size() != enu.size()) {
-    cout << "error verif != enum" << endl;
+    std::cout << "error verif != enum" << endl;
     exit(0);
   }
   for ( auto it = verif.begin(); it != verif.end(); ++it ){
-    cout << "checking if " << (*it).first << " => " << verif[(*it).first] << " is in enu " << endl;
+    std::cout << "checking if " << (*it).first << " => " << verif[(*it).first] << " is in enu " << endl;
     if (enu.find((*it).first) == enu.end()){
-      cout << "error verif != enum (diff)" << endl;
-      /* cout << "enu atm:" << endl;
+      std::cout << "error verif != enum (diff)" << endl;
+      /* std::cout << "enu atm:" << endl;
       for ( auto ite = enu.begin(); ite != enu.end(); ++ite ){
-        cout << (*ite).first << " => " << (*ite).second << endl;
+        std::cout << (*ite).first << " => " << (*ite).second << endl;
       } */
       exit(0);
     }
@@ -247,8 +248,8 @@ void test_one_cqf(){
 
 
    //REMOVE ELEMS
-  for (std::map<string,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
-    cout << "removing " << (*it).first << " => " << (*it).second << endl; 
+  for (std::map<uint64_t,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
+    std::cout << "removing " << (*it).first << " => " << (*it).second << endl; 
     cqf.remove((*it).first, (*it).second);
   }
   verif.clear();
@@ -259,12 +260,12 @@ void test_one_cqf(){
   //CHECK ENUMERATE
   enu = cqf.enumerate();
   if (verif.size() != enu.size()) {
-    cout << "error verif != enum (post remove, size) verif:" << verif.size() << "  " << enu.size() << endl;
+    std::cout << "error verif != enum (post remove, size) verif:" << verif.size() << "  " << enu.size() << endl;
     exit(0);
   }
   for ( auto it = verif.begin(); it != verif.end(); ++it ){
     if (enu.find((*it).first) == enu.end()){
-      cout << "error verif != enum (post remove, diff)" << endl;
+      std::cout << "error verif != enum (post remove, diff)" << endl;
       exit(0);
     }
   }
@@ -310,14 +311,15 @@ void test_time_fill_cqf(int q, int n){
 
   myfile.close();
 
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms\n";
+  std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms\n";
 }
 
 
 void experiments(){
-  cout << "START EXPERIMENT\n";
+  std::cout << "START EXPERIMENT\n";
 
   std::vector<std::string> random32MerList; //pour requêtes positives 
+  std::vector<std::string> randomQueryList; //pour requetes situation réelles
   std::vector<std::string> positive32MerList; //requêtes supposément négatives
 
   auto ttot = std::chrono::high_resolution_clock::now(); //timer build structure + inserts
@@ -332,7 +334,7 @@ void experiments(){
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
 	
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
+  std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
     
 
 
@@ -384,89 +386,30 @@ void experiments(){
   for (const auto& mer : positive32MerList) {
       cqf.query(mer, 32);
   }
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
+  std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
   */
 
   ttot = std::chrono::high_resolution_clock::now();
-  for (int i = 0; i < 100000; ++i) {
-      std::string random32Mer = generateRandom32Mer();
+  for (int i = 0; i < 10000; ++i) {
+      std::string random32Mer = generateRandomKMer(32);
       random32MerList.push_back(random32Mer);
   }
   for (const auto& mer : random32MerList) {
 	    cqf.query(mer, 32);
   }
-  cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
+  std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
+
+  ttot = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < 10; ++i) {
+      std::string randomQuery = generateRandomKMer(100);
+      randomQueryList.push_back(randomQuery);
+  }
+  for (const auto& mer : randomQueryList) {
+	    cout << cqf.query(mer, 32) << endl;
+  }
+  std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 }
 
-void query_fimpera(const std::string& query){
-  int res_query = 100; //hardcoded
-
-  char str[] = "ATCGGACTAACGTTAATGGGCCAATGATAGCGAT"; //hardcoded
-  int k = 11; //hardcoded
-  int z = 4; //hardcoded need z+1?
-  int n = strlen(str);
-  int s = k-z;
-  int last_smers_abundances[z+1];
-  int* kmer_abundance;
-
-  int nb_presence = 0;
-  int avg = 0;
-  int min = std::numeric_limits<int>::max();
-
-  /*ATCGATCG
-  ATCGAT     8-6+1 = 3 kmers 
-   TCGATC
-    CGATCG
-
-  ATCG 
-   TCGA 
-    CGAT    8-4+1 = 5 smers
-     GATC 
-      ATCG*/
-
-  char *current_smer = (char*) malloc(sizeof(char)*s);
-  char *rc = (char*) malloc(sizeof(char)*s);
-
-  //first kmer
-  for(int i=0; i<z+1; i++){
-    strncpy(current_smer, str+i, s);
-    cout << current_smer << endl;
-    last_smers_abundances[i] = res_query;
-  }
-
-  kmer_abundance = std::min_element(last_smers_abundances, last_smers_abundances+z+1);
-  if (*kmer_abundance == 0){
-    min = 0;
-  } else {
-    min = std::min(min, *kmer_abundance);
-    avg = avg + *kmer_abundance;
-    nb_presence ++;
-  }
-
-  
-  //other kmers but adding 1 char at a time
-  for (int i = z+1; i < n-s+1; i++) {
-    strncpy(current_smer, str+i, s);
-    cout << current_smer << endl;
-    last_smers_abundances[i%z+1] = res_query;
-
-    kmer_abundance = std::min_element(last_smers_abundances, last_smers_abundances+z+1);
-    if (*kmer_abundance == 0){
-      min = 0;
-    } else {
-      min = std::min(min, *kmer_abundance);
-      avg = avg + *kmer_abundance;
-      nb_presence ++;
-    }
-  } 
-
-  // VA FALLOIR PASSER EN BINAIRE A = 00, T = 11 ...
-
-  free(current_smer);
-  
-
-  cout << query.length()-k+1 << endl;
-}
 
 int main(int argc, char** argv) {
     //test_one_cqf();
@@ -479,7 +422,6 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-    //experiments();
+    experiments();
 
-    query_fimpera("ATCGGACTAACGTTAATGGGCCAATGATAGCGAT");
 }
