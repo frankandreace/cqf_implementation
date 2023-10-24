@@ -1,31 +1,19 @@
 /*
 PRINTING, DEBUGGING AND TESTING
 */
-#include <iostream>
-#include <bitset>
-#include <stdint.h> 
-#include <limits>
+#include "rsqf.hpp" 
+#include "additional_methods.hpp" 
+#include "bqf_ec.hpp" 
+#include "bqf_oom.hpp" 
+
 #include <random>
 #include <ctime>
 #include <getopt.h>
-#include <vector>
-#include <algorithm>
 #include <chrono>
-#include <string>
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 
-#include "filter.hpp" 
-#include "additional_methods.hpp" 
-#include "bcqf_ec.hpp" 
-#include "bcqf_oom.hpp" 
 
-#include "stdlib.h"
-#include "stdio.h"
-#include "string.h"
-
-#include <iostream>
-#include <fstream>
 
 #define MEM_UNIT 64ULL
 #define MET_UNIT 3ULL
@@ -197,7 +185,7 @@ void test_one_cqf(){
 
   int qsize = 8;
   int hashsize = 56;
-  Bcqf_ec cqf(qsize, hashsize-qsize, 5, true);
+  Bqf_ec cqf(qsize, hashsize-qsize, 5, true);
 
   
 
@@ -324,15 +312,18 @@ void experiments(){
 
   auto ttot = std::chrono::high_resolution_clock::now(); //timer build structure + inserts
 
-  //Bcqf_ec cqf(q, r, c, debug_print); 
+  //Bqf_ec cqf(q, r, c, debug_print); 
   //on choisit q tel que : 2^(q-1) < #nb_kmers_uniques_insérés < 2^q
   //on choisit r tel que : taille_hash - q (avec taille_hash = 2s = 2*taille_s-mers)
   //on choisit c selon la précision voulue sur les compteurs et l'espace qu'on souhaite économiser
-  Bcqf_ec cqf(31, 54-31, 5, false); 
 
+  cout << "A" << endl;
+  Bqf_ec cqf(8, 54-8, 5, false); 
+  cout << "B" << endl;
   //Insertion des s-mers comptés avec KMC
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
+  cout << "C" << endl;
 	
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
     
