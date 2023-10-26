@@ -35,7 +35,7 @@ class Bqf_ec : public Bqf{
      * \param c_size The desired size of remainders counters
      * \param verbose to print on-going operations in stdout (default: false)
      */
-    Bqf_ec(uint64_t q_size, uint64_t r_size, uint64_t c_size, bool verbose=false);
+    Bqf_ec(uint64_t q_size, uint64_t c_size, uint64_t k, uint64_t z, bool verb=false);
 
     /** 
      * \brief Constructor that deduces quotient and remainder sizes from the desired struct size
@@ -79,7 +79,7 @@ class Bqf_ec : public Bqf{
     bool remove(std::string kmer, uint64_t count = 1);
 
     
-
+    static Bqf_ec load_from_disk(const std::string& filename);
     
 
     private:
@@ -112,6 +112,7 @@ class Bqf_ec : public Bqf{
      **/
     void sub_to_counter(uint64_t position, uint64_t count);
 
+    
     
 };
 

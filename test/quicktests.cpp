@@ -185,7 +185,7 @@ void test_one_cqf(){
 
   int qsize = 8;
   int hashsize = 56;
-  Bqf_ec cqf(qsize, hashsize-qsize, 5, true);
+  Bqf_ec cqf(qsize, 5, 32, 32-(hashsize/2), true);
 
   
 
@@ -312,18 +312,15 @@ void experiments(){
 
   auto ttot = std::chrono::high_resolution_clock::now(); //timer build structure + inserts
 
-  //Bqf_ec cqf(q, r, c, debug_print); 
+  //Bqf_ec cqf(q, c, k, z, debug_print); 
   //on choisit q tel que : 2^(q-1) < #nb_kmers_uniques_insérés < 2^q
   //on choisit r tel que : taille_hash - q (avec taille_hash = 2s = 2*taille_s-mers)
   //on choisit c selon la précision voulue sur les compteurs et l'espace qu'on souhaite économiser
 
-  cout << "A" << endl;
-  Bqf_ec cqf(8, 54-8, 5, false); 
-  cout << "B" << endl;
+  Bqf_ec cqf(31, 5, 32, 5, false); 
   //Insertion des s-mers comptés avec KMC
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
-  cout << "C" << endl;
 	
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
     
@@ -352,7 +349,7 @@ void experiments(){
       }
       i++;
 
-      query = cqf.query(a, 32);
+      query = cqf.query(a);
       if (query > b){
           surestim ++;
           totsurestim += query - b;
@@ -375,7 +372,7 @@ void experiments(){
 
   ttot = std::chrono::high_resolution_clock::now();
   for (const auto& mer : positive32MerList) {
-      cqf.query(mer, 32);
+      cqf.query(mer);
   }
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers positive query)\n";
   */
@@ -386,7 +383,7 @@ void experiments(){
       random32MerList.push_back(random32Mer);
   }
   for (const auto& mer : random32MerList) {
-	    cqf.query(mer, 32);
+	    cqf.query(mer);
   }
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 
@@ -396,7 +393,7 @@ void experiments(){
       randomQueryList.push_back(randomQuery);
   }
   for (const auto& mer : randomQueryList) {
-	    cout << cqf.query(mer, 32) << endl;
+	    cout << cqf.query(mer) << endl;
   }
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (100k 32-mers negative (random) query)\n";
 }

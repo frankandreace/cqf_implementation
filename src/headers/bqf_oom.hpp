@@ -35,7 +35,7 @@ class Bqf_oom : public Bqf{
      * \param c_size The desired size of remainders counters
      * \param verbose to print on-going operations in stdout (default: false)
      */
-    Bqf_oom(uint64_t q_size, uint64_t r_size, uint64_t c_size, bool verbose=false);
+    Bqf_oom(uint64_t q_size, uint64_t c_size, uint64_t k, uint64_t z, bool verb=false);
 
     /** 
      * \brief Constructor that deduces quotient and remainder sizes from the desired struct size
@@ -92,6 +92,8 @@ class Bqf_oom : public Bqf{
      * \return the highest power of 2 that is still less than count (or (2^count_size)-1 if overflow) 
      */
     uint64_t process_count(uint64_t count) override;
+
+    static Bqf_oom load_from_disk(const std::string& filename);
 };
 
 #endif
