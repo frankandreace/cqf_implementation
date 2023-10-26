@@ -317,13 +317,10 @@ void experiments(){
   //on choisit r tel que : taille_hash - q (avec taille_hash = 2s = 2*taille_s-mers)
   //on choisit c selon la précision voulue sur les compteurs et l'espace qu'on souhaite économiser
 
-  cout << "A" << endl;
-  Bqf_ec cqf(8, 5, 32, 5, false); 
-  cout << "B" << endl;
+  Bqf_ec cqf(31, 5, 32, 5, false); 
   //Insertion des s-mers comptés avec KMC
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");
-  cout << "C" << endl;
 	
   std::cout << to_string( std::chrono::duration<double, std::milli>( std::chrono::high_resolution_clock::now() - ttot ).count()) << " ms (inserts)\n"; 
     
