@@ -2,127 +2,196 @@
 #define CQF_HPP
 
 #include <map>
+#include <list>
+#include <string>
 
 #include "rsqf.hpp"
 
-
-
-class Cqf : public Rsqf {
+class Cqf : public Rsqf
+{
 public:
     uint64_t kmer_size;
 
-
-    /** 
+    /**
      * \brief Insert every kmer + abundance of a kmer count software output file (eg KMC)
-     * 
+     *
      * This function will read every line of the file to insert every pair <kmer, count> into the CQF
-     * 
+     *
      * \param file path to file
      */
     void insert(std::string file);
 
-    /** 
+    /**
      * TODO: allow user to choose hash function
-     * \brief Insert a kmer in the filter alongside with his count. 
-     * 
-     * This function inserts a kmer in the BackpackCQF.
+     * \brief Insert a kmer in the filter alongside with his count.
+     *
+     * This function inserts a kmer in the CQF.
      * It is advised that the kmer is in a canonical form, it will be hashed then inserted.
-     * 
+     *
      * \param kmer to insert
      * \param count kmer abundance
      */
     void insert(std::string kmer, uint64_t count);
 
-    /** 
-     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below). 
-     * 
-     * This function inserts a NEW number in the BackpackCQF. 
+    /**
+     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below).
+     *
+     * This function inserts a number in the CQF.
      * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
      * (i.e. each remainder in a run is greater or equal than the predecessor).
      * If the filter is full, new insertions are authomatically discarded.
-     * When adding a new distinct element, all remainders and runend bits are shifted right of 1 position.
-     * 
+     *
      * \param number to insert
      * \param count number of occurences of the element to insert (default: 1)
      */
     void insert(uint64_t number, uint64_t count = 1);
 
+    /**
+     * \brief Set the remainder slot to the assigned value
+     *
+     * This function inserts a number in the CQF.
+     * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
+     * (i.e. each remainder in a run is greater or equal than the predecessor).
+     * If the filter is full, new insertions are authomatically discarded.
+     *
+     * \param counter the list of integers that encode the counter for the remainder
+     * \param free_slots list of position where there are free slots - it is used in the operation of inserting the counter in the remainder slots
+     * \param starting_quotient the position of the first remainder to move
+     */
+    void insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots, uint64_t starting_quotient);
 
-    /** 
+    /**
+     * \brief Metadata function that shifts the bits left of X bits in the runend word when there is a counter insertion.
+     * It also handles cases when occupieds and offsets have to be adjourned.
+     * \param quotient quotient of the number to add.
+     * \param flag_bit flags (with 1) if the occupied bit has to be set to 1, else it is 0.
+     * \param start_position starting position of the shifting.
+     * \param end_position end position of the shifting.
+     * \param n_bits number of bits to shift
+     */
+    void shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uint64_t start_position, uint64_t end_position, uint64_t n_bits);
+
+    /**
      * \brief query a sequence from the filter.
-     * 
+     *
      * Every abundance of each kmer of the query sequence will be queried. This is done following Fimpera scheme
-     * and the smallest count amongst them will be returned. 
-     * 
+     * and the smallest count amongst them will be returned.
+     *
      * \param seq the sequence to query
      * \param k the kmer size, k-s+1 smers will be effectively queried
      * \return the abundance of the given kmer in the filter
      */
     result_query query(std::string seq);
 
-    /** 
+    /**
      * \brief query a number from the filter.
-     * 
+     *
      * It queries a number. It first checks if the occupied bit of the quotient is set to 1. If so it scans
-     * in a linear way the remainders of the run associated to this element. If it 
+     * in a linear way the remainders of the run associated to this element. If it
      * finds the remainder it returns its exact count (or order of magnitude, depending of the filter used ) else 0.
      * Stops immediately if the filter is empty
-     * 
+     *
      * \param number Number to query
      * \return the abundance of the given number in the filter
      */
     uint64_t query(uint64_t number);
-    
 
-    /** 
+    /**
+     * \brief encode a counter for a remainder in the filter.
+     *
+     * It encodes a counter. It first checks if the remainder is 0, as the encoding strategy is different.
+     *
+     * \param remainder the remainder value, as 0 counters are diff than others
+     * \param count the count you want to encode for the remainder
+     * \return a linked list containing the encoded counter for the remainder
+     */
+
+    list<uint64_t> encode_counter(uint64_t remainder, uint64_t count);
+
+    /**
+     * \brief looks for the counter of the remainder in the given range. If not found returns 0
+     *
+     * \param remainder the remainder value
+     * \param range the start and end quotient of the run
+     * \return a uint64_t containing the value of the counter, or 0 if not present
+     */
+    template <typename F>
+    pair<uint64_t, uint64_t> Cqf::decode_counter(uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met)
+    {
+        uint64_t count = 0;
+        uint64_t max_encodable_value = 2 ^ remainder_size - 1;
+        uint64_t current_position = range.first;
+        uint64_t end_position = range.second;
+        uint64_t old_value;
+        uint64_t curr_value = get_remainder(current_position);
+        pair<uint64_t, uint64_t> decoded_info;
+        // CASE 1: 1st REMAINDER IS 0
+        if (curr_value == 0)
+        {
+            decoded_info = read_count(curr_value, current_position, end_position);
+            if (remainder == 0)
+                return decoded_info.first;
+            current_position = get_next_quot(decoded_info.second);
+            curr_value = get_remainder(current_position);
+            // template overloading
+            if (condition_met(curr_value, remainder) == true)
+            {
+                return decoded_info;
+            }
+        }
+
+        while (current_position != end_position)
+        {
+            old_value = curr_value;
+            current_position = get_next_quot(current_position);
+            curr_value = get_remainder(current_position);
+
+            if (curr_value < old_value)
+            { // A COUNTER IS ENCODED
+                decoded_info = read_count(old_value, current_position, end_position);
+                current_position = decoded_info.second;
+                curr_value = get_remainder(current_position);
+            }
+            else if (curr_value == old_value)
+            {
+                decoded_info.first = 2;
+                decoded_info.second = curr_value;
+                current_position = decoded_info.second;
+                curr_value = get_remainder(current_position);
+            }
+            if (condition_met(curr_value, remainder) == true)
+            {
+                return decoded_info;
+            }
+        }
+        decoded_info.first = 0;
+        decoded_info.second = get_next_quot(range.second);
+        return decoded_info;
+    }
+
+    pair<uint64_t, uint64_t> read_count(uint64_t value, uint64_t starting_position, uint64_t end_position);
+
+    /**
      * \brief Enumerate every element that has been inserted in the filter (possibly hashes)
-     * 
+     *
      * This method iterates over every slot in the filter, for occupied ones it gets the positions of the corresponding run.
      * Then it computes for every remainder in the run, the original number inserted (by concatenating the remainder value
      * and the quotient value (of the run)) and pushes it into the unordered_set alongside with its abundance
-     * 
+     *
      * \return a string to uint_64t map, linking every originally inserted kmer to its abundance in the filter
-     **/ 
+     **/
     std::map<uint64_t, uint64_t> enumerate();
 
-    //tmp public
-    void resize(int n); 
+    // tmp public
+    void resize(int n);
 
-
-    /** 
-     * \brief returns the remainder slot associated to the requested quotient
-     * 
-     * The difference with RSQF.get_remainder() is that sometimes we want only the remainder (for finding the element),
-     * and sometimes the remainder alongside with its counter (to update the value)
-     * 
-     * \param position quotient 
-     * \param w_counter bool value to know if we retrieve only remainder (false) or remainder + count value (true) (default: false)
-     * 
-     * \return an uint64 with the value stored in the slot
-     */
-    uint64_t get_remainder(uint64_t position, bool w_counter = false);
-
-    /** 
-     * \brief Deduce a quotient size from the memory occupation limit and counter's size
-     * 
-     * The filter is divided into blocks: each block contains 64 quotients, and occupies 3 words of metadata and 'r' words of remainders 
-     * (since ther are 64 remainders inside) --> (r + c + 3) words == ((64 - q + c) + 3) words;
-     * 
-     * \param max_memory Max size to occupy with the RSQF (in MBytes). 
-     * \param count_size size of the counter in bits. "c" in the filter size calculus 
-     * 
-     * \return Quotient size in bits
-     **/
-    uint64_t find_quotient_given_memory(uint64_t max_memory, uint64_t count_size);
-
-
-    /** 
+    /**
      * \brief Adds the insertion abundance to the filter abundance
-     * 
+     *
      * In the exact count case, if an element is already present, we simply add the count newly inserted
      * to the one already present in the filter. If it overflows the counter size, then the abundance is
      * set to (2^counter_size)-1
-     * 
+     *
      * \param position the position of the remainder to update
      * \param rem_count the new abundance to add
      **/
@@ -130,7 +199,7 @@ public:
 
     virtual uint64_t process_count(uint64_t count) = 0;
 
-    void save_on_disk(const std::string& filename);
+    void save_on_disk(const std::string &filename);
 };
 
 #endif

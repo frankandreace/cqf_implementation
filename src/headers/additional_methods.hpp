@@ -222,5 +222,8 @@ std::string canonical(const std::string& smer, size_t s);
 struct result_query {int minimum; float average; float kmer_present_ratio;};
 std::ostream& operator<<(std::ostream& os, result_query const& res);
 
+bool greater_than(uint64_t x, uint64_t y);
+
+bool equal_to(uint64_t x, uint64_t y);
 
 #endif
