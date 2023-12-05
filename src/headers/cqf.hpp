@@ -12,6 +12,12 @@ class Cqf : public Rsqf
 public:
     uint64_t kmer_size;
 
+    Cqf();
+
+    Cqf(uint64_t q_size, uint64_t r_size, bool verb);
+
+    Cqf(uint64_t max_memory, bool verb);
+
     /**
      * \brief Insert every kmer + abundance of a kmer count software output file (eg KMC)
      *
@@ -58,7 +64,7 @@ public:
      * \param free_slots list of position where there are free slots - it is used in the operation of inserting the counter in the remainder slots
      * \param starting_quotient the position of the first remainder to move
      */
-    void insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots, uint64_t starting_quotient);
+    void insert_counter_circ(std::list<uint64_t> counter, std::list<uint64_t> free_slots, uint64_t starting_quotient);
 
     /**
      * \brief Metadata function that shifts the bits left of X bits in the runend word when there is a counter insertion.
@@ -106,7 +112,7 @@ public:
      * \return a linked list containing the encoded counter for the remainder
      */
 
-    list<uint64_t> encode_counter(uint64_t remainder, uint64_t count);
+    std::list<uint64_t> encode_counter(uint64_t remainder, uint64_t count);
 
     /**
      * \brief looks for the counter of the remainder in the given range. If not found returns 0
@@ -116,28 +122,24 @@ public:
      * \return a uint64_t containing the value of the counter, or 0 if not present
      */
     template <typename F>
-    pair<uint64_t, uint64_t> Cqf::decode_counter(uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met)
+    std::pair<uint64_t, uint64_t> scan_run(uint64_t remainder, uint64_t current_position, uint64_t end_position, F condition_met)
     {
         uint64_t count = 0;
-        uint64_t max_encodable_value = 2 ^ remainder_size - 1;
-        uint64_t current_position = range.first;
-        uint64_t end_position = range.second;
+        uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
         uint64_t old_value;
         uint64_t curr_value = get_remainder(current_position);
-        pair<uint64_t, uint64_t> decoded_info;
+        std::pair<uint64_t, uint64_t> decoded_info;
+
         // CASE 1: 1st REMAINDER IS 0
         if (curr_value == 0)
         {
             decoded_info = read_count(curr_value, current_position, end_position);
-            if (remainder == 0)
-                return decoded_info.first;
-            current_position = get_next_quot(decoded_info.second);
-            curr_value = get_remainder(current_position);
-            // template overloading
             if (condition_met(curr_value, remainder) == true)
             {
                 return decoded_info;
             }
+            current_position = get_next_quot(decoded_info.second);
+            curr_value = get_remainder(current_position); 
         }
 
         while (current_position != end_position)
@@ -164,42 +166,13 @@ public:
                 return decoded_info;
             }
         }
-        decoded_info.first = 0;
-        decoded_info.second = get_next_quot(range.second);
         return decoded_info;
     }
 
-    pair<uint64_t, uint64_t> read_count(uint64_t value, uint64_t starting_position, uint64_t end_position);
-
-    /**
-     * \brief Enumerate every element that has been inserted in the filter (possibly hashes)
-     *
-     * This method iterates over every slot in the filter, for occupied ones it gets the positions of the corresponding run.
-     * Then it computes for every remainder in the run, the original number inserted (by concatenating the remainder value
-     * and the quotient value (of the run)) and pushes it into the unordered_set alongside with its abundance
-     *
-     * \return a string to uint_64t map, linking every originally inserted kmer to its abundance in the filter
-     **/
+    std::pair<uint64_t, uint64_t> read_count(uint64_t value, uint64_t starting_position, uint64_t end_position);
+    std::vector<std::pair<uint64_t, uint64_t>> report_run(uint64_t current_position, uint64_t end_position);
     std::map<uint64_t, uint64_t> enumerate();
-
-    // tmp public
-    void resize(int n);
-
-    /**
-     * \brief Adds the insertion abundance to the filter abundance
-     *
-     * In the exact count case, if an element is already present, we simply add the count newly inserted
-     * to the one already present in the filter. If it overflows the counter size, then the abundance is
-     * set to (2^counter_size)-1
-     *
-     * \param position the position of the remainder to update
-     * \param rem_count the new abundance to add
-     **/
-    virtual void add_to_counter(uint64_t position, uint64_t rem_count) = 0;
-
-    virtual uint64_t process_count(uint64_t count) = 0;
-
-    void save_on_disk(const std::string &filename);
+    void display_vector();
 };
 
 #endif

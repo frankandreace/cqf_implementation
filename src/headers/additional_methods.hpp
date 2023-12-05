@@ -7,6 +7,7 @@
 #include <bitset>
 #include <cassert>
 #include <vector>
+#include <list>
 
 
 // STATIC VARIABLES 
@@ -225,5 +226,7 @@ std::ostream& operator<<(std::ostream& os, result_query const& res);
 bool greater_than(uint64_t x, uint64_t y);
 
 bool equal_to(uint64_t x, uint64_t y);
+
+void print_list(std::list<uint64_t> const &list);
 
 #endif

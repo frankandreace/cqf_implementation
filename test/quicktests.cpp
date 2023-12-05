@@ -2,6 +2,7 @@
 PRINTING, DEBUGGING AND TESTING
 */
 #include "rsqf.hpp" 
+#include "cqf.hpp" 
 #include "additional_methods.hpp" 
 #include "bqf_ec.hpp" 
 #include "bqf_oom.hpp" 
@@ -410,6 +411,6 @@ int main(int argc, char** argv) {
 
     //test_time_fill_cqf(22, 1);
 
-    experiments();
+    //experiments();
 
 }

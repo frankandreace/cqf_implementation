@@ -2,8 +2,66 @@
 
 using namespace std;
 
+Cqf::Cqf() {}
+
+Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verb)
+{
+    assert(q_size >= 7);
+
+    verbose = verb;
+
+    elements_inside = 0;
+    quotient_size = q_size;
+
+    remainder_size = r_size;
+
+    if (verbose)
+    {
+        cout << "quotient_size: " << quotient_size << " remainder_size: " << remainder_size << endl;
+    }
+
+    uint64_t num_quots = 1ULL << quotient_size;
+    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
+
+    size_limit = num_quots * 0.95;
+
+    // In machine words
+    number_blocks = ceil(num_quots / BLOCK_SIZE);
+
+    filter = vector<uint64_t>(num_of_words);
+    if (verbose)
+    {
+        cout << "Construction done." << endl;
+    }
+}
+
+Cqf::Cqf(uint64_t max_memory, bool verb)
+{ // TO CHANGE, MISS HASH INFORMATION
+    elements_inside = 0;
+
+    verbose = verb;
+
+    // Size of the quotient/remainder to fit into max_memory MB
+    quotient_size = find_quotient_given_memory(max_memory);
+    assert(quotient_size >= 7);
+    remainder_size = MEM_UNIT - quotient_size;
+
+    // Number of quotients must be >= MEM_UNIT
+    uint64_t num_quots = 1ULL << quotient_size;                                 // 524.288
+    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT; // 393.216
+
+    // In machine words
+    number_blocks = ceil(num_quots / BLOCK_SIZE);
+
+    filter = vector<uint64_t>(num_of_words);
+}
+
 void Cqf::insert(string kmc_input)
 {
+    if (verbose)
+    {
+        cout << "kmc insertion" << endl;
+    }
     try
     {
         ifstream infile(kmc_input);
@@ -43,11 +101,20 @@ void Cqf::insert(string kmc_input)
 
 void Cqf::insert(string kmer, uint64_t count)
 {
+    if (verbose)
+    {
+        cout << "k-mer insertion" << endl;
+    }
     this->insert(kmer_to_hash(kmer, kmer_size), count);
 }
 
 void Cqf::insert(uint64_t number, uint64_t count)
 {
+    if (verbose)
+    {
+        cout << "insertion" << endl;
+    }
+
     if (elements_inside + 1 == size_limit)
     {
         if (verbose)
@@ -83,7 +150,13 @@ void Cqf::insert(uint64_t number, uint64_t count)
     free_slots.push_back(fu_slot);
     while (--slots_to_fill > 0)
     {
-        free_slots.push_back(first_unused_slot(free_slots.back()));
+        free_slots.push_back(first_unused_slot(get_next_quot(free_slots.back())));
+    }
+
+    if (verbose)
+    {
+        cout << "free slots list: ";
+        print_list(free_slots);
     }
 
     if (!is_occupied(quot))
@@ -92,10 +165,17 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         if (verbose)
         {
-            cout << "starting_position " << starting_position << endl;
+            cout << "SETTING OCCUPIED BIT "
+                 << "Block id: " << get_block_id(quot) << "; shift in block: " << get_shift_in_block(quot) << endl;
         }
 
         set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
+
+        if (verbose)
+        {
+            cout << "INSERT COUNTER. starting_position: " << starting_position << "; counter = ";
+            print_list(encoded_counter);
+        }
 
         insert_counter_circ(encoded_counter, free_slots, starting_position);
 
@@ -114,6 +194,11 @@ void Cqf::insert(uint64_t number, uint64_t count)
                 flag = 1;
             else
                 flag = 0;
+            if (verbose)
+            {
+                cout << "SHIFTING METADATA BITS  "
+                     << "quotient: " << quot << "; flag:" << flag << "; start range:" << start_range << "; end range:" << end_range << "; amounts bit shifted:" << (i + 1) << endl;
+            }
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
         }
 
@@ -138,7 +223,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         // find the place where the remainder should be inserted / all similar to a query
         // getting position where to start shifting right
-        pair<uint64_t,uint64_t> count_position = decode_counter(rem,boundary,greater_than); //uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met
+        pair<uint64_t, uint64_t> count_position = scan_run(rem, boundary.first, boundary.second, greater_than); // uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met
         uint64_t starting_position = count_position.second;
 
         if (verbose)
@@ -146,7 +231,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
             cout << "starting_position " << starting_position << endl;
         }
 
-        //set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
+        // set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
 
         insert_counter_circ(encoded_counter, free_slots, starting_position);
 
@@ -304,10 +389,13 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
 list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
 {
-
     assert(count > 0);
-    uint64_t max_encodable_value = 2 ^ remainder_size - 1;
-
+    uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
+    if (verbose)
+    {
+        cout << "Encoding remainder " << remainder << " with count " << count << endl;
+        cout << "max_encodable_value " << max_encodable_value << " with remainder size " << remainder_size << endl;
+    }
     // CASE 1: REMAINDER IS 0, USE GOOD STRATEGY TO ENCODE THE COUNTER
     // encode of 1 zero: 0
     // encode of > 1 zero: use '00' as flag (and counter of 1) and then use the same strategy as of any other remainder !=0.
@@ -338,25 +426,50 @@ list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
     // CASE 2: REMAINDER != 0, USE ROB PATRO'S STRATEGY
     else
     {
-        // COUNT THE NUMBER OF SLOTS THAT ARE GOING TO BE FILLED BY THE MAXIMUM ENCODABLE VALUE
-        uint64_t maximum_count_slots = (count - 2) / (max_encodable_value - 1);
-        // GET THE VALUE OF THE LAST COUNTER SLOT - WHATERVER IS NOT ENCODED INTO THE MAXIMUM ENCODABLE VALUE SLOTS
-        uint64_t count_last_slot = (count - 2) % (max_encodable_value - 1);
         // STARTING COUNTER ENCODING. FIRST THING IS THE REMAINDER VALUE
         list<uint64_t> counter = {remainder};
-        // IF THE COUNTER - 2 (2 COUNTS ARE IMPLICIT IN THE REMAINDERS AT THE BEINNING AND AT THE END)
-        // IS GRATER THAN OR EQUAL TO THE REMAINDER VALUE, I NEED FOR SURE A ZERO AT THE SECOND POSITION
-        if ((count - 2) >= remainder)
-            counter.push_back(0ULL);
-        // ADD THE MAXIMUM ENCODABLE VALUE SLOTS OF THE COUNTER
-        while (maximum_count_slots-- > 0)
-            counter.push_back(max_encodable_value);
-        // ADD THE FINAL ENCODING, IF > 0
-        if (count_last_slot > 0)
-            counter.push_back(count_last_slot);
+        if (count == 1){
+            if (verbose)
+            {
+                print_list(counter);
+            }
+            return counter;
+        }
+        else if (count > 2){
+            // COUNT THE NUMBER OF SLOTS THAT ARE GOING TO BE FILLED BY THE MAXIMUM ENCODABLE VALUE
+            uint64_t maximum_count_slots = (count - 2) / (max_encodable_value - 1);
+            // GET THE VALUE OF THE LAST COUNTER SLOT - WHATERVER IS NOT ENCODED INTO THE MAXIMUM ENCODABLE VALUE SLOTS
+            uint64_t count_last_slot = (count - 2) % (max_encodable_value - 1);
+
+            // IF THE COUNTER - 2 (2 COUNTS ARE IMPLICIT IN THE REMAINDERS AT THE BEINNING AND AT THE END)
+            // IS GRATER THAN OR EQUAL TO THE REMAINDER VALUE, I NEED FOR SURE A ZERO AT THE SECOND POSITION
+
+            if (verbose)
+            {
+                cout << "maximum_count_slots " << maximum_count_slots << "; count_last_slot " << count_last_slot << endl;
+            }
+
+            if ((count - 2) >= remainder)
+                counter.push_back(0ULL);
+            // ADD THE MAXIMUM ENCODABLE VALUE SLOTS OF THE COUNTER
+            while (maximum_count_slots-- > 0)
+            {
+                counter.push_back(max_encodable_value);
+            }
+            // ADD THE FINAL ENCODING, IF > 0
+            if (count_last_slot > 0)
+            {
+                if (count_last_slot > remainder) count_last_slot++;
+                counter.push_back(count_last_slot);
+            }
+        }
         // ADD THE ENDING REMAINDER AS CLOSING
         counter.push_back(remainder);
 
+        if (verbose)
+        {
+            print_list(counter);
+        }
         return counter;
     }
 }
@@ -366,7 +479,7 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
     uint64_t count = 1;                                         // starting from the second element of the counter, so the first value has been read and the counter is 1.
     pair<uint64_t, uint64_t> out_info{count, current_position}; // used to report the count and ending position to the calling function
     uint64_t curr_value;                                        // used to store the current value
-
+    if (verbose) cout << "inside read count of " << value << " start: " << current_position << " end: " << end_position  << endl;
     // THIS PART IS DONE ONLY IN THE CASE IT IS EXPLORING THE COUNTER OF A 0. (IT IS A PARTICULAR CASE WITH A DIFFERENT ENCODING)
     if (value == 0)
     {
@@ -380,13 +493,16 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
     }
 
     // THIS PART WORKS FOR ANY VALUE != 0 AND FOR THE "SECOND" PART OF THE 0 COUNTER
-    while (current_position != end_position)
+    while (current_position != get_next_quot(end_position))
     {                                                 // used to not go out of run bounds.
+        if (verbose) cout << current_position << endl;
         curr_value = get_remainder(current_position); // reading the value
+        if (verbose) cout << "reading count" << curr_value << endl;
         if (curr_value == value)
         {                                                      // IN CASE I READ AGAIN THE REMAINDER VALUE, THIS IS AN EXIT FLAG FOR THE COUNTER. THE TOTAL COUNT IS GOING TO BE RETURNED
             out_info.first = ++count;                          // INCREASE THE COUNT BY ONE AND STORE IT
-            out_info.second = get_next_quot(current_position); // GIVE THE NEXT POSITION, I.E. THE ONE WHERE TO START FOR THE NEXT SEARCH
+            out_info.second = current_position; // GIVE THE NEXT POSITION, I.E. THE ONE WHERE TO START FOR THE NEXT SEARCH
+            if (verbose) cout << "returning " << out_info.first << " " << out_info.second << endl;
             return out_info;
         }
         // IF CURRENT VALUE != REMAINDER VALUE, IT IS A COUNTER ENCODED
@@ -400,5 +516,111 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
         }
         current_position = get_next_quot(current_position); // ADJOURNING THE POSITION
     }
-    throw std::runtime_error("Error while decoidng the count of " + value); // IF I EXIT THE LOOP WITHOUT DECODING THE GIVEN COUNTER, THERE IS A PROBLEM
+    throw std::runtime_error("Error while decoding the count of " + value); // IF I EXIT THE LOOP WITHOUT DECODING THE GIVEN COUNTER, THERE IS A PROBLEM
+}
+
+std::map<uint64_t, uint64_t> Cqf::enumerate()
+{
+    std::map<uint64_t, uint64_t> finalSet;
+    std::vector<std::pair<uint64_t, uint64_t>> curr_run_elements;
+    uint64_t probe;
+
+    std::pair<uint64_t, uint64_t> bounds;
+    uint64_t current_position;
+
+    uint64_t quotient;
+    uint64_t current_value;
+
+    if (verbose)
+    {
+        cout << "enumerating. "<< ceil(number_blocks/10) << endl;
+    }
+    for (int64_t block = 0; block < number_blocks; ++block)
+    {
+        probe = get_occupied_word(block);
+        if (verbose)
+        {
+            cout << "At block " << block << "occupied word is " << probe << endl;
+        }
+        if (probe == 0)
+            continue;
+        for (uint64_t i = 0; i < BLOCK_SIZE; i++)
+        {
+            if (probe & 1ULL)
+            { // occupied
+                quotient = block * BLOCK_SIZE + i;
+                bounds = get_run_boundaries(quotient);
+                if (verbose) cout << "FOUND AN OCCUPIED BIT IN (quotient) " << quotient << "; with bounds " << bounds.first << " - " << bounds.second << endl;
+                curr_run_elements = report_run(bounds.first, bounds.second);
+                for (int i = 0; i < curr_run_elements.size(); i++)
+                {
+                    if (verbose) cout << "inserting remainder " << curr_run_elements[i].first << " with count " << curr_run_elements[i].second << endl;
+                    finalSet[rebuild_number(quotient, curr_run_elements[i].first, quotient_size)] = curr_run_elements[i].second;
+                }
+            }
+            probe >>= 1ULL; // next bit of occupied vector
+        }
+    }
+    return finalSet;
+}
+
+std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_position, uint64_t end_position)
+{
+    uint64_t count = 0;
+    uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
+    uint64_t old_value;
+    uint64_t curr_value = get_remainder(current_position);
+    std::pair<uint64_t, uint64_t> decoded_info;
+    std::pair<uint64_t, uint64_t> report_info;
+    std::vector<std::pair<uint64_t, uint64_t>> report;
+
+    // CASE 1: 1st REMAINDER IS 0
+    if (current_position == end_position) {
+        report_info.first = curr_value;
+        report_info.second = 1;
+        report.push_back(report_info);
+        return report;
+    }
+
+    if (curr_value == 0)
+    {
+        decoded_info = read_count(curr_value, current_position, end_position);
+        report_info.first = curr_value;
+        report_info.second = decoded_info.first;
+        report.push_back(report_info);
+        current_position = get_next_quot(decoded_info.second);
+        curr_value = get_remainder(current_position);
+    }
+
+    while (current_position != end_position)
+    {
+        if (verbose) cout << current_position << endl;
+        old_value = curr_value;
+        current_position = get_next_quot(current_position);
+        curr_value = get_remainder(current_position);
+
+        if (curr_value < old_value)
+        { // A COUNTER IS ENCODED
+            if (verbose){
+                cout << "read count of " << old_value << "; from " << current_position << " to " << end_position << endl; 
+            }
+            decoded_info = read_count(old_value, current_position, end_position);
+            report_info.first = old_value;
+            report_info.second = decoded_info.first;
+            report.push_back(report_info);
+            current_position = decoded_info.second;
+            curr_value = get_remainder(current_position);
+        }
+        else if (curr_value == old_value)
+        {
+            decoded_info.first = 2;
+            decoded_info.second = curr_value;
+            report_info.first = old_value;
+            report_info.second = decoded_info.first;
+            report.push_back(report_info);
+            current_position = decoded_info.second;
+            curr_value = get_remainder(current_position);
+        }
+    }
+    return report;
 }

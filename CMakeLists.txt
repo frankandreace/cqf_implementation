@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(RSQF)
+project(RSQF VERSION 0.9 DESCRIPTION "RSQF, BQF and CQF" LANGUAGES CXX)
 
 enable_testing()
 
@@ -13,7 +13,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(src)
-add_subdirectory(test)
-add_subdirectory(examples)
-add_subdirectory(unitary_tests)
-add_subdirectory(benchmark)
+#add_subdirectory(test)
+#add_subdirectory(examples)
+#add_subdirectory(unitary_tests)
+#add_subdirectory(benchmark)
+

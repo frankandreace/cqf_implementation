@@ -409,8 +409,6 @@ class Rsqf {
      */
     void set_runend_bit(uint64_t current_block, uint64_t value ,uint64_t bit_pos);
 
-    
-
 
     /*  
         ================================================================

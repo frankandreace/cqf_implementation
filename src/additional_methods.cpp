@@ -280,3 +280,19 @@ bool greater_than(uint64_t x, uint64_t y){
 bool equal_to(uint64_t x, uint64_t y){
     return (x == y);
 }
+
+void print_list(std::list<uint64_t> const &list)
+{
+    for (auto const &i: list) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+}
+
+struct counter_info
+{
+    uint64_t remainder;
+    uint64_t count;
+    uint64_t start_encoding;
+    uint64_t end_encoding;
+};
