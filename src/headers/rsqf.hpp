@@ -519,6 +519,21 @@ class Rsqf {
    void save_on_disk(const std::string& filename);
    static Rsqf load_from_disk(const std::string& filename);
 
+   void Rsqf::display_vector(){
+    uint64_t block_pos;
+    for (int64_t block = 0; block < number_blocks; ++block)
+    {
+        block_pos = block * BLOCK_SIZE;
+        std::cout << get_offset_word(block) << std::endl;
+        print_bits(get_occupied_word(block));
+        print_bits(get_runend_word(block));
+        for (uint64_t i = 0; i < BLOCK_SIZE; i++){
+            std::cout << get_remainder(block_pos + i) << " ";
+        }
+        std::cout << std::endl << std::endl;
+    }
+}
+
 };  
 
 

@@ -81,7 +81,7 @@ void Cqf::insert(string kmc_input)
         }
         else
         {
-            std::cerr << "This BQF has been configured to welcome " << this->kmer_size << "-mers but trying to insert " << kmer.size() << "-mers.\nEnd of insertions." << std::endl;
+            std::cerr << "This CQF has been configured to accept " << this->kmer_size << "-mers but trying to insert " << kmer.size() << "-mers.\nEnd of insertions." << std::endl;
             return;
         }
 
@@ -181,7 +181,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         // METADATA HANDLING
         list<uint64_t> shift_metadata_slots = free_slots;
-        shift_metadata_slots.push_front(starting_position - 1);
+        shift_metadata_slots.push_front(get_prev_quot(starting_position));
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
         uint64_t start_range, end_range, flag;
 
@@ -189,19 +189,15 @@ void Cqf::insert(uint64_t number, uint64_t count)
         {
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
-            start_range = shift_metadata_slots.back() + 1;
+            start_range = get_next_quot(shift_metadata_slots.back());
             if (i == shift_iterations - 1)
                 flag = 1;
             else
                 flag = 0;
-            if (verbose)
-            {
-                cout << "SHIFTING METADATA BITS  "
-                     << "quotient: " << quot << "; flag:" << flag << "; start range:" << start_range << "; end range:" << end_range << "; amounts bit shifted:" << (i + 1) << endl;
-            }
+            //if (start_range != end_range) 
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
         }
-
+        set_runend_bit(get_block_id(free_slots.back()),1,get_shift_in_block(free_slots.back()));
         elements_inside++;
         return;
     }
@@ -223,8 +219,8 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         // find the place where the remainder should be inserted / all similar to a query
         // getting position where to start shifting right
-        pair<uint64_t, uint64_t> count_position = scan_run(rem, boundary.first, boundary.second, greater_than); // uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met
-        uint64_t starting_position = count_position.second;
+        counter_info count_position = scan_run(rem, boundary.first, boundary.second, greater_than); // uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met
+        uint64_t starting_position = count_position.start_encoding;
 
         if (verbose)
         {
@@ -240,16 +236,27 @@ void Cqf::insert(uint64_t number, uint64_t count)
         shift_metadata_slots.push_front(starting_position - 1);
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
         uint64_t start_range, end_range, flag;
+        if (verbose)
+            {
+                cout << "shift_iterations " << shift_iterations << endl;
+            }
 
         for (int i = 0; i < shift_iterations; i++)
         {
+
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
-            start_range = shift_metadata_slots.back() + 1;
+            start_range = get_next_quot(shift_metadata_slots.back());
             if (i == shift_iterations - 1)
-                flag = 1;
+                start_range = shift_metadata_slots.back();
             else
-                flag = 0;
+                start_range = get_next_quot(shift_metadata_slots.back());
+            flag = 0;
+            if (verbose)
+            {
+                cout <<"start_range " << start_range << "; end_range " << end_range << "; flag " << flag << endl;
+            }
+
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
         }
 
@@ -474,10 +481,12 @@ list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
     }
 }
 
-pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_position, uint64_t end_position)
+counter_info Cqf::read_count(uint64_t value, uint64_t current_position, uint64_t end_position)
 {                                                               // [interval)
     uint64_t count = 1;                                         // starting from the second element of the counter, so the first value has been read and the counter is 1.
-    pair<uint64_t, uint64_t> out_info{count, current_position}; // used to report the count and ending position to the calling function
+    counter_info out_info;
+    out_info.start_encoding = get_prev_quot(current_position);     // used to report the count and ending position to the calling function
+
     uint64_t curr_value;                                        // used to store the current value
     if (verbose) cout << "inside read count of " << value << " start: " << current_position << " end: " << end_position  << endl;
     // THIS PART IS DONE ONLY IN THE CASE IT IS EXPLORING THE COUNTER OF A 0. (IT IS A PARTICULAR CASE WITH A DIFFERENT ENCODING)
@@ -485,8 +494,9 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
     {
         curr_value = get_remainder(current_position); // reading the value in the position I am in
         if (curr_value != 0)
-        {                                       // checking, if 0, it is encoding a 0 counter, if not, it is only 1 0
-            out_info.second = current_position; // returing this position
+        {                        
+            out_info.count = count;               // checking, if 0, it is encoding a 0 counter, if not, it is only 1 0
+            out_info.end_encoding = current_position; // returing this position
             return out_info;                    // counter is not changed as there is only 1 zero.
         }
         current_position = get_next_quot(current_position); // if the value is 0, then it is encoding a 0 counter. reading the next value
@@ -500,9 +510,9 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
         if (verbose) cout << "reading count" << curr_value << endl;
         if (curr_value == value)
         {                                                      // IN CASE I READ AGAIN THE REMAINDER VALUE, THIS IS AN EXIT FLAG FOR THE COUNTER. THE TOTAL COUNT IS GOING TO BE RETURNED
-            out_info.first = ++count;                          // INCREASE THE COUNT BY ONE AND STORE IT
-            out_info.second = current_position; // GIVE THE NEXT POSITION, I.E. THE ONE WHERE TO START FOR THE NEXT SEARCH
-            if (verbose) cout << "returning " << out_info.first << " " << out_info.second << endl;
+            out_info.count = ++count;                          // INCREASE THE COUNT BY ONE AND STORE IT
+            out_info.end_encoding = current_position; // GIVE THE NEXT POSITION, I.E. THE ONE WHERE TO START FOR THE NEXT SEARCH
+            if (verbose) cout << "returning " << value << " " << out_info.count << " " << out_info.start_encoding << " " << out_info.end_encoding << endl;
             return out_info;
         }
         // IF CURRENT VALUE != REMAINDER VALUE, IT IS A COUNTER ENCODED
@@ -540,7 +550,7 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
         probe = get_occupied_word(block);
         if (verbose)
         {
-            cout << "At block " << block << "occupied word is " << probe << endl;
+            cout << "At block " << block << " the occupied word is " << probe << endl;
         }
         if (probe == 0)
             continue;
@@ -554,7 +564,7 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
                 curr_run_elements = report_run(bounds.first, bounds.second);
                 for (int i = 0; i < curr_run_elements.size(); i++)
                 {
-                    if (verbose) cout << "inserting remainder " << curr_run_elements[i].first << " with count " << curr_run_elements[i].second << endl;
+                    if (verbose) cout << "inserting in verification map remainder " << curr_run_elements[i].first << " with count " << curr_run_elements[i].second << endl;
                     finalSet[rebuild_number(quotient, curr_run_elements[i].first, quotient_size)] = curr_run_elements[i].second;
                 }
             }
@@ -564,13 +574,29 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
     return finalSet;
 }
 
+void Cqf::display_vector(){
+    uint64_t block_pos;
+    for (int64_t block = 0; block < number_blocks; ++block)
+    {
+        block_pos = block * BLOCK_SIZE;
+        cout << get_offset_word(block) << endl;
+        print_bits(get_occupied_word(block));
+        print_bits(get_runend_word(block));
+        for (uint64_t i = 0; i < BLOCK_SIZE; i++){
+            cout << get_remainder(block_pos + i) << " ";
+        }
+        cout << endl << endl;
+    }
+}
+
+
 std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_position, uint64_t end_position)
 {
     uint64_t count = 0;
     uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
     uint64_t old_value;
     uint64_t curr_value = get_remainder(current_position);
-    std::pair<uint64_t, uint64_t> decoded_info;
+    counter_info decoded_info;
     std::pair<uint64_t, uint64_t> report_info;
     std::vector<std::pair<uint64_t, uint64_t>> report;
 
@@ -586,9 +612,9 @@ std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_posi
     {
         decoded_info = read_count(curr_value, current_position, end_position);
         report_info.first = curr_value;
-        report_info.second = decoded_info.first;
+        report_info.second = decoded_info.count;
         report.push_back(report_info);
-        current_position = get_next_quot(decoded_info.second);
+        current_position = get_next_quot(decoded_info.end_encoding);
         curr_value = get_remainder(current_position);
     }
 
@@ -606,20 +632,16 @@ std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_posi
             }
             decoded_info = read_count(old_value, current_position, end_position);
             report_info.first = old_value;
-            report_info.second = decoded_info.first;
+            report_info.second = decoded_info.count;
             report.push_back(report_info);
-            current_position = decoded_info.second;
+            current_position = decoded_info.end_encoding;
             curr_value = get_remainder(current_position);
         }
         else if (curr_value == old_value)
         {
-            decoded_info.first = 2;
-            decoded_info.second = curr_value;
             report_info.first = old_value;
-            report_info.second = decoded_info.first;
+            report_info.second = 2;
             report.push_back(report_info);
-            current_position = decoded_info.second;
-            curr_value = get_remainder(current_position);
         }
     }
     return report;

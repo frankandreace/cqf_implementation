@@ -50,7 +50,7 @@ TEST_F(CqfTest, insert1value)
 
 
 
-/*TEST_F(CqfTest, insert1occs)
+TEST_F(CqfTest, insert1occs)
 {
     uint64_t val;
     std::map<uint64_t, uint64_t> verif;
@@ -80,4 +80,3 @@ TEST_F(CqfTest, insert1value)
 
     //EXPECT_EQ(small_cqf.enumerate(), verif);
 }
-*/

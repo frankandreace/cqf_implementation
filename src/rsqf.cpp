@@ -775,12 +775,11 @@ uint64_t Rsqf::get_runstart(uint64_t quotient, bool occ_bit){
     uint64_t current_shift = get_shift_in_block(quotient);
     uint64_t offset = get_offset_word(current_block);
     offset = (offset==0) ? 0 : offset-1;
-
     // === JUMP W/ OFFSET ===
     uint64_t select_val;
     uint64_t pos_after_jump = ((current_block * BLOCK_SIZE) + offset) % (1ULL << quotient_size);
     // (pos of block[0] + offset) % nbQuotsMax
-
+    if (verbose) cout << "block " << current_block << " shift " << current_shift << " offset " << offset << " pos after jump " << pos_after_jump << endl;
 
     if (current_shift == 0){
         //particular case of shift == 0 

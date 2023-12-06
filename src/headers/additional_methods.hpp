@@ -229,4 +229,12 @@ bool equal_to(uint64_t x, uint64_t y);
 
 void print_list(std::list<uint64_t> const &list);
 
+struct counter_info
+{
+    uint64_t remainder;
+    uint64_t count;
+    uint64_t start_encoding;
+    uint64_t end_encoding;
+};
+
 #endif
