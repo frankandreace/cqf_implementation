@@ -90,24 +90,24 @@ TEST(AddMethods, set_bits) {
 
 
 TEST(AddMethods, greater_than) {
-  EXPECT_EQ (greater_than(0, 1),  0);
-  EXPECT_EQ (greater_than(0, 5),  0);
-  EXPECT_EQ (greater_than(1, 1), 0);
-  EXPECT_EQ (greater_than(1, 2),  0);
-  EXPECT_EQ (greater_than(2, 1),  1);
-  EXPECT_EQ (greater_than(2, 2),  0);
-  EXPECT_EQ (greater_than(5, 2),  1);
+  EXPECT_EQ (check_greater_than(0, 1),  0);
+  EXPECT_EQ (check_greater_than(0, 5),  0);
+  EXPECT_EQ (check_greater_than(1, 1), 0);
+  EXPECT_EQ (check_greater_than(1, 2),  0);
+  EXPECT_EQ (check_greater_than(2, 1),  1);
+  EXPECT_EQ (check_greater_than(2, 2),  0);
+  EXPECT_EQ (check_greater_than(5, 2),  1);
 }
 
 TEST(AddMethods, equal_to) {
-  EXPECT_EQ (equal_to(0, 1),  0);
-  EXPECT_EQ (equal_to(0, 5),  0);
-  EXPECT_EQ (equal_to(1, 1), 1);
-  EXPECT_EQ (equal_to(1, 2),  0);
-  EXPECT_EQ (equal_to(2, 1),  0);
-  EXPECT_EQ (equal_to(2, 2),  1);
-  EXPECT_EQ (equal_to(5, 2),  0);
-  EXPECT_EQ (equal_to(5, 5),  1);
+  EXPECT_EQ (check_equal_to(0, 1),  0);
+  EXPECT_EQ (check_equal_to(0, 5),  0);
+  EXPECT_EQ (check_equal_to(1, 1), 1);
+  EXPECT_EQ (check_equal_to(1, 2),  0);
+  EXPECT_EQ (check_equal_to(2, 1),  0);
+  EXPECT_EQ (check_equal_to(2, 2),  1);
+  EXPECT_EQ (check_equal_to(5, 2),  0);
+  EXPECT_EQ (check_equal_to(5, 5),  1);
 }
 
 

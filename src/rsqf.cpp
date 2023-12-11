@@ -444,7 +444,7 @@ uint64_t Rsqf::quotient(uint64_t num) const{
 }
 
 uint64_t Rsqf::remainder(uint64_t num) const{
-    return num >> (quotient_size);
+    return (num >> (quotient_size)) & mask_right(remainder_size);
 }
 
 // REMAINDER OPERATIONS

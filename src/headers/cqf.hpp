@@ -121,58 +121,13 @@ public:
      * \param range the start and end quotient of the run
      * \return a uint64_t containing the value of the counter, or 0 if not present
      */
-    template <typename F>
-    counter_info scan_run(uint64_t remainder, uint64_t current_position, uint64_t end_position, F condition_met)
-    {
-        uint64_t count = 0;
-        uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
-        uint64_t old_value;
-        uint64_t curr_value = get_remainder(current_position);
-        counter_info decoded_info;
+    //template <typename F>
+    counter_info scan_run(uint64_t remainder, uint64_t current_position, uint64_t end_position);
 
-        // CASE 1: 1st REMAINDER IS 0
-        if (curr_value == 0)
-        {
-            decoded_info = read_count(curr_value, current_position, end_position);
-            if (condition_met(curr_value, remainder) == true)
-            {
-                return decoded_info;
-            }
-            current_position = get_next_quot(decoded_info.end_encoding);
-            curr_value = get_remainder(current_position); 
-        }
+    pair<uint64_t,uint64_t> Cqf::read_count(uint64_t value, uint64_t current_position, uint64_t end_position);
 
-        while (current_position != end_position)
-        {
-            old_value = curr_value;
-            current_position = get_next_quot(current_position);
-            curr_value = get_remainder(current_position);
-
-            if (curr_value < old_value)
-            { // A COUNTER IS ENCODED
-                decoded_info = read_count(old_value, current_position, end_position);
-                current_position = decoded_info.end_encoding;
-                curr_value = get_remainder(current_position);
-            }
-            else if (curr_value == old_value)
-            {
-                decoded_info.count = 2;
-                decoded_info.end_encoding = current_position;
-                decoded_info.start_encoding = get_prev_quot(current_position);
-                curr_value = get_remainder(current_position);
-            }
-            if (condition_met(curr_value, remainder) == true)
-            {
-                return decoded_info;
-            }
-        }
-        decoded_info.start_encoding = get_next_quot(end_position);
-        decoded_info.end_encoding = get_next_quot(end_position);
-        return decoded_info;
-    }
-
-    counter_info read_count(uint64_t value, uint64_t starting_position, uint64_t end_position);
     std::vector<std::pair<uint64_t, uint64_t>> report_run(uint64_t current_position, uint64_t end_position);
+
     std::map<uint64_t, uint64_t> enumerate();
     void display_vector();
 };

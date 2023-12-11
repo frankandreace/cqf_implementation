@@ -273,11 +273,11 @@ std::ostream& operator<<(std::ostream& os, result_query const& res) {
     return os << "(min:" << res.minimum << ", average:" << res.average << ", presence ratio:" << res.kmer_present_ratio << ")" << endl;
 }
 
-bool greater_than(uint64_t x, uint64_t y){
+bool check_greater_than(uint64_t x, uint64_t y){
     return (x > y);
 }
 
-bool equal_to(uint64_t x, uint64_t y){
+bool check_equal_to(uint64_t x, uint64_t y){
     return (x == y);
 }
 

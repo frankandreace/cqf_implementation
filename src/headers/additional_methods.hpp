@@ -223,18 +223,17 @@ std::string canonical(const std::string& smer, size_t s);
 struct result_query {int minimum; float average; float kmer_present_ratio;};
 std::ostream& operator<<(std::ostream& os, result_query const& res);
 
-bool greater_than(uint64_t x, uint64_t y);
+bool check_greater_than(uint64_t x, uint64_t y);
 
-bool equal_to(uint64_t x, uint64_t y);
+bool check_equal_to(uint64_t x, uint64_t y);
 
 void print_list(std::list<uint64_t> const &list);
 
 struct counter_info
 {
-    uint64_t remainder;
     uint64_t count;
-    uint64_t start_encoding;
-    uint64_t end_encoding;
+    uint64_t position;
+    uint64_t value;
 };
 
 #endif

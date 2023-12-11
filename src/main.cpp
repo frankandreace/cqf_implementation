@@ -9,9 +9,9 @@ int main(int argc, char *argv[])
     std::map<uint64_t, uint64_t> verif;
 
     Rsqf small_rsqf = Rsqf(8, 9, true);
+    small_rsqf.insert(0b000100000000);
     small_rsqf.insert(0b000110000000);
-    small_rsqf.insert(0b000110000000);
-    small_rsqf.insert(0b001110000000);
+    small_rsqf.insert(0b001100000000);
     small_rsqf.insert(0b001110000000);
     small_rsqf.display_vector();
     unordered_set<uint64_t> values = small_rsqf.enumerate();
@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
         std::cout << "val: " << *it << ' ';
     }
     cout << endl << endl << endl;
-
 
     // INSERT
     uint64_t val = 0b0010100000011;
