@@ -519,7 +519,7 @@ class Rsqf {
    void save_on_disk(const std::string& filename);
    static Rsqf load_from_disk(const std::string& filename);
 
-   void Rsqf::display_vector(){
+   void display_vector(){
     uint64_t block_pos;
     for (int64_t block = 0; block < number_blocks; ++block)
     {

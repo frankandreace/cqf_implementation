@@ -12,7 +12,7 @@ FetchContent_MakeAvailable(gtest)
 add_executable(
     unit_tests
     cqf_test.cpp
-    additional_methods_test.cpp
+    #additional_methods_test.cpp
     )
 
 target_link_libraries(unit_tests

@@ -111,10 +111,16 @@ void Cqf::insert(string kmer, uint64_t count)
 void Cqf::insert(uint64_t number, uint64_t count)
 {
     // get quotient q and remainder r
+    if (count == 0)
+    {
+        return;
+    }
+    number &= (mask_right(this->quotient_size + this->remainder_size));
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
     list<uint64_t> encoded_counter = encode_counter(rem, count);
     uint64_t slots_to_fill = encoded_counter.size();
+    uint64_t slots_to_add_count_inserted = slots_to_fill;
 
     if (verbose)
     {
@@ -125,9 +131,19 @@ void Cqf::insert(uint64_t number, uint64_t count)
     {
         if (verbose)
         {
-            cout << "RESIZING, nbElem: " << elements_inside << endl;
+            cout << "RESIZING, # Slots used: " << elements_inside << " (" << elements_inside/double(number_blocks*MEM_UNIT) << ") with " << number_blocks*MEM_UNIT << " available slots, num integers inserted: " << num_uint_inserted << endl;
         }
         this->resize(1);
+        quot = quotient(number);
+        rem = remainder(number);
+        encoded_counter = encode_counter(rem, count);
+        slots_to_fill = encoded_counter.size();
+        slots_to_add_count_inserted = slots_to_fill;
+        if (verbose)
+        {
+            cout << "!! FINISHED RESIZING, # Slots used: " << elements_inside << " (" << elements_inside/double(number_blocks*MEM_UNIT) << ") with " << number_blocks*MEM_UNIT << " available slots, num integers inserted: " << num_uint_inserted << endl;
+            cout << "Now quotient is " << this->quotient_size << " and remainder is " << this->remainder_size << endl;
+        }
     }
 
     if (verbose)
@@ -135,7 +151,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
         cout << "[INSERT] quot " << quot << " from hash " << number << endl;
         cout << "[INSERT] rem " << rem << endl;
         cout << "[INSERT] slots_to_fill " << slots_to_fill << endl;
-        cout << "[INSERT] counter ";
+        cout << "[INSERT] count = " << count << " ;counter ";
         for (auto const &i : encoded_counter)
         {
             std::cout << i << " ";
@@ -179,21 +195,34 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         insert_counter_circ(encoded_counter, free_slots, starting_position);
 
+
         // METADATA HANDLING
         list<uint64_t> shift_metadata_slots = free_slots;
-        shift_metadata_slots.push_front(get_prev_quot(starting_position));
+        shift_metadata_slots.push_front(starting_position);
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
-        uint64_t start_range, end_range, flag;
-        flag = 0;
+        uint64_t start_range, end_range;
+        uint64_t flag = 0;
         for (int i = 0; i < shift_iterations; i++)
         {
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
-            start_range = get_next_quot(shift_metadata_slots.back());
+            start_range = shift_metadata_slots.back();
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
         }
-        set_runend_bit(get_block_id(free_slots.back()), 1, get_shift_in_block(free_slots.back()));
-        elements_inside = elements_inside + slots_to_fill;
+        if (verbose) { cout << "Calculating runend bit position at " ;}
+        uint64_t runend_bit_position = starting_position;
+        if (slots_to_add_count_inserted > 1){ // REMOVE REDUNDANT IF
+            for(int64_t i = 0; i < slots_to_add_count_inserted -1 ; i++){
+                runend_bit_position = get_next_quot(runend_bit_position);
+            }
+        }
+        if (verbose) { cout << "Setting runend bit at blockid " << get_block_id(runend_bit_position) << " and shift " << get_shift_in_block(runend_bit_position) << endl;}
+        set_runend_bit(get_block_id(runend_bit_position), 1, get_shift_in_block(runend_bit_position));
+        if (verbose) { cout << "Adding elements inside as " << elements_inside << " + " << slots_to_add_count_inserted << endl;}
+        elements_inside = elements_inside + slots_to_add_count_inserted;
+        if (verbose) { cout << "Adding integers inserted to " << (num_uint_inserted + 1) << endl;}
+        num_uint_inserted++;
+        if (verbose) { cout << "Returning" << endl;}
         return;
     }
     // IF THE QUOTIENT HAS BEEN USED BEFORE
@@ -225,17 +254,22 @@ void Cqf::insert(uint64_t number, uint64_t count)
         }
 
         // set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
-
         insert_counter_circ(encoded_counter, free_slots, starting_position);
 
         // METADATA HANDLING
         list<uint64_t> shift_metadata_slots = free_slots;
-        if (starting_position > boundary.first)
-            shift_metadata_slots.push_front(get_prev_quot(starting_position));
+        if (starting_position == get_next_quot(boundary.second))
+        {
+            shift_metadata_slots.push_front(boundary.second);
+        }
         else
+        {
             shift_metadata_slots.push_front(starting_position);
+        }
+        
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
-        uint64_t start_range, end_range, flag;
+        uint64_t start_range, end_range;
+        uint64_t flag = 0;
         if (verbose)
         {
             cout << "shift_iterations " << shift_iterations << endl;
@@ -243,23 +277,18 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
         for (int i = 0; i < shift_iterations; i++)
         {
-
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
-            if (i == shift_iterations - 1)
-                start_range = shift_metadata_slots.back();
-            else
-                start_range = get_next_quot(shift_metadata_slots.back());
-            flag = 0;
+            start_range = shift_metadata_slots.back();
             if (verbose)
             {
                 cout << "start_range " << start_range << "; end_range " << end_range << "; flag " << flag << endl;
             }
-
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
         }
 
-        elements_inside = elements_inside + slots_to_fill;
+        elements_inside = elements_inside + slots_to_add_count_inserted;
+        num_uint_inserted++;
         return;
     }
 }
@@ -333,18 +362,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
     uint64_t overflow_bits = shift_left(overflow_bit, shift_slots - 1);
 
-    // OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
-    if (get_shift_in_block(quotient) == 0)
-    {
-        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
-    }
 
-    // OFFSET case everyblock we cross until runstart
-    while (current_block != start_block)
-    {
-        current_block = get_next_block_id(current_block);
-        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
-    }
 
     // current_block == start_block
     // RUNEND case runstart at the end of filter (shift almost all filter)
@@ -391,6 +409,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
     to_shift |= ((save_left | shift_left(overflow_bits, current_shift_in_block)) | save_right);
 
     set_runend_word(current_block, to_shift);
+    if (verbose) { cout << "exiting shift" << endl;}
 }
 
 list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
@@ -467,7 +486,7 @@ list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
             // ADD THE FINAL ENCODING, IF > 0
             if (count_last_slot > 0)
             {
-                if (count_last_slot > remainder)
+                if (count_last_slot >= remainder)
                     count_last_slot++;
                 counter.push_back(count_last_slot);
             }
@@ -499,10 +518,14 @@ counter_info Cqf::scan_run(uint64_t remainder, uint64_t current_position, uint64
         next_position = get_next_quot(current_position);
         if ((next_position != end_position) && (get_remainder(next_position) == 0))
         {
-            auto [count, current_position] = read_count(current_value, get_next_quot(next_position), end_position);
+            tie(count, current_position) = read_count(current_value, get_next_quot(next_position), end_position);
+            //count++;
         }
         else
+        {
             count = 1;
+            //current_position = get_next_quot(current_position);
+        }
         if (current_value >= remainder)
         {
             info.value = current_value;
@@ -512,31 +535,63 @@ counter_info Cqf::scan_run(uint64_t remainder, uint64_t current_position, uint64
         }
 
         current_position = get_next_quot(current_position);
-        current_value = get_remainder(current_position);
+        current_value = get_remainder(current_position);        
     }
 
     while (current_position != end_position)
     {
+        if (current_value > remainder)
+        {
+            info.value = current_value;
+            info.count = count;
+            info.position = current_position;
+            if (verbose)
+            {
+                cout << "[SCAN_RUN] Return in loop '>' " << current_position << endl;
+            }
+            return info;
+        }
         next_position = get_next_quot(current_position);
+        
+        if (verbose)
+        {
+            cout << "[SCAN_RUN] Loop in position " << current_position << " with value " << current_value << " and remainder " << remainder << endl;
+        }
+
         if ((next_position != end_position) && (get_remainder(next_position) <= current_value))
         {
-            auto [count, current_position] = read_count(current_value, next_position, end_position);
+            tie(count, current_position) = read_count(current_value, next_position, end_position);
+            if (verbose)
+            {
+                cout << "[SCAN_RUN] Read count returned count " << count << " and position " << current_position << endl;
+            }
         }
         else
         {
             count = 1;
         }
-        if (current_value >= remainder)
+        if (current_value == remainder)
         {
             info.value = current_value;
             info.count = count;
             info.position = current_position;
+            if (verbose)
+            {
+                cout << "Return in loop '==' value: " << info.value << " ;count " << info.count << " ;position " << info.position << endl;
+            }
             return info;
         }
+        current_position = get_next_quot(current_position);
+        current_value = get_remainder(current_position);
+
     }
     info.count = 0;
     info.value = current_value;
     info.position = current_position;
+    if (verbose)
+    {
+        cout << "Return out loop " << current_position << endl;
+    }
     return info;
 }
 
@@ -551,7 +606,14 @@ pair<uint64_t, uint64_t> Cqf::read_count(uint64_t value, uint64_t current_positi
         {
             return {count, current_position};
         }
-        count = count + current_value;
+        if ((current_value < value) || (value == 0))
+        {
+            count = count + current_value;
+        }
+        else
+        {
+            count = count + current_value - 1;
+        }
         current_position = get_next_quot(current_position);
     }
     throw std::runtime_error("Error while decoding the count of " + value);
@@ -594,12 +656,16 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
                 for (int i = 0; i < curr_run_elements.size(); i++)
                 {
                     if (verbose)
-                        cout << "inserting in verification map value with quotient " << quotient << " ;remainder " << curr_run_elements[i].first << " with count " << curr_run_elements[i].second << endl;
+                        cout << "!!! INSERING in verification map value " << rebuild_number(quotient, curr_run_elements[i].first, quotient_size) << " with quotient " << quotient << " ; remainder " << curr_run_elements[i].first << " and count " << curr_run_elements[i].second << endl;
                     finalSet[rebuild_number(quotient, curr_run_elements[i].first, quotient_size)] = curr_run_elements[i].second;
                 }
             }
             probe >>= 1ULL; // next bit of occupied vector
         }
+    }
+    if (verbose)
+    {
+        cout << "Finished enumerating. I had " << num_uint_inserted << " integers inside and I returned " << finalSet.size() << " integers." << endl;
     }
     return finalSet;
 }
@@ -624,29 +690,54 @@ void Cqf::display_vector()
 
 std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_position, uint64_t end_position)
 {
-    uint64_t count = 0;
-    uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
-    uint64_t old_value;
-    uint64_t curr_value = get_remainder(current_position);
+    //uint64_t count = 0;
+    //uint64_t max_encodable_value = (1ULL << remainder_size) - 1;
+    uint64_t current_value = get_remainder(current_position);
     counter_info decoded_info;
     std::pair<uint64_t, uint64_t> report_info;
     std::vector<std::pair<uint64_t, uint64_t>> report;
-    while (current_position != end_position)
+    while (current_position != get_next_quot(end_position))
     {
         if (verbose)
             cout << "REPORT_RUN. Position: " << current_position << endl;
-        decoded_info = scan_run(curr_value, current_position, end_position);
-        report_info.first = curr_value;
+        decoded_info = scan_run(current_value, current_position, end_position);
+        report_info.first = current_value;
         report_info.second = decoded_info.count;
-        //current_position = get_next_quot(decoded_info.end_encoding);
         report.push_back(report_info);
+        current_position = get_next_quot(decoded_info.position);
+        current_value = get_remainder(current_position);
     }
 
     // CASE CURR_POS == END_POS
-    if (verbose)
+    /*if (verbose)
         cout << "REPORT_RUN.END. Position: " << current_position << endl;
-    report_info.first = curr_value;
+    report_info.first = current_value;
     report_info.second = 1;
     report.push_back(report_info);
+    */
     return report;
+}
+
+
+void Cqf::resize(int n){
+    std::map<uint64_t, uint64_t> inserted_elements = this->enumerate();
+
+    this->quotient_size += n;
+    this->remainder_size -= n;
+    
+    uint64_t num_quots = 1ULL << this->quotient_size; 
+    uint64_t num_of_words = num_quots * (MET_UNIT + this->remainder_size) / MEM_UNIT;
+
+    this->size_limit = num_quots * 0.95;
+
+    // In machine words
+    this->number_blocks = std::ceil(num_quots / BLOCK_SIZE);
+
+    this->filter = std::vector<uint64_t>(num_of_words);
+    this->elements_inside = 0;
+    this->num_uint_inserted = 0;
+
+    for (auto const& elem : inserted_elements){
+        this->insert(elem.first, elem.second);
+    }
 }

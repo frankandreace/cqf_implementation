@@ -52,6 +52,18 @@ public:
      */
     void insert(uint64_t number, uint64_t count = 1);
 
+    std::map<uint64_t, uint64_t> enumerate();
+
+    void display_vector();
+
+    void get_num_inserted_elements(){
+        std::cout << "This filter contains " << this->num_uint_inserted << " filling " << this->elements_inside << " slots." << std::endl;
+    }
+
+private:
+
+    uint64_t num_uint_inserted = 0;
+
     /**
      * \brief Set the remainder slot to the assigned value
      *
@@ -124,12 +136,12 @@ public:
     //template <typename F>
     counter_info scan_run(uint64_t remainder, uint64_t current_position, uint64_t end_position);
 
-    pair<uint64_t,uint64_t> Cqf::read_count(uint64_t value, uint64_t current_position, uint64_t end_position);
+    std::pair<uint64_t,uint64_t> read_count(uint64_t value, uint64_t current_position, uint64_t end_position);
 
     std::vector<std::pair<uint64_t, uint64_t>> report_run(uint64_t current_position, uint64_t end_position);
 
-    std::map<uint64_t, uint64_t> enumerate();
-    void display_vector();
+    void resize(int n);
+
 };
 
 #endif

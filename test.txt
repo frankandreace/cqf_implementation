@@ -1,0 +1,338 @@
+quotient_size: 8 remainder_size: 9
+Construction done.
+Inserting 1283 with quotient 3 remainder 5 and count 85
+Encoding remainder 5 with count 85
+max_encodable_value 511 with remainder size 9
+maximum_count_slots 0; count_last_slot 83
+5 0 84 5 
+insertion
+[INSERT] quot 3 from hash 1283
+[INSERT] rem 5
+[INSERT] slots_to_fill 4
+[INSERT] counter 5 0 84 5 
+[FUS] first runend 0 | 0 (quot 3)
+[FUS] first runend 0 | 0 (quot 4)
+[FUS] first runend 0 | 0 (quot 5)
+[FUS] first runend 0 | 0 (quot 6)
+free slots list: 3 4 5 6 
+SETTING OCCUPIED BIT Block id: 0; shift in block: 3
+block 0 shift 3 offset 0 pos after jump 0
+INSERT COUNTER. starting_position: 3; counter = 5 0 84 5 
+[SET REM FROM LIST CIRC]: quotient 3
+shift_bits_left_metadata quotient 3 SP 5 EP 6 N_BITS 1
+shift_bits_left_metadata quotient 3 SP 4 EP 5 N_BITS 2
+shift_bits_left_metadata quotient 3 SP 3 EP 4 N_BITS 3
+shift_bits_left_metadata quotient 3 SP 3 EP 3 N_BITS 4
+0
+0000000000000000000000000000000000000000000000000000000000001000
+0000000000000000000000000000000000000000000000000000000001000000
+0 0 0 5 0 84 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Inserting 1027 with quotient 3 remainder 4 and count 1421
+Encoding remainder 4 with count 1421
+max_encodable_value 511 with remainder size 9
+maximum_count_slots 2; count_last_slot 399
+4 0 511 511 400 4 
+insertion
+[INSERT] quot 3 from hash 1027
+[INSERT] rem 4
+[INSERT] slots_to_fill 6
+[INSERT] counter 4 0 511 511 400 4 
+[FUS] first runend 6 | 0 (quot 3)
+[FUS] loop runend 6 | 0 (quot 7)
+[FUS] first runend 6 | 0 (quot 8)
+[FUS] first runend 6 | 0 (quot 9)
+[FUS] first runend 6 | 0 (quot 10)
+[FUS] first runend 6 | 0 (quot 11)
+[FUS] first runend 6 | 0 (quot 12)
+free slots list: 7 8 9 10 11 12 
+occupied
+block 0 shift 3 offset 0 pos after jump 0
+boundaries 3 || 6
+Return in loop '>' 3
+counter_position returned value 5count: 0 ; start: 3 ;
+starting_position 3
+[SET REM FROM LIST CIRC]: quotient 3
+shift_iterations 6
+start_range 11; end_range 12; flag 0
+shift_bits_left_metadata quotient 3 SP 11 EP 12 N_BITS 1
+start_range 10; end_range 11; flag 0
+shift_bits_left_metadata quotient 3 SP 10 EP 11 N_BITS 2
+start_range 9; end_range 10; flag 0
+shift_bits_left_metadata quotient 3 SP 9 EP 10 N_BITS 3
+start_range 8; end_range 9; flag 0
+shift_bits_left_metadata quotient 3 SP 8 EP 9 N_BITS 4
+start_range 7; end_range 8; flag 0
+shift_bits_left_metadata quotient 3 SP 7 EP 8 N_BITS 5
+start_range 3; end_range 7; flag 0
+shift_bits_left_metadata quotient 3 SP 3 EP 7 N_BITS 6
+0
+0000000000000000000000000000000000000000000000000000000000001000
+0000000000000000000000000000000000000000000000000001000000000000
+0 0 0 4 0 511 511 400 4 5 0 84 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Inserting 1539 with quotient 3 remainder 6 and count 2
+Encoding remainder 6 with count 2
+max_encodable_value 511 with remainder size 9
+6 6 
+insertion
+[INSERT] quot 3 from hash 1539
+[INSERT] rem 6
+[INSERT] slots_to_fill 2
+[INSERT] counter 6 6 
+[FUS] first runend 12 | 0 (quot 3)
+[FUS] loop runend 12 | 0 (quot 13)
+[FUS] first runend 12 | 0 (quot 14)
+free slots list: 13 14 
+occupied
+block 0 shift 3 offset 0 pos after jump 0
+boundaries 3 || 12
+Loop in position 3 with value 4
+Read count returned count 1421 and position 8
+Loop in position 9 with value 5
+Read count returned count 85 and position 12
+Return out loop 13
+counter_position returned value 0count: 0 ; start: 13 ;
+starting_position 13
+[SET REM FROM LIST CIRC]: quotient 13
+shift_iterations 2
+start_range 13; end_range 14; flag 0
+shift_bits_left_metadata quotient 3 SP 13 EP 14 N_BITS 1
+start_range 12; end_range 13; flag 0
+shift_bits_left_metadata quotient 3 SP 12 EP 13 N_BITS 2
+0
+0000000000000000000000000000000000000000000000000000000000001000
+0000000000000000000000000000000000000000000000000100000000000000
+0 0 0 4 0 511 511 400 4 5 0 84 5 6 6 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Inserting 1030 with quotient 6 remainder 4 and count 2
+Encoding remainder 4 with count 2
+max_encodable_value 511 with remainder size 9
+4 4 
+insertion
+[INSERT] quot 6 from hash 1030
+[INSERT] rem 4
+[INSERT] slots_to_fill 2
+[INSERT] counter 4 4 
+[FUS] first runend 14 | 0 (quot 6)
+[FUS] loop runend 14 | 0 (quot 15)
+[FUS] first runend 14 | 0 (quot 16)
+free slots list: 15 16 
+SETTING OCCUPIED BIT Block id: 0; shift in block: 6
+block 0 shift 6 offset 0 pos after jump 0
+INSERT COUNTER. starting_position: 15; counter = 4 4 
+[SET REM FROM LIST CIRC]: quotient 15
+shift_bits_left_metadata quotient 6 SP 15 EP 16 N_BITS 1
+shift_bits_left_metadata quotient 6 SP 15 EP 15 N_BITS 2
+0
+0000000000000000000000000000000000000000000000000000000001001000
+0000000000000000000000000000000000000000000000010100000000000000
+0 0 0 4 0 511 511 400 4 5 0 84 5 6 6 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Inserting 2052 with quotient 4 remainder 8 and count 54
+Encoding remainder 8 with count 54
+max_encodable_value 511 with remainder size 9
+maximum_count_slots 0; count_last_slot 52
+8 0 53 8 
+insertion
+[INSERT] quot 4 from hash 2052
+[INSERT] rem 8
+[INSERT] slots_to_fill 4
+[INSERT] counter 8 0 53 8 
+[FUS] first runend 14 | 0 (quot 4)
+[FUS] loop runend 16 | 0 (quot 15)
+[FUS] loop runend 16 | 0 (quot 17)
+[FUS] first runend 16 | 0 (quot 18)
+[FUS] first runend 16 | 0 (quot 19)
+[FUS] first runend 16 | 0 (quot 20)
+free slots list: 17 18 19 20 
+SETTING OCCUPIED BIT Block id: 0; shift in block: 4
+block 0 shift 4 offset 0 pos after jump 0
+INSERT COUNTER. starting_position: 15; counter = 8 0 53 8 
+[SET REM FROM LIST CIRC]: quotient 15
+shift_bits_left_metadata quotient 4 SP 19 EP 20 N_BITS 1
+shift_bits_left_metadata quotient 4 SP 18 EP 19 N_BITS 2
+shift_bits_left_metadata quotient 4 SP 17 EP 18 N_BITS 3
+shift_bits_left_metadata quotient 4 SP 15 EP 17 N_BITS 4
+0
+0000000000000000000000000000000000000000000000000000000001011000
+0000000000000000000000000000000000000000000101000100000000000000
+0 0 0 4 0 511 511 400 4 5 0 84 5 6 6 8 0 53 8 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Inserting 384 with quotient 128 remainder 1 and count 11
+Encoding remainder 1 with count 11
+max_encodable_value 511 with remainder size 9
+maximum_count_slots 0; count_last_slot 9
+1 0 10 1 
+insertion
+[INSERT] quot 128 from hash 384
+[INSERT] rem 1
+[INSERT] slots_to_fill 4
+[INSERT] counter 1 0 10 1 
+[FUS] first runend 128 | 0 (quot 128)
+[FUS] first runend 128 | 0 (quot 129)
+[FUS] first runend 128 | 0 (quot 130)
+[FUS] first runend 128 | 0 (quot 131)
+free slots list: 128 129 130 131 
+SETTING OCCUPIED BIT Block id: 2; shift in block: 0
+block 2 shift 0 offset 0 pos after jump 128
+get_runstart_shift0 128 128 0 0
+INSERT COUNTER. starting_position: 128; counter = 1 0 10 1 
+[SET REM FROM LIST CIRC]: quotient 128
+shift_bits_left_metadata quotient 128 SP 130 EP 131 N_BITS 1
+shift_bits_left_metadata quotient 128 SP 129 EP 130 N_BITS 2
+shift_bits_left_metadata quotient 128 SP 128 EP 129 N_BITS 3
+shift_bits_left_metadata quotient 128 SP 128 EP 128 N_BITS 4
+0
+0000000000000000000000000000000000000000000000000000000001011000
+0000000000000000000000000000000000000000000101000100000000000000
+0 0 0 4 0 511 511 400 4 5 0 84 5 6 6 8 0 53 8 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+4
+0000000000000000000000000000000000000000000000000000000000000001
+0000000000000000000000000000000000000000000000000000000000001000
+1 0 10 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+0
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+enumerating. 0
+At block 0 the occupied word is 88
+block 0 shift 3 offset 0 pos after jump 0
+FOUND AN OCCUPIED BIT IN (quotient) 3; with bounds 3 - 14
+REPORT_RUN. Position: 3
+Loop in position 3 with value 4
+Read count returned count 1421 and position 8
+Return in loop '==' 8
+REPORT_RUN. Position: 9
+Loop in position 9 with value 5
+Read count returned count 85 and position 12
+Return in loop '==' 12
+REPORT_RUN. Position: 13
+Loop in position 13 with value 6
+Read count returned count 2 and position 14
+Return in loop '==' 14
+!!! INSERING in verification map value 1027 with count 1421
+!!! INSERING in verification map value 1283 with count 85
+!!! INSERING in verification map value 1539 with count 2
+block 0 shift 4 offset 0 pos after jump 0
+FOUND AN OCCUPIED BIT IN (quotient) 4; with bounds 15 - 18
+REPORT_RUN. Position: 15
+Loop in position 15 with value 8
+Read count returned count 54 and position 18
+Return in loop '==' 18
+!!! INSERING in verification map value 2052 with count 54
+block 0 shift 6 offset 0 pos after jump 0
+FOUND AN OCCUPIED BIT IN (quotient) 6; with bounds 19 - 20
+REPORT_RUN. Position: 19
+Loop in position 19 with value 4
+Read count returned count 2 and position 20
+Return in loop '==' 20
+!!! INSERING in verification map value 1030 with count 2
+At block 1 the occupied word is 0
+At block 2 the occupied word is 1
+block 2 shift 0 offset 3 pos after jump 131
+get_runstart_shift0 128 131 3 1
+FOUND AN OCCUPIED BIT IN (quotient) 128; with bounds 128 - 131
+REPORT_RUN. Position: 128
+Loop in position 128 with value 1
+Read count returned count 11 and position 131
+Return in loop '==' 131
+!!! INSERING in verification map value 384 with count 11
+At block 3 the occupied word is 0
+VERIFICATION
+384 11
+1027 1421
+1030 2
+1283 85
+1539 2
+2052 54
+
+384 11
+1027 1421
+1030 2
+1283 85
+1539 2
+2052 54
