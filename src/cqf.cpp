@@ -362,7 +362,26 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
     uint64_t overflow_bits = shift_left(overflow_bit, shift_slots - 1);
 
+    // OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
+    if (get_shift_in_block(quotient) == 0)
+    {
+        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
+        if (verbose) {cout << "!!! SETTING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;}
+    }
 
+    // OFFSET case everyblock we cross until runstart
+    uint64_t offset_while = 0;
+    while (current_block != start_block)
+    {
+        current_block = get_next_block_id(current_block);
+        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
+        cout << "!!! INCREASING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;
+        offset_while++;
+    }
+    if (verbose)
+    {
+        cout << "Offset increased " << offset_while << " times. Now at" << get_offset_word(current_block) << endl;
+    }
 
     // current_block == start_block
     // RUNEND case runstart at the end of filter (shift almost all filter)
