@@ -25,6 +25,7 @@
  * \param x the uint64 of which you want to see the bits
  */
 void print_bits(uint64_t x);
+void print_bits_rev(uint64_t x);
 
 /** 
  * \brief returns a mask of 1s of the leftmost Nth bits

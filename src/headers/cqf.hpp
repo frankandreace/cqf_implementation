@@ -76,7 +76,7 @@ private:
      * \param free_slots list of position where there are free slots - it is used in the operation of inserting the counter in the remainder slots
      * \param starting_quotient the position of the first remainder to move
      */
-    void insert_counter_circ(std::list<uint64_t> counter, std::list<uint64_t> free_slots, uint64_t starting_quotient);
+    void insert_counter_circ(std::list<uint64_t> counter, std::list<uint64_t> free_slots, uint64_t starting_quotient, uint64_t quotient);
 
     /**
      * \brief Metadata function that shifts the bits left of X bits in the runend word when there is a counter insertion.

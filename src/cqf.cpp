@@ -23,7 +23,7 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verb)
     uint64_t num_quots = 1ULL << quotient_size;
     uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
 
-    size_limit = num_quots * 0.95;
+    this->size_limit = num_quots * 0.90;
 
     // In machine words
     number_blocks = ceil(num_quots / BLOCK_SIZE);
@@ -115,6 +115,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
     {
         return;
     }
+
     number &= (mask_right(this->quotient_size + this->remainder_size));
     uint64_t quot = quotient(number);
     uint64_t rem = remainder(number);
@@ -127,7 +128,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
         cout << "insertion" << endl;
     }
 
-    if (elements_inside + slots_to_fill == size_limit)
+    if (elements_inside + slots_to_fill >= size_limit)
     {
         if (verbose)
         {
@@ -148,6 +149,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
 
     if (verbose)
     {
+        cout << "[INSERT] Slots used: " << elements_inside << " (" << elements_inside/double(number_blocks*MEM_UNIT) << ") with " << number_blocks*MEM_UNIT << " available slots, num integers inserted: " << num_uint_inserted << " and size limit " << size_limit << endl;
         cout << "[INSERT] quot " << quot << " from hash " << number << endl;
         cout << "[INSERT] rem " << rem << endl;
         cout << "[INSERT] slots_to_fill " << slots_to_fill << endl;
@@ -193,7 +195,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
             print_list(encoded_counter);
         }
 
-        insert_counter_circ(encoded_counter, free_slots, starting_position);
+        insert_counter_circ(encoded_counter, free_slots, starting_position, quot);
 
 
         // METADATA HANDLING
@@ -207,8 +209,20 @@ void Cqf::insert(uint64_t number, uint64_t count)
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
             start_range = shift_metadata_slots.back();
+            if (verbose) { 
+                cout << "BEFORE runend of block " << get_block_id(start_range) << endl;    
+                print_bits(get_runend_word(get_block_id(start_range)));
+                if (get_block_id(start_range) != get_block_id(end_range)) {cout << "runend of block " << get_block_id(end_range) << endl;    
+                print_bits(get_runend_word(get_block_id(end_range)));}
+                }
             shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
-        }
+            if (verbose) { 
+                cout << "AFTER runend of block " << get_block_id(start_range) << endl;    
+                print_bits(get_runend_word(get_block_id(start_range)));
+                if (get_block_id(start_range) != get_block_id(end_range)) {cout << "runend of block " << get_block_id(end_range) << endl;    
+                print_bits(get_runend_word(get_block_id(end_range)));}
+                }
+        }  
         if (verbose) { cout << "Calculating runend bit position at " ;}
         uint64_t runend_bit_position = starting_position;
         if (slots_to_add_count_inserted > 1){ // REMOVE REDUNDANT IF
@@ -254,7 +268,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
         }
 
         // set_occupied_bit(get_block_id(quot), 1, get_shift_in_block(quot));
-        insert_counter_circ(encoded_counter, free_slots, starting_position);
+        insert_counter_circ(encoded_counter, free_slots, starting_position, quot);
 
         // METADATA HANDLING
         list<uint64_t> shift_metadata_slots = free_slots;
@@ -293,7 +307,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
     }
 }
 
-void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots, uint64_t start_quotient)
+void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots, uint64_t start_quotient, uint64_t quotient)
 {
     if (verbose)
     {
@@ -302,11 +316,57 @@ void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots,
     assert(start_quotient < (1ULL << quotient_size));
 
     uint64_t slots_to_fill = counter.size();
+    uint64_t current_block = get_block_id(quotient);
+    uint64_t end_block = get_block_id(free_slots.back());
+    std::list<uint64_t> quotients_visited = free_slots;
 
     uint64_t curr_word_pos = get_remainder_word_position(start_quotient);
     uint64_t curr_word_shift = get_remainder_shift_position(start_quotient);
 
     uint64_t curr_free_slot = start_quotient;
+
+
+    // OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
+    if (get_shift_in_block(quotient) == 0)
+    {
+        set_offset_word(current_block, get_offset_word(current_block) + counter.size()); // TO CHECK
+        if (verbose) {cout << "!!! SETTING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;}
+    }
+
+    for (int i = 0; i < quotients_visited.size(); i++){
+        if (get_block_id(quotients_visited.front()) == current_block) {
+            quotients_visited.pop_front();
+        }
+        else{
+            break;
+        }
+    }
+
+    // OFFSET case everyblock we cross until runstart
+    uint64_t offset_while = 0;
+    uint64_t shifted_blocks;
+    while (current_block != end_block)
+    {
+        if(verbose) {cout << "current block: " << current_block << " . end block " << end_block << endl;}
+        current_block = get_next_block_id(current_block);
+        shifted_blocks = 0;
+        for (int i = 0; i < quotients_visited.size(); i++){
+            if (get_block_id(quotients_visited.front()) == current_block) {
+                quotients_visited.pop_front();
+                shifted_blocks++;
+            }
+            else{
+                break;
+            }
+        }
+        set_offset_word(current_block, get_offset_word(current_block) + (shifted_blocks + quotients_visited.size())); // TO CHECK
+        cout << "!!! INCREASING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;
+        offset_while++;
+    }
+    if (verbose)
+    {
+        cout << "Offset increased of" << (shifted_blocks + quotients_visited.size()) << " times. Now at" << get_offset_word(current_block) << endl;
+    }
 
     uint64_t end_quotient = get_next_quot(free_slots.back());
     while (start_quotient != end_quotient)
@@ -362,28 +422,7 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
     uint64_t overflow_bits = shift_left(overflow_bit, shift_slots - 1);
 
-    // OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
-    if (get_shift_in_block(quotient) == 0)
-    {
-        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
-        if (verbose) {cout << "!!! SETTING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;}
-    }
-
-    // OFFSET case everyblock we cross until runstart
-    uint64_t offset_while = 0;
-    while (current_block != start_block)
-    {
-        current_block = get_next_block_id(current_block);
-        set_offset_word(current_block, get_offset_word(current_block) + 1); // TO CHECK
-        cout << "!!! INCREASING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;
-        offset_while++;
-    }
-    if (verbose)
-    {
-        cout << "Offset increased " << offset_while << " times. Now at" << get_offset_word(current_block) << endl;
-    }
-
-    // current_block == start_block
+    current_block = start_block;
     // RUNEND case runstart at the end of filter (shift almost all filter)
     if ((current_block == end_block) && (start_position > end_position))
     {
@@ -398,17 +437,34 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
         current_block = get_next_block_id(current_block);
         current_shift_in_block = 0;
-        set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
+        //set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
     }
 
     while (current_block != end_block)
     {
         word_to_shift = get_runend_word(current_block);
         save_right = word_to_shift & mask_right(current_shift_in_block);
-        to_shift = shift_left(shift_right(word_to_shift, current_shift_in_block), (current_shift_in_block + shift_slots));
+        if ((current_shift_in_block + shift_slots) > MEM_UNIT) {to_shift = 0;}
+        else {to_shift = shift_left(shift_right(word_to_shift, current_shift_in_block), (current_shift_in_block + shift_slots));}
+        if (verbose) {
+            cout << "word to shift" << endl;
+            print_bits_rev(word_to_shift);
+            cout << "save_right, shifting right of (current_shift_in_block=) " << current_shift_in_block << " and shifting left of " << (current_shift_in_block + shift_slots) << " with shift slots= " << shift_slots << endl;
+            print_bits_rev(save_right);
+            cout << "to_shift, shift_slots= " << shift_slots << endl;
+            print_bits_rev(to_shift);
+            cout << "overflow_bits" << endl;
+            print_bits_rev(overflow_bits);
 
+        }
         overflow_bits = shift_left(overflow_bits, current_shift_in_block);
         to_shift |= (save_right | overflow_bits);
+        if (verbose){
+            cout << "overflow_bits" << endl;
+            print_bits_rev(overflow_bits);
+            cout << "to_shift" << endl;
+            print_bits_rev(overflow_bits);
+        }
         set_runend_word(current_block, to_shift);
         overflow_bits = shift_right(word_to_shift, (MEM_UNIT - shift_slots));
 
@@ -416,16 +472,29 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
         current_block = next_block;
 
         // OFFSET case everyblock we cross until runend
-        set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
+        //set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
         current_shift_in_block = 0;
     }
 
     word_to_shift = get_runend_word(current_block);
-    save_left = (word_to_shift & mask_left(MEM_UNIT - end_shift_in_block));
+    save_left = word_to_shift & mask_left(MEM_UNIT - end_shift_in_block);
     save_right = word_to_shift & mask_right(current_shift_in_block);
+    if (verbose) {
+            cout << "word to shift" << endl;
+            print_bits_rev(word_to_shift);
+            cout << "save_left, masking left of " << (MEM_UNIT - end_shift_in_block) << endl;
+            print_bits_rev(save_left);
+            cout << "save_right, masking right of " << current_shift_in_block << endl;
+            print_bits_rev(save_right);
+        }
 
     to_shift = (((word_to_shift & mask_right(end_shift_in_block)) & mask_left(MEM_UNIT - current_shift_in_block)) << shift_slots);
     to_shift |= ((save_left | shift_left(overflow_bits, current_shift_in_block)) | save_right);
+        if (verbose) {
+            cout << "output word" << endl;
+            print_bits_rev(to_shift);
+
+        }
 
     set_runend_word(current_block, to_shift);
     if (verbose) { cout << "exiting shift" << endl;}
@@ -696,8 +765,8 @@ void Cqf::display_vector()
     {
         block_pos = block * BLOCK_SIZE;
         cout << get_offset_word(block) << endl;
-        print_bits(get_occupied_word(block));
-        print_bits(get_runend_word(block));
+        print_bits_rev(get_occupied_word(block));
+        print_bits_rev(get_runend_word(block));
         for (uint64_t i = 0; i < BLOCK_SIZE; i++)
         {
             cout << get_remainder(block_pos + i) << " ";
@@ -747,7 +816,7 @@ void Cqf::resize(int n){
     uint64_t num_quots = 1ULL << this->quotient_size; 
     uint64_t num_of_words = num_quots * (MET_UNIT + this->remainder_size) / MEM_UNIT;
 
-    this->size_limit = num_quots * 0.95;
+    this->size_limit = num_quots * 0.90;
 
     // In machine words
     this->number_blocks = std::ceil(num_quots / BLOCK_SIZE);

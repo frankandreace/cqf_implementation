@@ -8,6 +8,16 @@ void print_bits(uint64_t x) {
   std::cout << bits << std::endl;
 }
 
+void print_bits_rev(uint64_t x) {
+    int count = 0;
+    while (count < MEM_UNIT){
+        std::cout << (x & 1ULL);
+        x >>= 1;
+        count++;
+    }
+    std::cout << std::endl;
+}
+
 
 uint64_t mask_right(uint64_t numbits){
     uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1ULL);

@@ -11,8 +11,8 @@ class CqfTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        generator.seed(2); //time(NULL) //11
-        small_cqf = Cqf(7, 4, true);
+        generator.seed(1); //time(NULL) //11
+        small_cqf = Cqf(7, 5, true);
     }
 
     // void TearDown() override {}
@@ -22,7 +22,7 @@ protected:
 
     Cqf small_cqf;
 
-    uint64_t max_shift_run_test = 4;
+    uint64_t max_shift_run_test = 6;
 };
 
 /*
