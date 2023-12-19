@@ -11,8 +11,8 @@ class CqfTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        generator.seed(1); //time(NULL) //11
-        small_cqf = Cqf(7, 5, true);
+        generator.seed(time(NULL)); //time(NULL) //1
+        small_cqf = Cqf(18,21, false);
     }
 
     // void TearDown() override {}
@@ -22,7 +22,7 @@ protected:
 
     Cqf small_cqf;
 
-    uint64_t max_shift_run_test = 6;
+    uint64_t max_shift_run_test = 29;
 };
 
 /*
@@ -50,6 +50,7 @@ TEST_F(CqfTest, insert1value)
     //EXPECT_EQ(small_cqf.enumerate(), verif);
 }
 
+
 TEST_F(CqfTest, insert1occ_per_quotient)
 {
     uint64_t val;
@@ -65,7 +66,7 @@ TEST_F(CqfTest, insert1occ_per_quotient)
         val = (val & (mask_right(small_cqf.quotient_size + small_cqf.remainder_size)));
         quot = small_cqf.quotient(val);
         rem = small_cqf.remainder(val);
-        while (q_verif.count(quot) == 1 || (rem == 0))
+        while (q_verif.count(quot) == 1 || (rem == 0) || verif.count(val) == 1)
         { // already seen key
             val = distribution(generator);
             val = (val & (mask_right(small_cqf.quotient_size + small_cqf.remainder_size)));
@@ -74,12 +75,14 @@ TEST_F(CqfTest, insert1occ_per_quotient)
         }
 
         small_cqf.insert(val);
-        //small_cqf.display_vector();
+        small_cqf.display_vector();
         verif.insert({val, 1});
         q_verif.insert({quot, 1});
     }
 
     small_cqf.get_num_inserted_elements();
+    small_cqf.compare_with_map(verif);
+
     EXPECT_EQ(small_cqf.enumerate(), verif);
     
     // REMOVE
@@ -92,6 +95,7 @@ TEST_F(CqfTest, insert1occ_per_quotient)
 
     //EXPECT_EQ(small_cqf.enumerate(), verif);
 }
+
 
 TEST_F(CqfTest, insert1occ_per_hash)
 {
@@ -127,10 +131,7 @@ TEST_F(CqfTest, insert1occ_per_hash)
 
     //EXPECT_EQ(small_cqf.enumerate(), verif);
 }
-
 */
-
-
 
 
 TEST_F(CqfTest, insertRDMoccs) {
@@ -155,11 +156,12 @@ TEST_F(CqfTest, insertRDMoccs) {
             verif.insert({val, val % 31});
         }
         
-        small_cqf.display_vector();
+        //small_cqf.display_vector();
     }
-
+    std::map<uint64_t, uint64_t> out_filter = small_cqf.enumerate();
+    //small_cqf.compare_with_map(verif);
     small_cqf.get_num_inserted_elements();
-    EXPECT_EQ(small_cqf.enumerate(), verif);
+    EXPECT_EQ(out_filter, verif);
 
     //REMOVE
     //std::map<uint64_t,uint64_t>::iterator it;

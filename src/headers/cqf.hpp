@@ -3,6 +3,8 @@
 
 #include <map>
 #include <list>
+#include <algorithm>
+#include <limits>
 #include <string>
 
 #include "rsqf.hpp"
@@ -54,7 +56,14 @@ public:
 
     std::map<uint64_t, uint64_t> enumerate();
 
+    void save_on_disk(const std::string& filename);
+
+    Cqf load_from_disk(const std::string& filename);
+
+
     void display_vector();
+
+    void compare_with_map(std::map<uint64_t,uint64_t> check);
 
     void get_num_inserted_elements(){
         std::cout << "This filter contains " << this->num_uint_inserted << " filling " << this->elements_inside << " slots." << std::endl;
@@ -87,8 +96,7 @@ private:
      * \param end_position end position of the shifting.
      * \param n_bits number of bits to shift
      */
-    void shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uint64_t start_position, uint64_t end_position, uint64_t n_bits);
-
+    void shift_bits_left_metadata(uint64_t start_position, uint64_t end_position, uint64_t n_bits); //uint64_t quotient, uint64_t overflow_bit,
     /**
      * \brief query a sequence from the filter.
      *
@@ -141,7 +149,6 @@ private:
     std::vector<std::pair<uint64_t, uint64_t>> report_run(uint64_t current_position, uint64_t end_position);
 
     void resize(int n);
-
 };
 
 #endif

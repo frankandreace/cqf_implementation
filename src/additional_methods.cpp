@@ -29,12 +29,12 @@ uint64_t mask_left(uint64_t numbits){
 }
 
 uint64_t shift_left(uint64_t value, uint64_t shift){
-    if (shift == MEM_UNIT) return 0;
+    if (shift >= MEM_UNIT) return 0;
     else return (value << shift);
 }
 
 uint64_t shift_right(uint64_t value, uint64_t shift){
-    if (shift == MEM_UNIT) return 0;
+    if (shift >= MEM_UNIT) return 0;
     else return (value >> shift);
 }
 

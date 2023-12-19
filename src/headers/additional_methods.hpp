@@ -230,11 +230,7 @@ bool check_equal_to(uint64_t x, uint64_t y);
 
 void print_list(std::list<uint64_t> const &list);
 
-struct counter_info
-{
-    uint64_t count;
-    uint64_t position;
-    uint64_t value;
-};
+struct counter_info {uint64_t count; uint64_t position; uint64_t value;};
+
 
 #endif

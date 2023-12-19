@@ -56,6 +56,71 @@ Cqf::Cqf(uint64_t max_memory, bool verb)
     filter = vector<uint64_t>(num_of_words);
 }
 
+result_query Cqf::query(string seq){
+    int k = this->kmer_size;
+    int n = seq.length();
+    uint64_t curr_kmer_abundance = 0;
+    int nb_presence = 0;
+    int avg = 0;
+    int minimum  = numeric_limits<int>::max();
+
+    uint64_t current_kmer = 0;
+    
+    //build current_smer (s first chars)
+    for (auto i = 0; i < k-1; i++){
+        current_kmer <<= 2;
+        current_kmer |= nucl_encode(seq[i]);
+    } 
+
+
+    //all kmers
+    for (auto i = k-1; i < n; i++){
+        current_kmer <<= 2;
+        current_kmer = (current_kmer | nucl_encode(seq[i])) & mask_right(2*n);
+
+        curr_kmer_abundance = this->query(bfc_hash_64(flip(canonical(current_kmer, 2*n), 2*n), mask_right(n*2)));
+
+        if (curr_kmer_abundance == 0){
+            minimum = 0;
+        } else {
+            minimum = std::min(minimum, int(curr_kmer_abundance));
+            avg = avg + curr_kmer_abundance;
+            nb_presence ++;
+        }
+    }
+
+    return result_query {minimum, (float)(avg / (n-k+1)), (float)nb_presence/(n-k+1)};
+}
+
+uint64_t Cqf::query(uint64_t number){
+    number &= (mask_right(this->quotient_size + this->remainder_size));
+    uint64_t quot = quotient(number);
+    uint64_t rem = remainder(number);
+    if (verbose)
+    {
+        cout << "[QUERY] Slots used: " << elements_inside << " (" << elements_inside/double(number_blocks*MEM_UNIT) << ") with " << number_blocks*MEM_UNIT << " available slots, num integers inserted: " << num_uint_inserted << " and size limit " << size_limit << endl;
+        cout << "[QUERY] quot " << quot << " from hash " << number << endl;
+        cout << "[QUERY] rem " << rem << endl;
+        cout << endl;
+    }
+    if (!is_occupied(quot)){
+        return 0ULL;
+    }
+    pair<uint64_t, uint64_t> boundary = get_run_boundaries(quot);
+
+    if (verbose)
+        cout << "boundaries " << boundary.first << " || " << boundary.second << endl;
+
+    // find the place where the remainder should be inserted / all similar to a query
+    // getting position where to start shifting right
+    counter_info run_information = scan_run(rem, boundary.first, boundary.second); // uint64_t remainder, pair<uint64_t, uint64_t> range, F condition_met
+    if (run_information.value == rem){
+        return run_information.count;
+    }
+    return 0ULL;
+
+}
+
 void Cqf::insert(string kmc_input)
 {
     if (verbose)
@@ -203,25 +268,22 @@ void Cqf::insert(uint64_t number, uint64_t count)
         shift_metadata_slots.push_front(starting_position);
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
         uint64_t start_range, end_range;
-        uint64_t flag = 0;
         for (int i = 0; i < shift_iterations; i++)
         {
             end_range = shift_metadata_slots.back();
             shift_metadata_slots.pop_back();
             start_range = shift_metadata_slots.back();
-            if (verbose) { 
-                cout << "BEFORE runend of block " << get_block_id(start_range) << endl;    
-                print_bits(get_runend_word(get_block_id(start_range)));
-                if (get_block_id(start_range) != get_block_id(end_range)) {cout << "runend of block " << get_block_id(end_range) << endl;    
-                print_bits(get_runend_word(get_block_id(end_range)));}
-                }
-            shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
-            if (verbose) { 
-                cout << "AFTER runend of block " << get_block_id(start_range) << endl;    
-                print_bits(get_runend_word(get_block_id(start_range)));
-                if (get_block_id(start_range) != get_block_id(end_range)) {cout << "runend of block " << get_block_id(end_range) << endl;    
-                print_bits(get_runend_word(get_block_id(end_range)));}
-                }
+
+            if (verbose)
+            {
+                cout << "start_range " << start_range << "; end_range " << end_range << endl;
+            }
+            for (int j = 0; j < i; j++)
+            {
+                end_range = get_next_quot(end_range);
+            }
+            shift_bits_left_metadata(start_range, end_range, i + 1); //quot, flag,
+
         }  
         if (verbose) { cout << "Calculating runend bit position at " ;}
         uint64_t runend_bit_position = starting_position;
@@ -283,7 +345,6 @@ void Cqf::insert(uint64_t number, uint64_t count)
         
         uint64_t shift_iterations = shift_metadata_slots.size() - 1;
         uint64_t start_range, end_range;
-        uint64_t flag = 0;
         if (verbose)
         {
             cout << "shift_iterations " << shift_iterations << endl;
@@ -296,9 +357,13 @@ void Cqf::insert(uint64_t number, uint64_t count)
             start_range = shift_metadata_slots.back();
             if (verbose)
             {
-                cout << "start_range " << start_range << "; end_range " << end_range << "; flag " << flag << endl;
+                cout << "start_range " << start_range << "; end_range " << end_range << endl;
             }
-            shift_bits_left_metadata(quot, flag, start_range, end_range, i + 1);
+            for (int j = 0; j < i; j++)
+            {
+                end_range = get_next_quot(end_range);
+            }
+            shift_bits_left_metadata(start_range, end_range, i + 1); // quot, flag
         }
 
         elements_inside = elements_inside + slots_to_add_count_inserted;
@@ -329,11 +394,12 @@ void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots,
     // OFFSET case quotient is in first slot (TEST_F(RsqfTest, offset2))
     if (get_shift_in_block(quotient) == 0)
     {
-        set_offset_word(current_block, get_offset_word(current_block) + counter.size()); // TO CHECK
+        set_offset_word(current_block, get_offset_word(current_block) + counter.size());
         if (verbose) {cout << "!!! SETTING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;}
     }
 
-    for (int i = 0; i < quotients_visited.size(); i++){
+    uint64_t max_loop = quotients_visited.size();
+    for (int i = 0; i < max_loop; i++){
         if (get_block_id(quotients_visited.front()) == current_block) {
             quotients_visited.pop_front();
         }
@@ -350,7 +416,8 @@ void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots,
         if(verbose) {cout << "current block: " << current_block << " . end block " << end_block << endl;}
         current_block = get_next_block_id(current_block);
         shifted_blocks = 0;
-        for (int i = 0; i < quotients_visited.size(); i++){
+        max_loop = quotients_visited.size();
+        for (int i = 0; i < max_loop; i++){
             if (get_block_id(quotients_visited.front()) == current_block) {
                 quotients_visited.pop_front();
                 shifted_blocks++;
@@ -360,7 +427,6 @@ void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots,
             }
         }
         set_offset_word(current_block, get_offset_word(current_block) + (shifted_blocks + quotients_visited.size())); // TO CHECK
-        cout << "!!! INCREASING OFFSET OF " << current_block << " TO " << get_offset_word(current_block) << endl;
         offset_while++;
     }
     if (verbose)
@@ -394,21 +460,21 @@ void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots,
     }
 }
 
-void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uint64_t start_position, uint64_t end_position, uint64_t shift_slots)
+void Cqf::shift_bits_left_metadata(uint64_t start_position, uint64_t end_position, uint64_t shift_slots)
 {
     if (verbose)
     {
-        cout << "shift_bits_left_metadata quotient " << quotient << " SP " << start_position << " EP " << end_position << " N_BITS " << shift_slots << endl;
+        cout << "shift_bits_left_metadata SP " << start_position << " ; EP " << end_position << " ; N_BITS " << shift_slots << endl;
     }
 
     assert(start_position < (1ULL << quotient_size));
     assert(end_position < (1ULL << quotient_size));
 
     // METHOD FOR INSERTION
-    uint64_t current_block = get_block_id(quotient);
+    uint64_t overflow_bit = 0ULL;
+    
+    uint64_t current_block = get_block_id(start_position);
     uint64_t current_shift_in_block = get_shift_in_block(start_position);
-
-    uint64_t start_block = get_block_id(start_position);
 
     uint64_t end_block = get_block_id(end_position);
     uint64_t end_shift_in_block = get_shift_in_block(end_position);
@@ -420,9 +486,9 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
     uint64_t next_block;
     uint64_t save_left;
 
-    uint64_t overflow_bits = shift_left(overflow_bit, shift_slots - 1);
+    uint64_t overflow_bits = 0ULL;
+    uint64_t shift_overflow;
 
-    current_block = start_block;
     // RUNEND case runstart at the end of filter (shift almost all filter)
     if ((current_block == end_block) && (start_position > end_position))
     {
@@ -437,67 +503,42 @@ void Cqf::shift_bits_left_metadata(uint64_t quotient, uint64_t overflow_bit, uin
 
         current_block = get_next_block_id(current_block);
         current_shift_in_block = 0;
-        //set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
+
     }
 
     while (current_block != end_block)
     {
         word_to_shift = get_runend_word(current_block);
+        
         save_right = word_to_shift & mask_right(current_shift_in_block);
-        if ((current_shift_in_block + shift_slots) > MEM_UNIT) {to_shift = 0;}
-        else {to_shift = shift_left(shift_right(word_to_shift, current_shift_in_block), (current_shift_in_block + shift_slots));}
-        if (verbose) {
-            cout << "word to shift" << endl;
-            print_bits_rev(word_to_shift);
-            cout << "save_right, shifting right of (current_shift_in_block=) " << current_shift_in_block << " and shifting left of " << (current_shift_in_block + shift_slots) << " with shift slots= " << shift_slots << endl;
-            print_bits_rev(save_right);
-            cout << "to_shift, shift_slots= " << shift_slots << endl;
-            print_bits_rev(to_shift);
-            cout << "overflow_bits" << endl;
-            print_bits_rev(overflow_bits);
-
-        }
         overflow_bits = shift_left(overflow_bits, current_shift_in_block);
+
+        to_shift = shift_left(shift_right(word_to_shift, current_shift_in_block), (current_shift_in_block + shift_slots));
         to_shift |= (save_right | overflow_bits);
-        if (verbose){
-            cout << "overflow_bits" << endl;
-            print_bits_rev(overflow_bits);
-            cout << "to_shift" << endl;
-            print_bits_rev(overflow_bits);
-        }
         set_runend_word(current_block, to_shift);
-        overflow_bits = shift_right(word_to_shift, (MEM_UNIT - shift_slots));
+
+        shift_overflow = ((MEM_UNIT - shift_slots) > current_shift_in_block ) ? (MEM_UNIT - shift_slots) : current_shift_in_block;
+        overflow_bits = shift_right(word_to_shift, shift_overflow);
+        overflow_bits = shift_left(overflow_bits, shift_overflow + shift_slots - MEM_UNIT);
+        if (verbose) { 
+            cout << "overflow bits = ";
+            print_bits_rev(overflow_bits);
+            }
 
         next_block = get_next_block_id(current_block);
         current_block = next_block;
 
-        // OFFSET case everyblock we cross until runend
-        //set_offset_word(current_block, get_offset_word(current_block) + shift_slots); // TO CHECK
         current_shift_in_block = 0;
     }
 
     word_to_shift = get_runend_word(current_block);
-    save_left = word_to_shift & mask_left(MEM_UNIT - end_shift_in_block);
+    save_left = word_to_shift & mask_left(MEM_UNIT - end_shift_in_block); 
     save_right = word_to_shift & mask_right(current_shift_in_block);
-    if (verbose) {
-            cout << "word to shift" << endl;
-            print_bits_rev(word_to_shift);
-            cout << "save_left, masking left of " << (MEM_UNIT - end_shift_in_block) << endl;
-            print_bits_rev(save_left);
-            cout << "save_right, masking right of " << current_shift_in_block << endl;
-            print_bits_rev(save_right);
-        }
 
     to_shift = (((word_to_shift & mask_right(end_shift_in_block)) & mask_left(MEM_UNIT - current_shift_in_block)) << shift_slots);
     to_shift |= ((save_left | shift_left(overflow_bits, current_shift_in_block)) | save_right);
-        if (verbose) {
-            cout << "output word" << endl;
-            print_bits_rev(to_shift);
-
-        }
 
     set_runend_word(current_block, to_shift);
-    if (verbose) { cout << "exiting shift" << endl;}
 }
 
 list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
@@ -567,6 +608,7 @@ list<uint64_t> Cqf::encode_counter(uint64_t remainder, uint64_t count)
             if ((count - 2) >= remainder)
                 counter.push_back(0ULL);
             // ADD THE MAXIMUM ENCODABLE VALUE SLOTS OF THE COUNTER
+            if (remainder == max_encodable_value) {max_encodable_value--;}
             while (maximum_count_slots-- > 0)
             {
                 counter.push_back(max_encodable_value);
@@ -730,21 +772,24 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
         {
             cout << "At block " << block << " the occupied word is " << probe << endl;
         }
-        if (probe == 0)
+        if (probe == 0){
             continue;
+        }
         for (uint64_t i = 0; i < BLOCK_SIZE; i++)
         {
             if (probe & 1ULL)
             { // occupied
                 quotient = block * BLOCK_SIZE + i;
                 bounds = get_run_boundaries(quotient);
-                if (verbose)
+                if (verbose){
                     cout << "FOUND AN OCCUPIED BIT IN (quotient) " << quotient << "; with bounds " << bounds.first << " - " << bounds.second << endl;
+                }
                 curr_run_elements = report_run(bounds.first, bounds.second);
                 for (int i = 0; i < curr_run_elements.size(); i++)
                 {
-                    if (verbose)
+                    if (verbose){
                         cout << "!!! INSERING in verification map value " << rebuild_number(quotient, curr_run_elements[i].first, quotient_size) << " with quotient " << quotient << " ; remainder " << curr_run_elements[i].first << " and count " << curr_run_elements[i].second << endl;
+                    }
                     finalSet[rebuild_number(quotient, curr_run_elements[i].first, quotient_size)] = curr_run_elements[i].second;
                 }
             }
@@ -786,8 +831,9 @@ std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_posi
     std::vector<std::pair<uint64_t, uint64_t>> report;
     while (current_position != get_next_quot(end_position))
     {
-        if (verbose)
+        if (verbose){
             cout << "REPORT_RUN. Position: " << current_position << endl;
+        }
         decoded_info = scan_run(current_value, current_position, end_position);
         report_info.first = current_value;
         report_info.second = decoded_info.count;
@@ -806,6 +852,20 @@ std::vector<std::pair<uint64_t, uint64_t>> Cqf::report_run(uint64_t current_posi
     return report;
 }
 
+void Cqf::compare_with_map(std::map<uint64_t,uint64_t> check){
+    std::map<uint64_t, uint64_t> inserted_elements = this->enumerate();
+    cout << "Checking equality of 2 sets. Verif length = " << check.size() << " and inserted length = " << inserted_elements.size() << endl;
+
+    auto j = check.begin();
+    for (auto i = inserted_elements.begin(); i != inserted_elements.end(); i++){
+        if (j == check.end()) {break;}
+        if ((i->first != j->first) || (i->second != j->second)){
+            std::cout << i->first << " - " << i->second << " while expected " << j->first << " - " << j->second << endl;
+        }
+        j++;
+    }
+
+}
 
 void Cqf::resize(int n){
     std::map<uint64_t, uint64_t> inserted_elements = this->enumerate();
@@ -816,7 +876,7 @@ void Cqf::resize(int n){
     uint64_t num_quots = 1ULL << this->quotient_size; 
     uint64_t num_of_words = num_quots * (MET_UNIT + this->remainder_size) / MEM_UNIT;
 
-    this->size_limit = num_quots * 0.90;
+    this->size_limit = num_quots * 0.95;
 
     // In machine words
     this->number_blocks = std::ceil(num_quots / BLOCK_SIZE);
@@ -828,4 +888,43 @@ void Cqf::resize(int n){
     for (auto const& elem : inserted_elements){
         this->insert(elem.first, elem.second);
     }
+}
+
+void Cqf::save_on_disk(const std::string& filename) { //remove 5 
+    std::ofstream file(filename, std::ios::out | std::ios::binary);
+    if (file.is_open()) {
+        file.write(reinterpret_cast<const char*>(&this->quotient_size), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->remainder_size), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->number_blocks), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->kmer_size), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->size_limit), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->elements_inside), sizeof(uint64_t));
+        file.write(reinterpret_cast<const char*>(&this->num_uint_inserted), sizeof(uint64_t));
+        uint64_t num_words = (1ULL<<this->quotient_size) * (MET_UNIT + this->remainder_size) / MEM_UNIT;
+        file.write(reinterpret_cast<const char*>(this->filter.data()), sizeof(uint64_t) * num_words);
+        file.close();
+    } else {
+        std::cerr << "Unable to open file for writing: " << filename << std::endl;
+    }
+}
+
+Cqf Cqf::load_from_disk(const std::string& filename){
+    Cqf qf;
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
+    if (file.is_open()) {
+        file.read(reinterpret_cast<char*>(&qf.quotient_size), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.remainder_size), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.number_blocks), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.kmer_size), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.size_limit), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.elements_inside), sizeof(int64_t));
+        file.read(reinterpret_cast<char*>(&qf.num_uint_inserted), sizeof(int64_t));
+        uint64_t num_words = (1ULL<<qf.quotient_size) * (MET_UNIT + qf.remainder_size) / MEM_UNIT;
+        qf.filter.resize(num_words);
+        file.read(reinterpret_cast<char*>(qf.filter.data()), sizeof(int64_t) * num_words);
+        file.close();
+    } else {
+        std::cerr << "Unable to open file for reading: " << filename << std::endl;
+    }
+    return qf;
 }
