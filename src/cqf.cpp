@@ -4,11 +4,12 @@ using namespace std;
 
 Cqf::Cqf() {}
 
-Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verb)
+Cqf::Cqf(uint64_t q_size, uint64_t r_size, uint64_t k, bool verb)
 {
     assert(q_size >= 7);
 
     verbose = verb;
+    kmer_size = k;
 
     elements_inside = 0;
     quotient_size = q_size;
@@ -23,7 +24,7 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verb)
     uint64_t num_quots = 1ULL << quotient_size;
     uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
 
-    this->size_limit = num_quots * 0.90;
+    this->size_limit = num_quots * 0.95;
 
     // In machine words
     number_blocks = ceil(num_quots / BLOCK_SIZE);
@@ -33,6 +34,37 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, bool verb)
     {
         cout << "Construction done." << endl;
     }
+}
+
+Cqf::Cqf(uint64_t q_size, uint64_t r_size, uint64_t k, uint64_t z, bool verb)
+{
+    assert(q_size >= 7);
+
+    verbose = verb;
+
+    elements_inside = 0;
+    quotient_size = q_size;
+    kmer_size = k;
+    smer_size = k-z;
+    uint64_t hash_size = 2*smer_size;
+
+    remainder_size = r_size;
+
+    if (verbose)
+    {
+        cout << "quotient_size: " << quotient_size << " remainder_size: " << remainder_size << endl;
+    }
+
+    uint64_t num_quots = 1ULL << quotient_size;
+    uint64_t num_of_words = num_quots * (MET_UNIT + remainder_size) / MEM_UNIT;
+
+    this->size_limit = num_quots * 0.95;
+
+    // In machine words
+    number_blocks = ceil(num_quots / BLOCK_SIZE);
+
+    filter = vector<uint64_t>(num_of_words);
+    if (verbose){ cout << "Construction done." << endl;}
 }
 
 Cqf::Cqf(uint64_t max_memory, bool verb)
@@ -92,6 +124,60 @@ result_query Cqf::query(string seq){
     return result_query {minimum, (float)(avg / (n-k+1)), (float)nb_presence/(n-k+1)};
 }
 
+result_query Cqf::query_fimpera(string seq){
+    int s = this->smer_size;
+    int k = this->kmer_size;
+    int n = seq.length();
+    
+    if (k == s && s == n) { 
+        uint64_t res = this->query(bfc_hash_64(flip(canonical(flip(encode(seq), 2*s), 2*s), 2*s), mask_right(s*2)));
+        return result_query {(int)res, (float)res, (float)(res!=0)};
+    }
+    int z = k-s;
+    int last_smers_abundances[z+1];
+    int* kmer_abundance;
+    int nb_presence = 0;
+    int avg = 0;
+    int minimum  = numeric_limits<int>::max();
+
+    uint64_t current_smer = 0;
+    
+    //build current_smer (s first chars)
+    for (auto i = 0; i < s-1; i++){
+        current_smer <<= 2;
+        current_smer |= nucl_encode(seq[i]);
+    } 
+
+    //1st kmer (s+z first chars), skipped if k==s
+    for (auto i = s-1; i < k-1; i++){
+        current_smer <<= 2;
+        current_smer = (current_smer | nucl_encode(seq[i])) & mask_right(2*s);
+
+        last_smers_abundances[i-(s-1)] = this->query(bfc_hash_64(flip(canonical(current_smer, 2*s), 2*s), mask_right(s*2)));
+    }
+
+
+    //all kmers
+    for (auto i = k-1; i < n; i++){
+        current_smer <<= 2;
+        current_smer = (current_smer | nucl_encode(seq[i])) & mask_right(2*s);
+
+        last_smers_abundances[(i-s+1)%(z+1)] = this->query(bfc_hash_64(flip(canonical(current_smer, 2*s), 2*s), mask_right(s*2)));
+
+        kmer_abundance = min_element(last_smers_abundances, last_smers_abundances+z+1);
+        if (*kmer_abundance == 0){
+            minimum = 0;
+        } else {
+            minimum = std::min(minimum, *kmer_abundance);
+            avg = avg + *kmer_abundance;
+            nb_presence ++;
+        }
+    }
+    std::cout << "returning result query" << endl;
+    return result_query {minimum, (float)(avg / (n-k+1)), (float)nb_presence/(n-k+1)};
+}
+
+
 uint64_t Cqf::query(uint64_t number){
     number &= (mask_right(this->quotient_size + this->remainder_size));
     uint64_t quot = quotient(number);
@@ -118,8 +204,44 @@ uint64_t Cqf::query(uint64_t number){
         return run_information.count;
     }
     return 0ULL;
-
 }
+
+
+void Cqf::insert_fimpera(string kmc_input){
+    std::cout << "INSERTING FIMPERA" << endl;
+    try {
+        ifstream infile(kmc_input);
+
+        if (!infile) {
+            throw std::runtime_error("File not found: " + kmc_input);
+        }
+
+        string smer; 
+        uint64_t count;
+
+        //1st elem, check s == smer_size
+        infile >> smer >> count;
+        if (smer.size() == this->smer_size){
+            this->insert(smer, count);
+        } else {
+            std::cerr << "This CQF has been configured to accept " << this->smer_size << "mers but trying to insert " << smer.size() << "mers, end of insertions" << std::endl;
+            return;
+        }
+        
+        std::cout << "INSERTING SMERS" << endl;
+        uint64_t num_smers_inserted = 0;
+        while (infile >> smer >> count) {
+            if (num_smers_inserted % 100000 == 0) {std::cout << num_smers_inserted << "SMERS INSERTED" << endl;}
+            this->insert(smer, count);
+            num_smers_inserted++;
+        }
+
+        infile.close();
+    } catch (const std::exception &e) {
+        // Gérez l'exception ici, par exemple, affichez un message d'erreur
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}   
 
 void Cqf::insert(string kmc_input)
 {
@@ -150,9 +272,13 @@ void Cqf::insert(string kmc_input)
             return;
         }
 
+        std::cout << "INSERTING KMERS" << endl;
+         uint64_t num_kmers_inserted = 0;
         while (infile >> kmer >> count)
         {
             this->insert(kmer, count);
+            if (num_kmers_inserted % 100000 == 0) {std::cout << num_kmers_inserted << "K-MERS INSERTED" << endl;}
+            num_kmers_inserted++;
         }
 
         infile.close();
@@ -372,7 +498,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
     }
 }
 
-void Cqf::insert_counter_circ(list<uint64_t> counter, list<uint64_t> free_slots, uint64_t start_quotient, uint64_t quotient)
+void Cqf::insert_counter_circ(list<uint64_t>& counter, list<uint64_t> free_slots, uint64_t start_quotient, uint64_t quotient)
 {
     if (verbose)
     {
