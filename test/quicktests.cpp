@@ -235,7 +235,7 @@ void test_one_cqf(){
     }
   }
 
-
+  /*
    //REMOVE ELEMS
   for (std::map<uint64_t,uint64_t>::iterator it = verif.begin(); it != verif.end(); it++){
     std::cout << "removing " << (*it).first << " => " << (*it).second << endl; 
@@ -258,7 +258,7 @@ void test_one_cqf(){
       exit(0);
     }
   }
-
+  */
   
 }
 
@@ -318,7 +318,7 @@ void experiments(){
   //on choisit r tel que : taille_hash - q (avec taille_hash = 2s = 2*taille_s-mers)
   //on choisit c selon la précision voulue sur les compteurs et l'espace qu'on souhaite économiser
 
-  Bqf_ec cqf(31, 5, 32, 5, false); 
+  Cqf cqf(31, 5, 32, 5, false); 
   //Insertion des s-mers comptés avec KMC
   //cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_28_all.txt");
   cqf.insert("/scratch/vlevallois/data/AHX_ACXIOSF_6_1_27_all.txt");

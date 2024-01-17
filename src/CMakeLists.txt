@@ -7,7 +7,7 @@ add_library(RSQF
 	cqf.cpp
 )
 
-add_executable(mytest 
+add_executable(cqf 
 	main.cpp 
 	additional_methods.cpp
 	rsqf.cpp
@@ -19,10 +19,11 @@ target_include_directories(RSQF
 	"${PROJECT_SOURCE_DIR}/src/headers/"
 )
 
-target_include_directories(mytest
+target_include_directories(cqf
 	PUBLIC
 	"${PROJECT_SOURCE_DIR}/src/headers/"
 )
 
+
 set_property(TARGET RSQF PROPERTY CXX_STANDARD 17)
-set_property(TARGET mytest PROPERTY CXX_STANDARD 17)
+set_property(TARGET cqf PROPERTY CXX_STANDARD 17)

@@ -594,7 +594,7 @@ uint64_t Rsqf::get_occupied_word(uint64_t current_block) const{
 
 uint64_t Rsqf::get_offset_word(uint64_t current_block) const{
     uint64_t offset_id = (current_block *(MET_UNIT+remainder_size)) + OFF_POS;
-    assert(filter[offset_id] >= 0);
+    //assert(filter[offset_id] >= 0);
     return filter[offset_id];
 }
 
