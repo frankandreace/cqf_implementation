@@ -48,9 +48,10 @@ public:
      *
      * This function will read every line of the file to insert every pair <kmer, count> into the CQF
      *
-     * \param file path to file
+     * \param seq the sequence to query
+     * \return the abundance of the given kmer in the filter
      */
-    void insert(std::string file);
+    result_query query(std::string seq);
 
     /**
      * \brief Insert every kmer + abundance of a kmer count software output file (eg KMC)  WITH FIMPERA.
@@ -72,26 +73,20 @@ public:
      * TODO: allow user to choose hash function
      * \brief Insert a kmer in the filter alongside with his count.
      *
-     * This function inserts a kmer in the CQF.
-     * It is advised that the kmer is in a canonical form, it will be hashed then inserted.
+     * This function will read every line of the file to insert every pair <kmer, count> into the CQF
      *
-     * \param kmer to insert
-     * \param count kmer abundance
+     * \param file path to file
      */
-    void insert(std::string kmer, uint64_t count);
+    void insert(std::string file);
 
     /**
-     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below).
+     * \brief Insert every kmer + abundance of a kmer count software output file (eg KMC)  WITH FIMPERA.
      *
-     * This function inserts a number in the CQF.
-     * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
-     * (i.e. each remainder in a run is greater or equal than the predecessor).
-     * If the filter is full, new insertions are authomatically discarded.
+     * This function will read every line of the file to insert every pair <kmer, count> into the CQF
      *
-     * \param number to insert
-     * \param count number of occurences of the element to insert (default: 1)
+     * \param file path to file
      */
-    void insert(uint64_t number, uint64_t count = 1);
+    void insert_fimpera(std::string kmc_input);
 
     std::map<uint64_t, uint64_t> enumerate();
 
@@ -149,6 +144,31 @@ private:
      * \return the abundance of the given number in the filter
      */
     uint64_t query(uint64_t number);
+
+        /**
+     * TODO: allow user to choose hash function
+     * \brief Insert a kmer in the filter alongside with his count.
+     *
+     * This function inserts a kmer in the CQF.
+     * It is advised that the kmer is in a canonical form, it will be hashed then inserted.
+     *
+     * \param kmer to insert
+     * \param count kmer abundance
+     */
+    void insert(std::string kmer, uint64_t count);
+
+    /**
+     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below).
+     *
+     * This function inserts a number in the CQF.
+     * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
+     * (i.e. each remainder in a run is greater or equal than the predecessor).
+     * If the filter is full, new insertions are authomatically discarded.
+     *
+     * \param number to insert
+     * \param count number of occurences of the element to insert (default: 1)
+     */
+    void insert(uint64_t number, uint64_t count = 1);
 
     /**
      * \brief encode a counter for a remainder in the filter.
