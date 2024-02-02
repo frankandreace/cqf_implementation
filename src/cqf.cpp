@@ -408,7 +408,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
             cout << "shift_metadata_slots: ";
             print_vector(free_slots);
         }
-        for (int i = 0; i < free_slots.size() - 1; i++)
+        for (uint64_t i = 0; i < free_slots.size() - 1; i++)
         {
             end_range = free_slots[free_slots_position--];
             start_range = free_slots[free_slots_position];
@@ -417,7 +417,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
             {
                 cout << "start_range " << start_range << "; end_range " << end_range << endl;
             }
-            for (int j = 0; j < i; j++)
+            for (uint64_t j = 0; j < i; j++)
             {
                 end_range = get_next_quot(end_range);
             }
@@ -431,7 +431,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
         }  
         uint64_t runend_bit_position = starting_position;
         
-        for(int64_t i = 0; i < slots_to_add_count_inserted -1 ; i++){
+        for(uint64_t i = 0; i < slots_to_add_count_inserted -1 ; i++){
             runend_bit_position = get_next_quot(runend_bit_position);
         }
         
@@ -497,7 +497,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
         uint64_t free_slots_position = free_slots.size() - 1;
         uint64_t start_range, end_range;
 
-        for (int i = 0; i < free_slots.size() - 1; i++)
+        for (uint64_t i = 0; i < free_slots.size() - 1; i++)
         {
             end_range = free_slots[free_slots_position--];
             start_range = free_slots[free_slots_position];
@@ -505,7 +505,7 @@ void Cqf::insert(uint64_t number, uint64_t count)
             {
                 cout << "start_range " << start_range << "; end_range " << end_range << endl;
             }
-            for (int j = 0; j < i; j++)
+            for (uint64_t j = 0; j < i; j++)
             {
                 end_range = get_next_quot(end_range);
             }
@@ -535,7 +535,7 @@ void Cqf::insert_counter_circ(uint64_t rem, uint64_t count, const vector<uint64_
     uint64_t curr_word_pos = get_remainder_word_position(start_quotient);
     uint64_t curr_word_shift = get_remainder_shift_position(start_quotient);
 
-    uint64_t curr_free_slot = start_quotient;
+    //uint64_t curr_free_slot = start_quotient;
 
     // ---- 1 ----
     // IN THIS PART I AM 
@@ -645,14 +645,12 @@ void Cqf::shift_bits_left_metadata(uint64_t start_position, uint64_t end_positio
     assert(end_position < (1ULL << quotient_size));
 
     // METHOD FOR INSERTION
-    uint64_t overflow_bit = 0ULL;
     
     uint64_t current_block = get_block_id(start_position);
     uint64_t current_shift_in_block = get_shift_in_block(start_position);
 
     uint64_t end_block = get_block_id(end_position);
     uint64_t end_shift_in_block = get_shift_in_block(end_position);
-    //(end_position == first unused slot)
 
     uint64_t word_to_shift;
     uint64_t save_right;
@@ -961,13 +959,13 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
     uint64_t current_position;
 
     uint64_t quotient;
-    uint64_t current_value;
+    //uint64_t current_value;
 
     if (verbose)
     {
         cout << "enumerating. " << ceil(number_blocks / 10) << endl;
     }
-    for (int64_t block = 0; block < number_blocks; ++block)
+    for (uint64_t block = 0; block < number_blocks; ++block)
     {
         probe = get_occupied_word(block);
         if (verbose)
@@ -991,7 +989,7 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
                     cout << endl;
                 }
                 curr_run_elements = report_run(bounds.first, bounds.second);
-                for (int i = 0; i < curr_run_elements.size(); i++)
+                for (uint64_t i = 0; i < curr_run_elements.size(); i++)
                 {
                     if (verbose){
                         cout << "!!! INSERING in verification map value " << rebuild_number(quotient, curr_run_elements[i].first, quotient_size) << " with quotient " << quotient << " ; remainder " << curr_run_elements[i].first << " and count " << curr_run_elements[i].second << endl;
@@ -1012,7 +1010,7 @@ std::map<uint64_t, uint64_t> Cqf::enumerate()
 void Cqf::display_vector()
 {
     uint64_t block_pos;
-    for (int64_t block = 0; block < number_blocks; ++block)
+    for (uint64_t block = 0; block < number_blocks; ++block)
     {
         block_pos = block * BLOCK_SIZE;
         cout << get_offset_word(block) << endl;

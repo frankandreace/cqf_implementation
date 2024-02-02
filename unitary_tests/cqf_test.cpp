@@ -13,7 +13,7 @@ protected:
     {
         generator.seed(time(NULL)); //time(NULL) //1
         bool verbose = false;
-        small_cqf = Cqf(18, 21, 20, false);
+        small_cqf = Cqf(18, 21, 20, verbose);
     }
 
     // void TearDown() override {}
@@ -23,7 +23,7 @@ protected:
 
     Cqf small_cqf;
 
-    uint64_t max_shift_run_test = 12;
+    uint64_t max_shift_run_test = 22;
 };
 
 /*

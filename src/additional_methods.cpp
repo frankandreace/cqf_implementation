@@ -9,7 +9,7 @@ void print_bits(uint64_t x) {
 }
 
 void print_bits_rev(uint64_t x) {
-    int count = 0;
+    uint64_t count = 0;
     while (count < MEM_UNIT){
         std::cout << (x & 1ULL);
         x >>= 1;
