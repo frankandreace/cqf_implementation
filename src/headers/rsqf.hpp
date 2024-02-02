@@ -521,7 +521,7 @@ class Rsqf {
 
    void display_vector(){
     uint64_t block_pos;
-    for (int64_t block = 0; block < number_blocks; ++block)
+    for (uint64_t block = 0; block < number_blocks; ++block)
     {
         block_pos = block * BLOCK_SIZE;
         std::cout << get_offset_word(block) << std::endl;

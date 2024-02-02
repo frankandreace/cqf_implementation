@@ -692,7 +692,10 @@ uint64_t Rsqf::first_unused_slot(uint64_t curr_quotient){ //const
     if (get_shift_in_block(rend_pos.first) == 0 && !rend_pos.second && get_offset_word(get_block_id(rend_pos.first)) == 0){
         //case we jumped at quot (shift) 0 and runend(shift0) = 0 but 3 cases possible:
         //run overflows by 1 || run of 1 starts at this quotient || no run at the beginning of this block (offset==0)
-        //in 3rd case, we return the curr_quot  
+        //in 3rd case, we return the curr_quot
+        if (verbose){
+        cout << "[FUS] returned FUS " << curr_quotient << endl;
+        }
         return curr_quotient;
     }
 
@@ -709,7 +712,9 @@ uint64_t Rsqf::first_unused_slot(uint64_t curr_quotient){ //const
             cout << "[FUS] loop runend " << rend_pos.first << " | " <<  rend_pos.second << " (quot " << curr_quotient << ")" << endl;
         }
     }
-
+    if (verbose){
+        cout << "[FUS] returned FUS " << curr_quotient << endl;
+    }
     return curr_quotient;
 }
 

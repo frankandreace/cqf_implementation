@@ -298,5 +298,12 @@ void print_list(std::list<uint64_t> const &list)
     }
     std::cout << std::endl;
 }
+void print_vector(std::vector<uint64_t> const &vect)
+{
+    for (auto const &i: vect) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+}
 
 

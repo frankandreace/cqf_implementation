@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+#include <list>
 
 #include "rsqf.hpp"
 
@@ -67,10 +68,48 @@ public:
     void get_num_inserted_elements(){
         std::cout << "This filter contains " << this->num_uint_inserted << " filling " << this->elements_inside << " slots." << std::endl;
     }
+            /**
+     * TODO: allow user to choose hash function
+     * \brief Insert a kmer in the filter alongside with his count.
+     *
+     * This function inserts a kmer in the CQF.
+     * It is advised that the kmer is in a canonical form, it will be hashed then inserted.
+     *
+     * \param kmer to insert
+     * \param count kmer abundance
+     */
+    void insert(std::string kmer, uint64_t count);
+
+    /**
+     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below).
+     *
+     * This function inserts a number in the CQF.
+     * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
+     * (i.e. each remainder in a run is greater or equal than the predecessor).
+     * If the filter is full, new insertions are authomatically discarded.
+     *
+     * \param number to insert
+     * \param count number of occurences of the element to insert (default: 1)
+     */
+    void insert(uint64_t number, uint64_t count = 1);
+
+    std::map<uint64_t, uint64_t> enumerate();
+
+    void print_offsets(){
+        uint64_t value;
+        for(uint64_t i = 0; i < this->number_blocks; i++){
+            value = get_offset_word(i);
+            if (value != 0){
+                std::cout << value << " ";
+            }
+        }
+        std::cout << std::endl;
+    }
 
 private:
 
     uint64_t num_uint_inserted = 0;
+    uint64_t max_encodable_value;
 
     /**
      * \brief Set the remainder slot to the assigned value
@@ -84,8 +123,8 @@ private:
      * \param free_slots list of position where there are free slots - it is used in the operation of inserting the counter in the remainder slots
      * \param starting_quotient the position of the first remainder to move
      */
-    void insert_counter_circ(std::list<uint64_t>& counter, std::list<uint64_t> free_slots, uint64_t starting_quotient, uint64_t quotient);
-
+    void insert_counter_circ(uint64_t rem, uint64_t count, const std::vector<uint64_t>& free_slots, uint64_t starting_quotient, uint64_t quotient);
+   
     /**
      * \brief Metadata function that shifts the bits left of X bits in the runend word when there is a counter insertion.
      * It also handles cases when occupieds and offsets have to be adjourned.
@@ -111,31 +150,6 @@ private:
      */
     uint64_t query(uint64_t number);
 
-        /**
-     * TODO: allow user to choose hash function
-     * \brief Insert a kmer in the filter alongside with his count.
-     *
-     * This function inserts a kmer in the CQF.
-     * It is advised that the kmer is in a canonical form, it will be hashed then inserted.
-     *
-     * \param kmer to insert
-     * \param count kmer abundance
-     */
-    void insert(std::string kmer, uint64_t count);
-
-    /**
-     * \brief Insert a NEW number in the filter alongside with his count (reduced to the power of 2 just below).
-     *
-     * This function inserts a number in the CQF.
-     * If a number has the same quotient but different remainders, it stores remainders in a monothonic way
-     * (i.e. each remainder in a run is greater or equal than the predecessor).
-     * If the filter is full, new insertions are authomatically discarded.
-     *
-     * \param number to insert
-     * \param count number of occurences of the element to insert (default: 1)
-     */
-    void insert(uint64_t number, uint64_t count = 1);
-
     /**
      * \brief encode a counter for a remainder in the filter.
      *
@@ -146,7 +160,11 @@ private:
      * \return a linked list containing the encoded counter for the remainder
      */
 
-    std::list<uint64_t> encode_counter(uint64_t remainder, uint64_t count);
+    std::vector<uint64_t> encode_counter(uint64_t remainder, uint64_t count);
+
+    std::list<uint64_t> encode_counter_list(uint64_t remainder, uint64_t count);
+
+    std::vector<uint64_t> encode_counter_vector(uint64_t remainder, uint64_t count);
 
     /**
      * \brief looks for the counter of the remainder in the given range. If not found returns 0
@@ -158,7 +176,7 @@ private:
     //template <typename F>
     counter_info scan_run(uint64_t remainder, uint64_t current_position, uint64_t end_position);
 
-    std::map<uint64_t, uint64_t> enumerate();
+    uint64_t len_encoded_counter(uint64_t remainder, uint64_t count);
 
     std::pair<uint64_t,uint64_t> read_count(uint64_t value, uint64_t current_position, uint64_t end_position);
 

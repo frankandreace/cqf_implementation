@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
         int q = 8;
         int k = 32;
         int z = 5;
+        bool verbose = false;
 
         for (int i = 2; i < argc; i++) {
             if (std::string(argv[i]) == "-q") {
@@ -64,7 +65,10 @@ int main(int argc, char *argv[])
                     std::cerr << "The -o option requires an output file name." << std::endl;
                     return 1;
                 }
+            } else if (std::string(argv[i]) == "-v") {
+                verbose = true;
             }
+            
         }
 
         if (q <= 8) {
@@ -76,7 +80,7 @@ int main(int argc, char *argv[])
 
 		//Cqf cqf = Cqf(q,MEM_UNIT-q, k, z, false);
 		//cqf.insert_fimpera(input_file);
-        Cqf cqf = Cqf(q,MEM_UNIT-q, k, false);
+        Cqf cqf = Cqf(q,MEM_UNIT-q, k, verbose);
         auto initialization_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - initialization_start).count();
         auto insertion_start = std::chrono::steady_clock::now();
 		cqf.insert(input_file);
