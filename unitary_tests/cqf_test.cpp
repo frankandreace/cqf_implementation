@@ -13,7 +13,8 @@ protected:
     {
         generator.seed(time(NULL)); //time(NULL) //1
         bool verbose = false;
-        small_cqf = Cqf(18, 21, 20, verbose);
+        normal_cqf = Cqf(18, 21, 20, verbose);
+        small_cqf = Cqf(10,7, 20, verbose);
     }
 
     // void TearDown() override {}
@@ -21,9 +22,11 @@ protected:
     std::default_random_engine generator;
     std::uniform_int_distribution<uint64_t> distribution;
 
+    Cqf normal_cqf;
     Cqf small_cqf;
 
     uint64_t max_shift_run_test = 22;
+    uint64_t max_shift_query_test = 10;
 };
 
 /*
@@ -133,7 +136,22 @@ TEST_F(CqfTest, insert1occ_per_hash)
     //EXPECT_EQ(small_cqf.enumerate(), verif);
 }
 */
+TEST_F(CqfTest, globalUse) {
+    uint64_t val = distribution(generator);
+    uint64_t val2 = distribution(generator);
 
+    std::set<uint64_t> verif;
+
+    for (uint64_t i = 0; i < (1ULL << max_shift_query_test) - 1; i++){
+        val = distribution(generator);
+        while (small_cqf.query(val) != 0) {val = distribution(generator);}
+        small_cqf.insert(val,val%31);
+        verif.insert(val);
+        while (verif.find(val2) != verif.end()){ val2 = distribution(generator); }
+        EXPECT_EQ(small_cqf.query(val), val%31);
+        EXPECT_EQ(small_cqf.query(val2), 0);
+    }
+}
 
 TEST_F(CqfTest, insertRDMoccs) {
     uint64_t val;
@@ -143,14 +161,14 @@ TEST_F(CqfTest, insertRDMoccs) {
     for (uint64_t i = 0; i < (1ULL << max_shift_run_test) - 1; i++){
 
         val = distribution(generator);
-        val = (val & (mask_right(small_cqf.quotient_size + small_cqf.remainder_size)));
+        val = (val & (mask_right(normal_cqf.quotient_size + normal_cqf.remainder_size)));
 
         while (verif.count(val) == 1) { //already seen key
             val = distribution(generator);
-            val = (val & (mask_right(small_cqf.quotient_size + small_cqf.remainder_size)));    
+            val = (val & (mask_right(normal_cqf.quotient_size + normal_cqf.remainder_size)));    
         }  
         
-        small_cqf.insert(val, val % 31);
+        normal_cqf.insert(val, val % 31);
 
         if (val%31 != 0)
         {            
@@ -159,10 +177,10 @@ TEST_F(CqfTest, insertRDMoccs) {
         
         //small_cqf.display_vector();
     }
-    small_cqf.print_offsets();
-    std::map<uint64_t, uint64_t> out_filter = small_cqf.enumerate();
+    normal_cqf.print_offsets();
+    std::map<uint64_t, uint64_t> out_filter = normal_cqf.enumerate();
     //small_cqf.compare_with_map(verif);
-    small_cqf.get_num_inserted_elements();
+    normal_cqf.get_num_inserted_elements();
     EXPECT_EQ(out_filter, verif);
 
     //REMOVE

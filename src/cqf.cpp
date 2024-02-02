@@ -46,7 +46,6 @@ Cqf::Cqf(uint64_t q_size, uint64_t r_size, uint64_t k, uint64_t z, bool verb)
     quotient_size = q_size;
     kmer_size = k;
     smer_size = k-z;
-    uint64_t hash_size = 2*smer_size;
 
     remainder_size = r_size;
 
@@ -205,43 +204,6 @@ uint64_t Cqf::query(uint64_t number){
     }
     return 0ULL;
 }
-
-
-void Cqf::insert_fimpera(string kmc_input){
-    std::cout << "INSERTING FIMPERA" << endl;
-    try {
-        ifstream infile(kmc_input);
-
-        if (!infile) {
-            throw std::runtime_error("File not found: " + kmc_input);
-        }
-
-        string smer; 
-        uint64_t count;
-
-        //1st elem, check s == smer_size
-        infile >> smer >> count;
-        if (smer.size() == this->smer_size){
-            this->insert(smer, count);
-        } else {
-            std::cerr << "This CQF has been configured to accept " << this->smer_size << "mers but trying to insert " << smer.size() << "mers, end of insertions" << std::endl;
-            return;
-        }
-        
-        std::cout << "INSERTING SMERS" << endl;
-        uint64_t num_smers_inserted = 0;
-        while (infile >> smer >> count) {
-            if (num_smers_inserted % 100000 == 0) {std::cout << num_smers_inserted << "SMERS INSERTED" << endl;}
-            this->insert(smer, count);
-            num_smers_inserted++;
-        }
-
-        infile.close();
-    } catch (const std::exception &e) {
-        // Gérez l'exception ici, par exemple, affichez un message d'erreur
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-}   
 
 void Cqf::insert(string kmc_input)
 {

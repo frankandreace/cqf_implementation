@@ -65,6 +65,19 @@ public:
 
     static Cqf load_from_disk(const std::string& filename);
 
+    /**
+    * \brief query a number from the filter.
+    *
+    * It queries a number. It first checks if the occupied bit of the quotient is set to 1. If so it scans
+    * in a linear way the remainders of the run associated to this element. If it
+    * finds the remainder it returns its exact count (or order of magnitude, depending of the filter used ) else 0.
+    * Stops immediately if the filter is empty
+    *
+    * \param number Number to query
+    * \return the abundance of the given number in the filter
+    */
+    uint64_t query(uint64_t number);
+
     void get_num_inserted_elements(){
         std::cout << "This filter contains " << this->num_uint_inserted << " filling " << this->elements_inside << " slots." << std::endl;
     }
@@ -136,19 +149,6 @@ private:
      */
     void shift_bits_left_metadata(uint64_t start_position, uint64_t end_position, uint64_t n_bits); //uint64_t quotient, uint64_t overflow_bit,
     
-
-    /**
-     * \brief query a number from the filter.
-     *
-     * It queries a number. It first checks if the occupied bit of the quotient is set to 1. If so it scans
-     * in a linear way the remainders of the run associated to this element. If it
-     * finds the remainder it returns its exact count (or order of magnitude, depending of the filter used ) else 0.
-     * Stops immediately if the filter is empty
-     *
-     * \param number Number to query
-     * \return the abundance of the given number in the filter
-     */
-    uint64_t query(uint64_t number);
 
     /**
      * \brief encode a counter for a remainder in the filter.

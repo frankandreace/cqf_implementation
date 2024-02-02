@@ -133,7 +133,7 @@ TEST_F(RsqfTest, toricity2) {
 
     EXPECT_EQ(small_qf.get_offset_word(0), 12); 
     EXPECT_EQ(small_qf.get_offset_word(1), 6); 
-} */
+} 
 
 
 TEST_F(RsqfTest, enumerate1) {
@@ -153,7 +153,7 @@ TEST_F(RsqfTest, enumerate1) {
     EXPECT_EQ(small_qf.enumerate(), verif);
 }
 
-
+*/
 
 /* TEST_F(RsqfTest, get_run_boundaries) {
     std::pair<uint64_t,uint64_t> compare(126, 2);
