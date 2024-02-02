@@ -12,7 +12,8 @@ protected:
     void SetUp() override
     {
         generator.seed(time(NULL)); //time(NULL) //1
-        small_cqf = Cqf(18,21, false);
+        bool verbose = false;
+        small_cqf = Cqf(18, 21, 20, false);
     }
 
     // void TearDown() override {}
@@ -22,7 +23,7 @@ protected:
 
     Cqf small_cqf;
 
-    uint64_t max_shift_run_test = 29;
+    uint64_t max_shift_run_test = 12;
 };
 
 /*
@@ -158,6 +159,7 @@ TEST_F(CqfTest, insertRDMoccs) {
         
         //small_cqf.display_vector();
     }
+    small_cqf.print_offsets();
     std::map<uint64_t, uint64_t> out_filter = small_cqf.enumerate();
     //small_cqf.compare_with_map(verif);
     small_cqf.get_num_inserted_elements();
